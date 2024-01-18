@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/intelli_geo" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
