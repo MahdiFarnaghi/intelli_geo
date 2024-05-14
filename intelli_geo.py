@@ -31,6 +31,9 @@ from .resources import *
 from .intelli_geo_dockwidget import IntelliGeoDockWidget
 import os.path
 
+# Import plugin utilities
+from .dataloader import Dataloader
+from .conversation import Conversation
 
 class IntelliGeo:
     """QGIS Plugin Implementation."""
@@ -72,6 +75,15 @@ class IntelliGeo:
 
         self.pluginIsActive = False
         self.dockwidget = None
+
+        # create sqlite database
+        self.dataloader = Dataloader("Conversations.db")
+
+        # TODO: move it to action triggered by only new conversation
+        self.dataloader.connect()
+        self.liveConversationName = "conversation_1"
+        self.dataloader.createtable(self.liveConversationName)
+        self.liveConversation = Conversation(self.liveConversationName, self.dataloader)
 
 
     # noinspection PyMethodMayBeStatic
@@ -211,10 +223,12 @@ class IntelliGeo:
     def run(self):
         """Run method that loads and starts the plugin"""
 
+        # Initialization
         if not self.pluginIsActive:
+
             self.pluginIsActive = True
 
-            #print "** STARTING IntelliGeo"
+            # print "** STARTING IntelliGeo"
 
             # dockwidget may not exist if:
             #    first run of plugin
@@ -230,3 +244,28 @@ class IntelliGeo:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+            # connect push button send to onNewMessageSend action
+            self.dockwidget.pbSend.clicked.connect(self.onNewMessageSend)
+
+            # connect push button delete to onConversationDeleted action
+            self.dockwidget.pbDelete.clicked.connect(self.onConversationDeleted)
+
+    def onNewMessageSend(self):
+        message = self.dockwidget.ptMessage.toPlainText()
+        self.dockwidget.ptMessage.clear()
+        self.liveConversation.updateUserPrompt(message)
+
+        # get updated log
+        log = self.liveConversation.fetch()
+        self.dockwidget.tbHistory.setPlainText(log)
+
+        # always show the bottom of streaming conversation
+        self.dockwidget.tbHistory.verticalScrollBar().setValue(self.dockwidget.tbHistory.verticalScrollBar().maximum())
+
+    def onConversationDeleted(self):
+        self.dataloader.cleartable(self.liveConversationName)
+        log = self.liveConversation.fetch()
+        self.dockwidget.tbHistory.setPlainText(log)
+        self.dockwidget.tbHistory.clear()
+        # TODO: delete also conversation metadata
