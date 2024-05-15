@@ -85,3 +85,21 @@ ed files, write a comment, request for change. At the end, if the team agrees wi
 ![Merge pull request button](/img/merge_pull_request.png "Merge pull request button")
 
 10. It is also possible to delete the old branch.
+
+
+## Develop Roadmap
+
+Known Issues & to-be-discussed
+
+### User Interface
+#### Message panel layout
+
+```diff
+- ENTER hitting checkbox for sending message.
++ User deletion right (GDPR)
+```
+
+### Backend
+```diff
+! Langchain backend handling empty inupts.
+```
