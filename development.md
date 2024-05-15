@@ -22,6 +22,12 @@
     - Using pip install pyqt5ac
 
         `pip install pyqt5ac`
+    - On linux, due to a [known issue](https://github.com/qgis/QGIS/issues/48368#issuecomment-1293898268), using pip installing qt will introduce some incompatible packages with QT5, therefore, solution is to install use
+        ```
+        sudo apt-get install python3-pyqt5
+        sudo apt-get install qtcreator pyqt5-dev-tools
+        sudo apt-get install qttools5-dev-tools
+        ```  
     - Check to see if the pb_tool.exe is in the scripts folder of the python environment
     - On the terminal, go the the intelli_geo module folder and compile using the following command
         `pbt compile`
