@@ -7,55 +7,42 @@
     <x>0</x>
     <y>0</y>
     <width>367</width>
-    <height>286</height>
+    <height>360</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>New conversation</string>
+   <string>IntelliGeo - NEW CONVERSATION</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="lblName">
      <property name="text">
       <string>Name</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="plainTextEdit">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>25</height>
-      </size>
-     </property>
-    </widget>
+    <widget class="QLineEdit" name="ptName"/>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="lblDescription">
      <property name="text">
       <string>Description</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="plainTextEdit_2"/>
+    <widget class="QPlainTextEdit" name="ptDescription"/>
    </item>
    <item>
-    <widget class="QLabel" name="label_3">
+    <widget class="QLabel" name="lblLLM">
      <property name="text">
       <string>LLM</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="cbLLM">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -76,7 +63,7 @@
      </property>
      <item>
       <property name="text">
-       <string>Ollama</string>
+       <string>Cohere</string>
       </property>
      </item>
      <item>
@@ -90,6 +77,26 @@
       </property>
      </item>
     </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblEndpoint">
+     <property name="text">
+      <string>API endpoint</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="txtAPIEndpoint"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblAPIKey">
+     <property name="text">
+      <string>API Key</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="txtAPIKey"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -107,14 +114,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pbOkay">
        <property name="text">
         <string>Ok</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="pbCancel">
        <property name="text">
         <string>Cancel</string>
        </property>
