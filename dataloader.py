@@ -1,12 +1,5 @@
-from datetime import datetime
 import sqlite3
-
-
-def getCurrentTimeStamp():
-    currentTime = datetime.now()
-    timeString = currentTime.strftime("%B %d %Y %H:%M:%S")
-
-    return timeString
+from .utils import getCurrentTimeStamp, unpack, show_variable_popup
 
 
 class Dataloader:
@@ -15,39 +8,109 @@ class Dataloader:
         self.connection = None
         self.cursor = None
 
+        self.metaTableName = None
+        self.metaTableColNames = ['title', 'description', 'created', 'lastEdit', 'LLMName', 'messageCount',
+                                  'modelCount', 'ID']
+
     def connect(self):
         self.connection = sqlite3.connect(self.databaseName)
         self.cursor = self.connection.cursor()
 
-    def createtable(self, tablename):
+    def createMetaTable(self):
+        if self.metaTableName is None:
+            columns = ["title TEXT, description TEXT, created TEXT, lastEdit TEXT, "
+                       "LLMName TEXT, messageCount INT, modelCount INT, ID TEXT"]
+            self.metaTableName = 'Metatable'
+            createTableSql = f"CREATE TABLE IF NOT EXISTS {self.metaTableName} ({', '.join(columns)})"
+            self.cursor.execute(createTableSql)
+            self.connection.commit()
+
+    def insertMetaInfo(self, metaInfo):
+        insertSQL = """
+            INSERT INTO Metatable 
+            (title, description, created, lastEdit, LLMName, messageCount, modelCount, ID) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """
+        metaInfoList = [metaInfo[col] for col in self.metaTableColNames]
+        self.cursor.execute(insertSQL, metaInfoList)
+        self.connection.commit()
+
+    def selectMetaInfo(self, ID=None):
+        if self.metaTableName is None:
+            rows = []
+        else:
+            if ID is None:
+                selectSQL = f"SELECT * FROM Metatable"
+                self.cursor.execute(selectSQL)
+            else:
+                selectSQL = "SELECT * FROM Metatable WHERE ID = ?"
+                self.cursor.execute(selectSQL, (ID,))
+            rows = self.cursor.fetchall()
+
+        result = []
+        for row in rows:
+            rowDict = {}
+            for i, column_name in enumerate(self.metaTableColNames):
+                rowDict[column_name] = row[i]
+            result.append(rowDict)
+
+        return result
+
+    def deleteMetaInfo(self, ID):
+        deleteSQL = "DELETE FROM Metatable WHERE ID = ?"
+        self.cursor.execute(deleteSQL, (ID,))
+        self.connection.commit()
+
+    def updateMetaInfo(self, metaInfo):
+        (title,
+         description,
+         created,
+         lastEdit,
+         LLMName,
+         messageCount,
+         modelCount,
+         ID) = unpack(metaInfo)
+        updateSQL = ("UPDATE Metatable SET title = ?, description = ?, lastEdit = ?, messageCount = ?, modelCount = ? "
+                     "WHERE ID = ?")
+        self.cursor.execute(updateSQL, (title, description, lastEdit, messageCount, modelCount, ID))
+        self.connection.commit()
+
+    def createTable(self, metaInfo):
+        tableID = metaInfo['ID']
+        self.insertMetaInfo(metaInfo)
+
+        # create table
         columns = ["sender TEXT", "time TEXT", "content TEXT"]
 
-        createTableSql = f"CREATE TABLE IF NOT EXISTS {tablename} ({', '.join(columns)})"
+        createTableSql = f"CREATE TABLE IF NOT EXISTS {tableID} ({', '.join(columns)})"
         self.cursor.execute(createTableSql)
         self.connection.commit()
 
-    def insertdata(self, tablename, sender, message):
+    def dropTable(self, tableID):
+        dropTableSQL = f"DROP TABLE IF EXISTS {tableID}"
+        if self.cursor is not None:
+            self.cursor.execute(dropTableSQL)
+            self.connection.commit()
+
+            self.deleteMetaInfo(tableID)
+
+    def insertData(self, tableID, sender, message):
         time = getCurrentTimeStamp()
         data = (sender, time, message)
-        insert_sql = f"INSERT INTO {tablename} (sender, time, content) VALUES (?, ?, ?)"
-        self.cursor.execute(insert_sql, data)
+        insertSQL = f"INSERT INTO {tableID} (sender, time, content) VALUES (?, ?, ?)"
+        self.cursor.execute(insertSQL, data)
         self.connection.commit()
 
         return 'executed once'
 
-    def selectdata(self, table_name, columns=None):
+    def selectData(self, tableID, columns=None):
         if columns:
-            select_sql = f"SELECT {', '.join(columns)} FROM {table_name}"
+            selectSQL = f"SELECT {', '.join(columns)} FROM {tableID}"
         else:
-            select_sql = f"SELECT * FROM {table_name}"
-        self.cursor.execute(select_sql)
+            selectSQL = f"SELECT * FROM {tableID}"
+        self.cursor.execute(selectSQL)
         rows = self.cursor.fetchall()
         return rows
-
-    def cleartable(self, tablename):
-        clear_sql = f"DELETE FROM {tablename}"
-        self.cursor.execute(clear_sql)
-        self.connection.commit()
 
     def close(self):
         if self.connection:
