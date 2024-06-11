@@ -23,7 +23,7 @@ class Processor():
         currentFilePath = os.path.abspath(__file__)
         currentFolder = os.path.dirname(currentFilePath)
         promptPath = os.path.join(currentFolder, 'resources', 'prompt.json')
-        self.promptPath = (promptPath)
+        self.promptPath = promptPath
         self.promptDict = self.loadPrompt()
 
     def loadPrompt(self):
