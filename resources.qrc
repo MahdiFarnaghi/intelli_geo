@@ -1,5 +1,6 @@
 <RCC>
-    <qresource prefix="/plugins/intelli_geo" >
+    <qresource prefix="/plugins/intelli_geo">
         <file>icon.png</file>
+        <file>resources/prompt.json</file>
     </qresource>
 </RCC>
