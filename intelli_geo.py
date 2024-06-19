@@ -22,8 +22,9 @@
  ***************************************************************************/
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QDialog, QPushButton, QWidget
+from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard
+from qgis.PyQt.QtWidgets import QAction, QDialog, QPushButton, QWidget, QPlainTextEdit, QDockWidget, QApplication
+from qgis.utils import iface
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -31,6 +32,13 @@ from .resources import *
 from .intelli_geo_dockwidget import IntelliGeoDockWidget
 import os.path
 import re
+import pyperclip
+
+# https://github.com/qgis/QGIS/tree/master/python/console
+# import 'console' folder in QGIS python package
+import console
+# import 'processing' folder in QGIS pytho package
+from processing.modeler.ModelerDialog import ModelerDialog
 
 # Import code for edit dialog
 from .digNewEditConversation import NewEditConversationDialog
@@ -38,7 +46,8 @@ from .digNewEditConversation import NewEditConversationDialog
 # Import plugin utilities
 from .dataloader import Dataloader
 from .conversation import Conversation
-from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup
+from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode
+from .modelManager import ModelManager
 
 from .environment import QgisEnvironment
 
@@ -90,6 +99,8 @@ class IntelliGeo:
         self.dataloader = Dataloader("Conversations.db")
         self.dataloader.connect()
         self.dataloader.createMetaTable()
+
+        self.modelManager = ModelManager
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -275,17 +286,32 @@ class IntelliGeo:
 
     def onNewMessageSend(self):
         message = self.dockwidget.ptMessage.toPlainText()
-        if message is "":
+        if message == "":
             return
 
+        # Conversation: If no live conversation then create one
         if self.liveConversation is None:
-            # Conversation: If no live conversation then create one
             self.onConversationNewed()
 
         # Dock Interface: Clear message plainTextEdit
         self.dockwidget.ptMessage.clear()
+
+        # Dock Interface: Get response mode
+        if self.dockwidget.rbtVisualModel.isChecked():
+            responseType = "Visual mode"
+        else:
+            responseType = "Code"
+
         if self.liveConversation is not None:
-            self.liveConversation.updateUserPrompt(message)
+            response, withModel, withCode, modelPath = self.liveConversation.updateUserPrompt(message, responseType)
+
+            # Python Console Interface: Load python code from response
+            if withCode:
+                code = extractCode(response)
+                self.activateConsole(code, False)
+
+            if withModel:
+                self.activeGraphicDesigner(modelPath, False)
 
             # Dock Interface: Update log & general information
             self.dockwidget.updateConversation(self.liveConversation)
@@ -441,3 +467,28 @@ class IntelliGeo:
         self.dockwidget.searchPressed.connect(self.onSearchConversationCard)
 
         self.dockwidget.pbSearchConversationCard.setText("Search")
+
+    def activateConsole(self, code, run):
+        consoleWidget = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+        if not consoleWidget or not consoleWidget.isVisible():
+            iface.actionShowPythonDialog().trigger()
+
+        consoleWidget = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+
+        pythonConsole = consoleWidget.findChild(console.console.PythonConsoleWidget)
+        editorWidget = pythonConsole.findChild(console.console_editor.Editor)
+        if not editorWidget or not editorWidget.isVisible:
+            pythonConsole.showEditorButton.trigger()
+        pyperclip.copy(code)
+        pythonConsole.pasteEditor()
+
+        return None
+
+    def activeGraphicDesigner(self, modelPath, run):
+        dialog = ModelerDialog()
+        dialog.loadModel(modelPath)
+        dialog.show()
+
+        return None
+
+

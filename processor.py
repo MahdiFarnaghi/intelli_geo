@@ -9,28 +9,33 @@ from langchain.schema.output_parser import StrOutputParser
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.runnables import RunnableLambda
 from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_community.vectorstores import FAISS
 
-from .utils import show_variable_popup
+from .utils import show_variable_popup, getVersion
 from .tools import readEnvironment
 from .environment import QgisEnvironment
+from .docDatabase import DocDatabase
 
 
-class Processor():
-    def __init__(self, llm, llmProvider):
+class Processor:
+    def __init__(self, llm, llmProvider, embedding):
         self.llm = llm
         self.llmProvider = llmProvider
+        self.embedding = embedding
         self.outputParser = StrOutputParser()
         currentFilePath = os.path.abspath(__file__)
         currentFolder = os.path.dirname(currentFilePath)
-        promptPath = os.path.join(currentFolder, 'resources', 'prompt.json')
-        self.promptPath = promptPath
-        self.promptDict = self.loadPrompt()
+        promptPath = os.path.join(currentFolder, 'resources', 'prompt_v0.1.json')
+        self.promptDict = self.loadPrompt(promptPath)
 
-    def loadPrompt(self):
+        self.version = getVersion()
+        self.docDatabase = DocDatabase(FAISS, self.embedding, self.version)
+
+    def loadPrompt(self, promptPath):
         """
         Load pre-defined prompt
         """
-        with open(self.promptPath, 'r') as file:
+        with open(promptPath, 'r') as file:
             promptDict = json.load(file)
         # resource = QResource(self.promptPath)
         # data = resource.data()
@@ -61,19 +66,23 @@ class Processor():
 
         return decision
 
-    def reactionRouter(self, userInput):
+    def reactionRouter(self, userInput, responseType):
         decision = self.classifier(userInput)
         show_variable_popup(decision)
 
         if "no" in decision.lower():
             generalChatResponse = self.generalChat(userInput)
 
-            return generalChatResponse
+            return generalChatResponse, False, False
 
         elif "yes" in decision.lower():
-            modelProducerResponse = self.modelProducer(userInput)
+            if responseType == "Visual mode":
+                modelProducerResponse = self.modelProducer(userInput)
+                return modelProducerResponse, True, False
+            else:
+                codeProducerResponse = self.codeProducer(userInput)
+                return codeProducerResponse, False, True
 
-            return modelProducerResponse
 
         else:
             confirmChain = self.confirmChain()
@@ -101,7 +110,34 @@ class Processor():
 
     def modelProducer(self, userInput):
         template = self.promptMaker(self.promptDict["modelProducer"]["default"])
+
         humanMessage = HumanMessage(template.format(input=userInput))
+        messages = [humanMessage]
+
+        tools = [readEnvironment]
+        llmWithTools = self.llm.bind_tools(tools)
+        llmMessage = llmWithTools.invoke(messages)
+        messages.append(llmMessage)
+
+        for toolcall in llmMessage.tool_calls:
+            selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
+            toolOutput = selectedTool.invoke(toolcall["args"])
+            messages.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+
+        modelProducerChain = llmWithTools | self.outputParser
+        return modelProducerChain.invoke(messages)
+
+    def codeProducer(self, userInput):
+        template = self.promptMaker(self.promptDict["codeProducer"]["default"])
+
+        retrievedDoc = self.docDatabase.retrieve(userInput)
+        docStr = ""
+        for doc in retrievedDoc:
+            docStr += "\n\n" + doc.page_content
+
+        show_variable_popup(docStr)
+
+        humanMessage = HumanMessage(template.format(input=userInput, doc=docStr))
         messages = [humanMessage]
 
         tools = [readEnvironment]
@@ -120,7 +156,7 @@ class Processor():
     def confirmChain(self):
         return RunnableLambda(lambda x: "Are you sure?")
 
-    def response(self, userInput):
-        response = self.reactionRouter(userInput)
+    def response(self, userInput, responseType):
+        response, withModel, withCode = self.reactionRouter(userInput, responseType)
 
-        return response
+        return response, withModel, withCode

@@ -1,21 +1,34 @@
+import os
+
 from langchain_cohere import ChatCohere
-from .utils import getCurrentTimeStamp
+from langchain_openai import OpenAIEmbeddings
+from langchain_cohere.embeddings import CohereEmbeddings
+from langchain_openai import ChatOpenAI
+
+from .utils import getCurrentTimeStamp, getVersion, show_variable_popup
 from .processor import Processor
+from .modelManager import ModelManager
+
 
 class Conversation:
-    def __init__(self, ID, dataloader, LLMName=None):
+    def __init__(self, ID, dataloader, llmProvider=None):
         metaInfo = dataloader.selectMetaInfo(ID)[0]
         self.metaInfo = metaInfo
 
         self.dataloader = dataloader
         self.LLMFinished = True
-        if self.LLMName is "Cohere":
-            self.LLM = ChatCohere(cohere_api_key="nLWE6IlAgzdxuNELOSZq1WYFl5kuvUL3CIVqtZkl")
+        self.llmProvider = llmProvider
+        if self.llmProvider is 'openai':
+            apiKey = os.getenv("OPENAI_API_KEY")
+            self.LLM = ChatOpenAI(openai_api_key=apiKey, temperature=0)
+            self.embedding = OpenAIEmbeddings(openai_api_key=apiKey)
         else:
-            self.LLM = ChatCohere(cohere_api_key="nLWE6IlAgzdxuNELOSZq1WYFl5kuvUL3CIVqtZkl")
+            apiKey = os.getenv("COHERE_API_KEY")
+            self.LLM = ChatCohere(cohere_api_key=apiKey, temperature=0)
+            self.embedding = CohereEmbeddings(cohere_api_key=apiKey)
 
-        self.Processor = Processor(self.LLM, 'Cohere')
-
+        self.Processor = Processor(self.LLM, 'Cohere', self.embedding)
+        self.modelManager = ModelManager()
 
     def __getattr__(self, name):
         if name != 'metaInfo' and name in self.metaInfo:
@@ -31,22 +44,34 @@ class Conversation:
         else:
             super().__setattr__(name, value)
 
-    def updateUserPrompt(self, message):
+    def updateUserPrompt(self, message, responseType):
+        # TODO: make a queue for LLM reaction & user input
         if self.LLMFinished:
             self.dataloader.insertData(self.ID, sender="user", message=message)
-            self.updateLLMResponse(message)
             self.messageCount += 1
+            return self.updateLLMResponse(message, responseType)
         else:
             pass
 
-    def updateLLMResponse(self, message):
+    def updateLLMResponse(self, message, responseType):
         self.LLMFinished = False
 
-        response = self.Processor.response(message)
-        self.dataloader.insertData(self.ID, sender="LLM", message=response)
+        response, withModel, withCode = self.Processor.response(message, responseType)
+        if withModel:
+            modelPath = self.modelManager.saveModel(response, self.title, self.modelCount)
+
+            self.dataloader.insertData(self.ID, sender="LLM", message=response, model=modelPath)
+            # TODO: 'withcode' tag to be processed
+        else:
+            modelPath = None
+            self.dataloader.insertData(self.ID, sender="LLM", message=response)
+
         self.LLMFinished = True
         self.messageCount += 1
         self.lastEdit = getCurrentTimeStamp()
+
+        return response, withModel, withCode, modelPath
+
 
     def fetch(self):
         log = ''
@@ -78,11 +103,3 @@ class Conversation:
 
     def delete(self):
         self.dataloader.dropTable(self.ID)
-
-
-
-
-
-
-
-

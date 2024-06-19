@@ -1,10 +1,15 @@
-from qgis.core import QgsProject, QgsMapLayer
+from qgis.core import QgsProject, QgsMapLayer, Qgis
 
 
 class QgisEnvironment():
     def __init__(self):
         self.project = QgsProject.instance()
         self.layers = self.project.mapLayers().values()
+        self.version = self.getVersion()
+
+    def getVersion(self):
+        qgsVersion = Qgis.QGIS_VERSION
+        return ".".join(qgsVersion.split(".")[:2])
 
     def refresh(self):
         self.project = QgsProject.instance()

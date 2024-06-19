@@ -1,5 +1,11 @@
 from langchain.tools import tool
-from typing import *
+# from typing import *
+import requests
+from bs4 import BeautifulSoup
+
+from qgis.utils import iface
+
+from qgis.PyQt import QtWidgets, QtGui
 
 from .environment import QgisEnvironment
 
@@ -25,3 +31,24 @@ def readEnvironment() -> str:
     environment = QgisEnvironment()
     environment.refresh()
     return environment.getLayerAttributes()
+
+def readVersion() -> str:
+    environment = QgisEnvironment()
+    return environment.version
+
+
+def activateConsole(code: str, run: bool) -> None:
+    iface.openPythonConsole()
+    console = iface.pythonConsole()
+    consoleWidget = console.findChild(QtWidgets.QPlainTextEdit)
+    consoleWidget.insertPlainText(code)
+    consoleWidget.setFocus()
+    consoleWidget.moveCursor(QtGui.QTextCursor.End)
+    consoleWidget.ensureCursorVisible()
+    consoleWidget.setFocus()
+    QtWidgets.QApplication.processEvents()
+
+    if run:
+        console.runCommand(consoleWidget.toPlainText())
+
+    return None

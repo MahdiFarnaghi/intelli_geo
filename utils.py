@@ -1,8 +1,10 @@
 from datetime import datetime
 from functools import wraps
 import uuid
+import re
 
-from qgis.PyQt.QtWidgets import QApplication, QMessageBox
+from qgis.core import Qgis
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QLabel, QDialog, QScrollArea, QVBoxLayout, QWidget
 import inspect
 
 
@@ -51,8 +53,30 @@ def pack(infoList):
     return infoDict
 
 
+def getVersion():
+    fullVersion = Qgis.QGIS_VERSION
+    return ".".join(fullVersion.split('.')[:2])
+
+
+def extractCode(response: str) -> str:
+    pattern = r'```python(.*?)```'
+    match = re.search(pattern, response, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    else:
+        return ""
+
+
+def extractXml(response: str) -> str:
+    pattern = r'```xml(.*?)```'
+    match = re.search(pattern, response, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    else:
+        return ""
+
+
 def show_variable_popup(variable):
-    # TODO: stylish
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists
@@ -68,9 +92,36 @@ def show_variable_popup(variable):
     if variable_name is None:
         variable_name = 'Unknown'
 
-    # Create and display the popup
+    # Create the dialog
+    dialog = QDialog()
+    dialog.setWindowTitle('String and Variable Name')
+
+    # Create the scroll area
+    scroll_area = QScrollArea()
+    scroll_area.setWidgetResizable(True)
+
+    # Create a widget to hold the contents
+    content_widget = QWidget()
+    content_layout = QVBoxLayout(content_widget)
+
+    # Add content to the layout
     message = f'Variable Name: {variable_name}\nString Value: {variable}'
-    QMessageBox.information(None, 'String and Variable Name', message)
+    label = QLabel(message)
+    content_layout.addWidget(label)
+
+    # Set the content widget to the scroll area
+    scroll_area.setWidget(content_widget)
+
+    # Create the main layout and add the scroll area to it
+    main_layout = QVBoxLayout(dialog)
+    main_layout.addWidget(scroll_area)
+
+    # Set the dialog layout
+    dialog.setLayout(main_layout)
+
+    # Show the dialog
+    dialog.exec_()
 
     if not QApplication.instance():
         app.exec_()  # Start the application loop if not already running
+

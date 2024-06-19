@@ -80,7 +80,7 @@ class Dataloader:
         self.insertMetaInfo(metaInfo)
 
         # create table
-        columns = ["sender TEXT", "time TEXT", "content TEXT"]
+        columns = ["sender TEXT", "time TEXT", "content TEXT", "model TEXT"]
 
         createTableSql = f"CREATE TABLE IF NOT EXISTS {tableID} ({', '.join(columns)})"
         self.cursor.execute(createTableSql)
@@ -94,10 +94,10 @@ class Dataloader:
 
             self.deleteMetaInfo(tableID)
 
-    def insertData(self, tableID, sender, message):
+    def insertData(self, tableID, sender, message, model=''):
         time = getCurrentTimeStamp()
-        data = (sender, time, message)
-        insertSQL = f"INSERT INTO {tableID} (sender, time, content) VALUES (?, ?, ?)"
+        data = (sender, time, message, model)
+        insertSQL = f"INSERT INTO {tableID} (sender, time, content, model) VALUES (?, ?, ?, ?)"
         self.cursor.execute(insertSQL, data)
         self.connection.commit()
 
