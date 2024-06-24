@@ -46,8 +46,9 @@ from .digNewEditConversation import NewEditConversationDialog
 # Import plugin utilities
 from .dataloader import Dataloader
 from .conversation import Conversation
-from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode
+from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion
 from .modelManager import ModelManager
+from .retrievalVectorbase import RetrievalVectorbase
 
 from .environment import QgisEnvironment
 
@@ -101,6 +102,8 @@ class IntelliGeo:
         self.dataloader.createMetaTable()
 
         self.modelManager = ModelManager
+        version = getVersion()
+        self.retrievalVectorbase = RetrievalVectorbase(version)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -343,7 +346,7 @@ class IntelliGeo:
                 self.dataloader.createTable(metaInfo)
 
                 # Conversation: Update live conversation to new conversation
-                self.liveConversation = Conversation(self.liveConversationID, self.dataloader)
+                self.liveConversation = Conversation(self.liveConversationID, self.dataloader, self.retrievalVectorbase)
 
                 # update dock widget
                 self.dockwidget.twTabs.setCurrentWidget(self.dockwidget.tbMessages)
@@ -362,7 +365,7 @@ class IntelliGeo:
 
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID
-        self.liveConversation = Conversation(conversationID, self.dataloader)
+        self.liveConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
         self.liveConversation.lastEdit = getCurrentTimeStamp()
 
         # Dataloader: Sync meta-information to database
@@ -406,7 +409,7 @@ class IntelliGeo:
 
         # New/Edit Dialog Interface: If no dialog, create one
         if self.editdialog == None or not self.editdialog.isVisible():
-            editConversation = Conversation(conversationID, self.dataloader)
+            editConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
             self.editdialog = NewEditConversationDialog(editConversation.title, editConversation.description)
             self.editdialog.show()
 

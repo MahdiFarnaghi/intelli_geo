@@ -14,14 +14,13 @@ from langchain_community.vectorstores import FAISS
 from .utils import show_variable_popup, getVersion
 from .tools import readEnvironment
 from .environment import QgisEnvironment
-from .docDatabase import DocDatabase
 
 
 class Processor:
-    def __init__(self, llm, llmProvider, embedding):
+    def __init__(self, llm, llmProvider, retrievalVectorbase):
         self.llm = llm
         self.llmProvider = llmProvider
-        self.embedding = embedding
+        self.retrivalDatabase = retrievalVectorbase
         self.outputParser = StrOutputParser()
         currentFilePath = os.path.abspath(__file__)
         currentFolder = os.path.dirname(currentFilePath)
@@ -29,7 +28,6 @@ class Processor:
         self.promptDict = self.loadPrompt(promptPath)
 
         self.version = getVersion()
-        self.docDatabase = DocDatabase(FAISS, self.embedding, self.version)
 
     def loadPrompt(self, promptPath):
         """
@@ -111,7 +109,15 @@ class Processor:
     def modelProducer(self, userInput):
         template = self.promptMaker(self.promptDict["modelProducer"]["default"])
 
-        humanMessage = HumanMessage(template.format(input=userInput))
+        # get example
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, exampleType="Model")[0]
+        exampleStr = ""
+        for example in retrievedExample:
+            exampleStr += "\n\n" + example
+
+        show_variable_popup(exampleStr)
+
+        humanMessage = HumanMessage(template.format(input=userInput, example=exampleStr))
         messages = [humanMessage]
 
         tools = [readEnvironment]
@@ -130,14 +136,23 @@ class Processor:
     def codeProducer(self, userInput):
         template = self.promptMaker(self.promptDict["codeProducer"]["default"])
 
-        retrievedDoc = self.docDatabase.retrieve(userInput)
+        # get documentation
+        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput)[0]
         docStr = ""
         for doc in retrievedDoc:
-            docStr += "\n\n" + doc.page_content
+            docStr += "\n\n" + doc
 
         show_variable_popup(docStr)
 
-        humanMessage = HumanMessage(template.format(input=userInput, doc=docStr))
+        # get example
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, exampleType="Script")[0]
+        exampleStr = ""
+        for example in retrievedExample:
+            exampleStr += "\n\n" + example
+
+        show_variable_popup(exampleStr)
+
+        humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
         messages = [humanMessage]
 
         tools = [readEnvironment]

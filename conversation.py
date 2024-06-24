@@ -11,7 +11,7 @@ from .modelManager import ModelManager
 
 
 class Conversation:
-    def __init__(self, ID, dataloader, llmProvider=None):
+    def __init__(self, ID, dataloader, retrivalDatabase, llmProvider=None):
         metaInfo = dataloader.selectMetaInfo(ID)[0]
         self.metaInfo = metaInfo
 
@@ -27,7 +27,7 @@ class Conversation:
             self.LLM = ChatCohere(cohere_api_key=apiKey, temperature=0)
             self.embedding = CohereEmbeddings(cohere_api_key=apiKey)
 
-        self.Processor = Processor(self.LLM, 'Cohere', self.embedding)
+        self.Processor = Processor(self.LLM, 'Cohere', retrivalDatabase)
         self.modelManager = ModelManager()
 
     def __getattr__(self, name):

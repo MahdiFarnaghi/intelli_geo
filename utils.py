@@ -1,7 +1,9 @@
 from datetime import datetime
 from functools import wraps
+from bs4 import BeautifulSoup
 import uuid
 import re
+import requests
 
 from qgis.core import Qgis
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QLabel, QDialog, QScrollArea, QVBoxLayout, QWidget
@@ -74,6 +76,41 @@ def extractXml(response: str) -> str:
         return match.group(1).strip()
     else:
         return ""
+
+
+def readURL(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to retrieve the webpage. Status code: {response.status_code}")
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    pageText = soup.get_text()
+
+    return pageText
+
+
+def splitAtPattern(inputStr, pattern=r'13.*?\n'):
+    # Find all matches of the pattern in the input string
+    matches = re.finditer(pattern, inputStr)
+
+    # Initialize the start position
+    start = 0
+    parts = []
+
+    for match in matches:
+        # Get the position of the match
+        matchStart, matchEnd = match.span()
+
+        # Append the part before the match
+        parts.append(inputStr[start:matchStart])
+
+        # Update the start position to the end of the match
+        start = matchStart
+
+    # Append the remaining part of the string
+    parts.append(inputStr[start:])
+
+    return parts
 
 
 def show_variable_popup(variable):
