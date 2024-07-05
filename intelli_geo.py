@@ -47,7 +47,6 @@ from .digNewEditConversation import NewEditConversationDialog
 from .dataloader import Dataloader
 from .conversation import Conversation
 from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion
-from .modelManager import ModelManager
 from .retrievalVectorbase import RetrievalVectorbase
 
 from .environment import QgisEnvironment
@@ -97,11 +96,8 @@ class IntelliGeo:
         self.liveConversation = None
 
         # create sqlite database
-        self.dataloader = Dataloader("Conversations.db")
-        self.dataloader.connect()
-        self.dataloader.createMetaTable()
+        self.dataloader = Dataloader("IntelliGeo.db")
 
-        self.modelManager = ModelManager
         version = getVersion()
         self.retrievalVectorbase = RetrievalVectorbase(version)
 
@@ -306,14 +302,15 @@ class IntelliGeo:
             responseType = "Code"
 
         if self.liveConversation is not None:
-            response, withModel, withCode, modelPath = self.liveConversation.updateUserPrompt(message, responseType)
+            response, workflow, modelPath = self.liveConversation.updateUserPrompt(message, responseType)
 
             # Python Console Interface: Load python code from response
-            if withCode:
+            if workflow == "withCode":
                 code = extractCode(response)
                 self.activateConsole(code, False)
 
-            if withModel:
+            # Graphic Modeler Interface: Load .model3 from storage
+            if workflow == "withModel":
                 self.activeGraphicDesigner(modelPath, False)
 
             # Dock Interface: Update log & general information
@@ -325,25 +322,26 @@ class IntelliGeo:
             self.dockwidget.updateConversationCard(self.liveConversation.metaInfo, slotsFunctions)
 
             # Dataloader: Update meta-information
-            self.dataloader.updateMetaInfo(self.liveConversation.metaInfo)
+            self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
 
     def onConversationNewed(self):
         if self.editdialog is None or not self.editdialog.isVisible():
-            self.editdialog = NewEditConversationDialog()
+            self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict)
             self.editdialog.show()
             if self.editdialog.exec_() == QDialog.Accepted:
                 # The dialog was accepted, handle the data if needed
-                title, description, LLMName = self.editdialog.onUpdateMetadata()
+                title, description, llmID, endpoint, apiKey = self.editdialog.onUpdateMetadata()
                 created = getCurrentTimeStamp()
-                lastEdit = created
-                self.liveConversationID = 'Conversation_' + generateUniqueID()
+                modified = created
+                # TODO: userID
+                self.liveConversationID = "{userID}_" + generateUniqueID()
 
-                messageCount, modelCount = 0, 0
-                metaInfo = pack([title, description, created, lastEdit, LLMName, messageCount, modelCount,
-                                 self.liveConversationID])
+                metaInfo = pack((self.liveConversationID, llmID, title, description,
+                                 created, modified, 0, 0, "{userID}"),
+                                "conversation")
 
                 # Dataloader: Create corresponding table in database
-                self.dataloader.createTable(metaInfo)
+                self.dataloader.createConversation(metaInfo)
 
                 # Conversation: Update live conversation to new conversation
                 self.liveConversation = Conversation(self.liveConversationID, self.dataloader, self.retrievalVectorbase)
@@ -369,7 +367,7 @@ class IntelliGeo:
         self.liveConversation.lastEdit = getCurrentTimeStamp()
 
         # Dataloader: Sync meta-information to database
-        self.dataloader.updateMetaInfo(self.liveConversation.metaInfo)
+        self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
 
         # Dock Interface: Change the order of the Conversation Cards
         slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
@@ -385,8 +383,8 @@ class IntelliGeo:
         Drop table in database, and clear Interface in both 'Message' tab and 'Conversations' tab.
         """
 
-        # Dataloader: Drop the table contains conversation log
-        self.dataloader.dropTable(conversationID)
+        # Dataloader: Drop the rows in "conversation" and "interaction" table
+        self.dataloader.deleteConversation(conversationID)
 
         if self.liveConversationID == conversationID:
             if self.liveConversation is not None:
@@ -408,21 +406,24 @@ class IntelliGeo:
     def onConversationEdited(self, conversationID):
 
         # New/Edit Dialog Interface: If no dialog, create one
-        if self.editdialog == None or not self.editdialog.isVisible():
+        if self.editdialog is None or not self.editdialog.isVisible():
             editConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
-            self.editdialog = NewEditConversationDialog(editConversation.title, editConversation.description)
+            self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict,
+                                                        editConversation.title,
+                                                        editConversation.description,
+                                                        editConversation.llmID)
             self.editdialog.show()
 
             if self.editdialog.exec_() == QDialog.Accepted:
                 # Conversation: Dialog was accepted, update conversation meta-information
-                editConversation.title, editConversation.description, _ = self.editdialog.onUpdateMetadata()
+                editConversation.title, editConversation.description, _, _, _ = self.editdialog.onUpdateMetadata()
                 editConversation.lastEdit = getCurrentTimeStamp()
 
                 # the information don't have to be about liveConversation
                 # so I let the argument unpacked and exposed for now
 
                 # Dataloader: Update meta-information
-                self.dataloader.updateMetaInfo(editConversation.metaInfo)
+                self.dataloader.updateConversationInfo(editConversation.metaInfo)
 
                 # Dock Interface: If editing live conversation, update general information in 'Messages' Tab
                 if conversationID == self.liveConversationID:

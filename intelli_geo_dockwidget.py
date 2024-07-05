@@ -82,8 +82,8 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.saConversationCard.setWidget(self.scrollAreaWidget)
         self.scrollAreaWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        metaTable = dataloader.selectMetaInfo()
-        metaTable.sort(key=lambda info: datetime.strptime(info['lastEdit'], "%B %d %Y %H:%M:%S"))
+        metaTable = dataloader.selectConversationInfo()
+        metaTable.sort(key=lambda info: datetime.strptime(info['modified'], "%B %d %Y %H:%M:%S"))
 
         for metaInfo in metaTable:
             if searchFilter(metaInfo):
@@ -106,7 +106,16 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         conversationCard = QGroupBox()
         cardLayout = QVBoxLayout()
 
-        title, description, created, lastEdit, LLMName, messageCount, modelCount, conversationID = unpack(metaInfo)
+        # "ID", "llmID", "title", "description", "created", "modified", "userID"
+        (conversationID,
+         llmID,
+         title,
+         description,
+         created,
+         lastEdit,
+         messageCount,
+         modelCount,
+         userID) = unpack(metaInfo, "conversation")
 
         titleLabel = QLabel(highlight(title))
         font = QFont()
@@ -118,11 +127,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         verticalSpacer = QSpacerItem(0, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        metadata = ''
-        metadata += 'Created: ' + created + ' | '
-        metadata += 'LLM: ' + LLMName + ' | '
-        metadata += 'Messages: ' + str(messageCount) + ' | '
-        metadata += 'Models: ' + '? '
+        metadata = f"Created: {created} | LLM: {llmID} \n Messages: {messageCount} | Model: {modelCount} "
         metadataLabel = QLabel(metadata)
         metadataLabel.setAlignment(Qt.AlignRight)
 

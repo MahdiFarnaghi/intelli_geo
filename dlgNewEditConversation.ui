@@ -61,21 +61,6 @@
        <height>25</height>
       </size>
      </property>
-     <item>
-      <property name="text">
-       <string>Cohere</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>GPT3.5</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>GPT4.0</string>
-      </property>
-     </item>
     </widget>
    </item>
    <item>
@@ -86,7 +71,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="txtAPIEndpoint"/>
+    <widget class="QLineEdit" name="leAPIEndpoint"/>
    </item>
    <item>
     <widget class="QLabel" name="lblAPIKey">
@@ -96,7 +81,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="txtAPIKey"/>
+    <widget class="QLineEdit" name="leAPIKey"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

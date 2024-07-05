@@ -11,56 +11,68 @@ from langchain_core.runnables import RunnableLambda
 from langchain_core.messages import HumanMessage, ToolMessage
 from langchain_community.vectorstores import FAISS
 
-from .utils import show_variable_popup, getVersion
+from .utils import show_variable_popup, getVersion, getCurrentTimeStamp
 from .tools import readEnvironment
 from .environment import QgisEnvironment
 
 
 class Processor:
-    def __init__(self, llm, llmProvider, retrievalVectorbase):
+    def __init__(self, llm, llmID, conversationID, retrievalVectorbase, dataloader):
         self.llm = llm
-        self.llmProvider = llmProvider
+        self.llmID = llmID
+        self.conversationID = conversationID
         self.retrivalDatabase = retrievalVectorbase
+        self.dataloader = dataloader
         self.outputParser = StrOutputParser()
-        currentFilePath = os.path.abspath(__file__)
-        currentFolder = os.path.dirname(currentFilePath)
-        promptPath = os.path.join(currentFolder, 'resources', 'prompt_v0.1.json')
-        self.promptDict = self.loadPrompt(promptPath)
-
         self.version = getVersion()
 
-    def loadPrompt(self, promptPath):
+    # def loadPrompt(self, promptPath):
+    #     """
+    #     Load pre-defined prompt
+    #     """
+    #     with open(promptPath, 'r') as file:
+    #         promptDict = json.load(file)
+    #     # resource = QResource(self.promptPath)
+    #     # data = resource.data()
+    #     # if not resource.isValid():
+    #     #     show_variable_popup(resource)
+    #     # show_variable_popup(data)
+    #     #
+    #     # jsonStr = data.data().decode('utf-8')
+    #     #
+    #     # promptDict = json.loads(jsonStr)
+    #
+    #     return promptDict
+
+    # def _promptMaker(self, promptDict):
+    #     template = ''
+    #     for key, value in promptDict.items():
+    #         template += key + "\n\n" + value + "\n\n"
+    #
+    #     promptTemplate = ChatPromptTemplate.from_template(template)
+    #
+    #     return promptTemplate
+
+    def classifier(self, userInput: str) -> str:
         """
-        Load pre-defined prompt
+        Base on the given `userInput`, decide if it is asking about producing workflow (model, code).
+        Return "yes" or "no".
         """
-        with open(promptPath, 'r') as file:
-            promptDict = json.load(file)
-        # resource = QResource(self.promptPath)
-        # data = resource.data()
-        # if not resource.isValid():
-        #     show_variable_popup(resource)
-        # show_variable_popup(data)
-        #
-        # jsonStr = data.data().decode('utf-8')
-        #
-        # promptDict = json.loads(jsonStr)
-
-        return promptDict
-
-    def promptMaker(self, promptDict):
-        template = ''
-        for key, value in promptDict.items():
-            template += key + "\n\n" + value + "\n\n"
-
-        promptTemplate = ChatPromptTemplate.from_template(template)
-
-        return promptTemplate
-
-    def classifier(self, userInput):
-        classifierPrompt = self.promptMaker(self.promptDict["classifier"]["default"])
+        requestTime = getCurrentTimeStamp()
+        classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier")
+        classifierPrompt = ChatPromptTemplate.from_template(classifierPromptRow["template"])
 
         classifierChain = classifierPrompt | self.llm | self.outputParser
-        decision = classifierChain.invoke(userInput)
+        decision = classifierChain.invoke({"input": userInput})
+        responseTime = getCurrentTimeStamp()
+
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, classifierPromptRow["ID"],
+                          userInput, "", requestTime, "input",
+                          decision, responseTime, "empty", ""]
+        self.dataloader.insertInteraction(interactionRow, self.conversationID)
 
         return decision
 
@@ -71,46 +83,67 @@ class Processor:
         if "no" in decision.lower():
             generalChatResponse = self.generalChat(userInput)
 
-            return generalChatResponse, False, False
+            return generalChatResponse, "empty"
 
         elif "yes" in decision.lower():
             if responseType == "Visual mode":
                 modelProducerResponse = self.modelProducer(userInput)
-                return modelProducerResponse, True, False
+                return modelProducerResponse, "withModel"
             else:
                 codeProducerResponse = self.codeProducer(userInput)
-                return codeProducerResponse, False, True
-
+                return codeProducerResponse, "withCode"
 
         else:
             confirmChain = self.confirmChain()
 
-    def generalChat(self, userInput):
-        template = self.promptMaker(self.promptDict["generalChat"]["default"])
+    def generalChat(self, userInput: str) -> str:
+        requestTime = getCurrentTimeStamp()
+
+        generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="generalChat")
+        template = generalChatPromptRow["template"]
         humanMessage = HumanMessage(template.format(input=userInput))
-        messages = [humanMessage]
+        messageList = [humanMessage]
 
         tools = [readEnvironment]
         llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messages)
-        messages.append(llmMessage)
+        llmMessage = llmWithTools.invoke(messageList)
+        messageList.append(llmMessage)
 
         if len(llmMessage.tool_calls) == 0:
-            return self.outputParser.invoke(llmMessage)
+            contextText = ""
+            chatReturn = self.outputParser.invoke(llmMessage)
 
-        for toolcall in llmMessage.tool_calls:
-            selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
-            toolOutput = selectedTool.invoke(toolcall["args"])
-            messages.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+        else:
+            for toolcall in llmMessage.tool_calls:
+                selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
+                toolOutput = selectedTool.invoke(toolcall["args"])
+                messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
-        chatChain = llmWithTools | self.outputParser
-        return chatChain.invoke(messages)
+            contextText = "-------------".join([message.content for message in messageList])
 
-    def modelProducer(self, userInput):
-        template = self.promptMaker(self.promptDict["modelProducer"]["default"])
+            # langchain inference
+            chatChain = llmWithTools | self.outputParser
+            chatReturn = chatChain.invoke(messageList)
+        responseTime = getCurrentTimeStamp()
+
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, generalChatPromptRow["ID"],
+                          userInput, contextText, requestTime, "return",
+                          chatReturn, responseTime, "empty", ""]
+        self.dataloader.insertInteraction(interactionRow, self.conversationID)
+
+        return chatReturn
+
+    def modelProducer(self, userInput: str) -> str:
+        requestTime = getCurrentTimeStamp()
+
+        generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="modelProducer")
+        template = generalChatPromptRow["template"]
 
         # get example
-        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, exampleType="Model")[0]
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Model")[0]
         exampleStr = ""
         for example in retrievedExample:
             exampleStr += "\n\n" + example
@@ -118,23 +151,39 @@ class Processor:
         show_variable_popup(exampleStr)
 
         humanMessage = HumanMessage(template.format(input=userInput, example=exampleStr))
-        messages = [humanMessage]
+        messageList = [humanMessage]
 
         tools = [readEnvironment]
         llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messages)
-        messages.append(llmMessage)
+        llmMessage = llmWithTools.invoke(messageList)
+        messageList.append(llmMessage)
 
         for toolcall in llmMessage.tool_calls:
             selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
             toolOutput = selectedTool.invoke(toolcall["args"])
-            messages.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
+        contextText = "-------------".join([message.content for message in messageList])
+
+        # langchain inference
         modelProducerChain = llmWithTools | self.outputParser
-        return modelProducerChain.invoke(messages)
+        modelReturn = modelProducerChain.invoke(messageList)
+        responseTime = getCurrentTimeStamp()
 
-    def codeProducer(self, userInput):
-        template = self.promptMaker(self.promptDict["codeProducer"]["default"])
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, generalChatPromptRow["ID"],
+                          userInput, contextText, requestTime, "return",
+                          modelReturn, responseTime, "withModel", ""]
+        self.dataloader.insertInteraction(interactionRow, self.conversationID)
+
+        return modelReturn
+
+    def codeProducer(self, userInput: str) -> str:
+        requestTime = getCurrentTimeStamp()
+        generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
+        template = generalChatPromptRow["template"]
 
         # get documentation
         retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput)[0]
@@ -144,34 +193,50 @@ class Processor:
 
         show_variable_popup(docStr)
 
-        # get example
+        # get few-shot examples
         retrievedExample = self.retrivalDatabase.retrieveExample(userInput, exampleType="Script")[0]
         exampleStr = ""
         for example in retrievedExample:
             exampleStr += "\n\n" + example
+        exampleStr = ""
 
+        # show few-shot examples
         show_variable_popup(exampleStr)
 
         humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
-        messages = [humanMessage]
+        messageList = [humanMessage]
 
         tools = [readEnvironment]
         llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messages)
-        messages.append(llmMessage)
+        llmMessage = llmWithTools.invoke(messageList)
+        messageList.append(llmMessage)
 
         for toolcall in llmMessage.tool_calls:
             selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
             toolOutput = selectedTool.invoke(toolcall["args"])
-            messages.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
-        modelProducerChain = llmWithTools | self.outputParser
-        return modelProducerChain.invoke(messages)
+        contextText = "-------------".join([message.content for message in messageList])
+
+        # langchain inference
+        codeProducerChain = llmWithTools | self.outputParser
+        codeReturn = codeProducerChain.invoke(messageList)
+        responseTime = getCurrentTimeStamp()
+
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, generalChatPromptRow["ID"],
+                          userInput, contextText, requestTime, "return",
+                          codeReturn, responseTime, "withModel", ""]
+        self.dataloader.insertInteraction(interactionRow, self.conversationID)
+
+        return codeReturn
 
     def confirmChain(self):
         return RunnableLambda(lambda x: "Are you sure?")
 
     def response(self, userInput, responseType):
-        response, withModel, withCode = self.reactionRouter(userInput, responseType)
+        response, workflow = self.reactionRouter(userInput, responseType)
 
-        return response, withModel, withCode
+        return response, workflow

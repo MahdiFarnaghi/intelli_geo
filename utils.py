@@ -1,6 +1,7 @@
 from datetime import datetime
 from functools import wraps
 from bs4 import BeautifulSoup
+from typing import Literal
 import uuid
 import re
 import requests
@@ -37,27 +38,74 @@ def formatDescription(description):
     return description + '\n'
 
 
-def unpack(infoDict):
-    colNames = ['title', 'description', 'created', 'lastEdit', 'LLMName', 'messageCount', 'modelCount', 'ID']
-    infoList = []
-    for name in colNames:
-        infoList.append(infoDict[name])
+def unpack(rowDict: dict, table: Literal["conversation", "interaction", "prompt"]) -> list:
+    if table not in ["conversation", "interaction", "prompt"]:
+        raise ValueError("Must specify the table type for function 'unpack'")
 
-    return infoList
+    # make pycharm happy
+    colnameList = []
+
+    if table == "conversation":
+        colnameList = ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "modelCount", "userID"]
+    elif table == "interaction":
+        colnameList = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime", "typeMessage",
+                       "responseText", "responseTime", "workflow", "executionLog"]
+    elif table == "prompt":
+        colnameList = ["ID", "llmID", "version", "template", "promptType"]
+
+    rowList = []
+    for name in colnameList:
+        rowList.append(rowDict[name])
+
+    return rowList
 
 
-def pack(infoList):
-    colNames = ['title', 'description', 'created', 'lastEdit', 'LLMName', 'messageCount', 'modelCount', 'ID']
-    infoDict = {}
-    for i, name in enumerate(colNames):
-        infoDict[name] = infoList[i]
+def pack(rowTuple: tuple, table: Literal["conversation", "interaction", "prompt"]) -> dict:
+    """
+    Converts a tuple of row data into a dictionary with column names as keys.
+    Raise valueError: If the table type is not "conversation" or "interaction".
+    """
+    if table not in ["conversation", "interaction", "prompt"]:
+        raise ValueError("Must specify the table type for function 'pack'.")
 
-    return infoDict
+    # make pycharm happy
+    colnameList = []
+
+    if table == "conversation":
+        colnameList = ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "modelCount", "userID"]
+    elif table == "interaction":
+        colnameList = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime", "typeMessage",
+                       "responseText", "responseTime", "workflow", "executionLog"]
+    elif table == "prompt":
+        colnameList = ["ID", "llmID", "version", "template", "promptType"]
+
+    rowDict = {}
+    for i, name in enumerate(colnameList):
+        rowDict[name] = rowTuple[i]
+
+    return rowDict
 
 
 def getVersion():
     fullVersion = Qgis.QGIS_VERSION
     return ".".join(fullVersion.split('.')[:2])
+
+
+def tuple2Dict(allRowList: list[tuple], table: Literal["conversation", "interaction", "prompt"]) -> list[dict]:
+    result = []
+    for rowTuple in allRowList:
+        result.append(pack(rowTuple, table))
+
+    return result
+
+
+def nestedDict2list(fullDict: dict[list]) -> list:
+    ans = []
+    for key, subList in fullDict.items():
+        for item in subList:
+            ans.append(f"{key}::{item}")
+
+    return ans
 
 
 def extractCode(response: str) -> str:
@@ -75,7 +123,21 @@ def extractXml(response: str) -> str:
     if match:
         return match.group(1).strip()
     else:
-        return ""
+        startMarker = '```xml'
+        endMarker = '>'
+        substring = None
+
+        startIndex = response.rfind(startMarker)
+        if startIndex != -1:
+            startIndex += len(startMarker)
+            endIndex = response.rfind(endMarker, startIndex)
+            if endIndex != -1:
+                substring = response[startIndex:(endIndex + len(endMarker))]
+
+        if substring:
+            return substring
+        else:
+            return ""
 
 
 def readURL(url):
@@ -161,4 +223,3 @@ def show_variable_popup(variable):
 
     if not QApplication.instance():
         app.exec_()  # Start the application loop if not already running
-

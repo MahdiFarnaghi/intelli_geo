@@ -5,32 +5,44 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_cohere.embeddings import CohereEmbeddings
 from langchain_openai import ChatOpenAI
 
-from .utils import getCurrentTimeStamp, getVersion, show_variable_popup
+from .utils import getCurrentTimeStamp, getVersion, show_variable_popup, pack
 from .processor import Processor
-from .modelManager import ModelManager
+from .workflowManager import WorkflowManager
 
 
 class Conversation:
-    def __init__(self, ID, dataloader, retrivalDatabase, llmProvider=None):
-        metaInfo = dataloader.selectMetaInfo(ID)[0]
+    def __init__(self, ID, dataloader, retrivalDatabase):
+        """
+        >>> metaInfo.keys()
+        ... ["ID", "llmID", "title", "description", "created", "modified", "userID"]
+        """
+        metaInfo = dataloader.selectConversationInfo(ID)
         self.metaInfo = metaInfo
 
         self.dataloader = dataloader
         self.LLMFinished = True
-        self.llmProvider = llmProvider
-        if self.llmProvider is 'openai':
+        # self.messageCount, self.modelCount = 0, 0
+        # TODO: model chooser logic
+        self.llmProvider, self.llmName = self.dataloader.getLLMInfo(self.llmID)
+        # ONWORKING: model chooser logic
+        if self.llmProvider == "OpenAI":
             apiKey = os.getenv("OPENAI_API_KEY")
-            self.LLM = ChatOpenAI(openai_api_key=apiKey, temperature=0)
+            self.llm = ChatOpenAI(model=self.llmName, openai_api_key=apiKey, temperature=0)
             self.embedding = OpenAIEmbeddings(openai_api_key=apiKey)
+        elif self.llmProvider == "Cohere":
+            apiKey = os.getenv("COHERE_API_KEY")
+            self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
+            self.embedding = CohereEmbeddings(cohere_api_key=apiKey)
         else:
             apiKey = os.getenv("COHERE_API_KEY")
-            self.LLM = ChatCohere(cohere_api_key=apiKey, temperature=0)
+            self.llm = ChatCohere(model="command-r-plus", cohere_api_key=apiKey, temperature=0)
             self.embedding = CohereEmbeddings(cohere_api_key=apiKey)
 
-        self.Processor = Processor(self.LLM, 'Cohere', retrivalDatabase)
-        self.modelManager = ModelManager()
+        self.Processor = Processor(self.llm, self.llmID, self.ID, retrivalDatabase, self.dataloader)
+        self.workflowManager = WorkflowManager()
 
     def __getattr__(self, name):
+        # available variables: "ID", "llmID", "title", "description", "created", "modified", "userID"
         if name != 'metaInfo' and name in self.metaInfo:
             return self.metaInfo[name]
         else:
@@ -47,7 +59,6 @@ class Conversation:
     def updateUserPrompt(self, message, responseType):
         # TODO: make a queue for LLM reaction & user input
         if self.LLMFinished:
-            self.dataloader.insertData(self.ID, sender="user", message=message)
             self.messageCount += 1
             return self.updateLLMResponse(message, responseType)
         else:
@@ -56,32 +67,37 @@ class Conversation:
     def updateLLMResponse(self, message, responseType):
         self.LLMFinished = False
 
-        response, withModel, withCode = self.Processor.response(message, responseType)
-        if withModel:
-            modelPath = self.modelManager.saveModel(response, self.title, self.modelCount)
+        response, workflow = self.Processor.response(message, responseType)
 
-            self.dataloader.insertData(self.ID, sender="LLM", message=response, model=modelPath)
-            # TODO: 'withcode' tag to be processed
+        if workflow != "empty":
+            modelPath = self.workflowManager.saveWorkflow(response, workflow, self.title, self.modelCount)
+            self.modelCount += 1
+
         else:
             modelPath = None
-            self.dataloader.insertData(self.ID, sender="LLM", message=response)
+            # self.dataloader.insertInteraction(self.ID, sender="LLM", message=response)
 
         self.LLMFinished = True
         self.messageCount += 1
-        self.lastEdit = getCurrentTimeStamp()
+        self.modified = getCurrentTimeStamp()
 
-        return response, withModel, withCode, modelPath
+        return response, workflow, modelPath
 
 
     def fetch(self):
         log = ''
-        history = self.dataloader.selectData(self.ID)
+        interactionHistory = self.dataloader.selectInteraction(self.ID)
         # TODO: fetch loops through the databse and takes everything, for larger database can be time wasting
         # TODO: should we have an alternative method 'dispaly' that simply take the current shown content and
         # TODO: attach responses to the tail?
-        log += 'Displaying ' + str(len(history)) + ' messages.\n'
-        for message in history:
-            log += message[0] + ': ' + message[2] + '\t' + message[1] + '\n\n'
+
+        log += f"Displaying {str(len(interactionHistory))} messages.\n"
+        for message in interactionHistory:
+            messageDict = pack(message, "interaction")
+            if messageDict["typeMessage"] == "input":
+                log += f"User: {messageDict['requestText']} \t {messageDict['requestTime']}\n\n"
+            elif messageDict["typeMessage"] == "return":
+                log += f"User: {messageDict['responseText']} \t {messageDict['responseTime']}\n\n"
 
         return log
 
@@ -89,17 +105,15 @@ class Conversation:
         logTail = ''
 
     def getMetadata(self):
-        metadata = ''
-        metadata += 'Created: ' + self.created + ' | '
-        metadata += 'LLM: ' + 'Cohere' + ' | '
-        metadata += 'Messages: ' + str(self.messageCount) + ' | '
-        metadata += 'Models: ' + '? '
+        metadata = (f"Created: {self.created} | LLM: {self.llmName} | Messages: {str(self.messageCount)} | "
+                    f"Model: {str(self.modelCount)} ")
 
         return metadata
 
     def clear(self):
         self.dataloader.cleartable(self.ID)
         self.messageCount = 0
+        self.modelCount = 0
 
     def delete(self):
-        self.dataloader.dropTable(self.ID)
+        self.dataloader.deleteConversation(self.ID)
