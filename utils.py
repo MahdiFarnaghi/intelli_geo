@@ -1,3 +1,10 @@
+"""
+`utils.py` contains tool functions that is useful but not n
+
+Created: May 2024
+Last modified by: Zehao Lu @com3dian
+"""
+
 from datetime import datetime
 from functools import wraps
 from bs4 import BeautifulSoup
@@ -44,14 +51,18 @@ def unpack(rowDict: dict, table: Literal["conversation", "interaction", "prompt"
 
     # make pycharm happy
     colnameList = []
-
     if table == "conversation":
-        colnameList = ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "modelCount", "userID"]
+        colnameList = ["ID", "llmID", "title", "description",
+                       "created", "modified", "messageCount", "workflowCount",
+                       "userID"]
     elif table == "interaction":
         colnameList = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime", "typeMessage",
                        "responseText", "responseTime", "workflow", "executionLog"]
     elif table == "prompt":
         colnameList = ["ID", "llmID", "version", "template", "promptType"]
+
+    if set(rowDict.keys()) != set(colnameList):
+        raise KeyError("Unknown key in input.")
 
     rowList = []
     for name in colnameList:
@@ -63,7 +74,7 @@ def unpack(rowDict: dict, table: Literal["conversation", "interaction", "prompt"
 def pack(rowTuple: tuple, table: Literal["conversation", "interaction", "prompt"]) -> dict:
     """
     Converts a tuple of row data into a dictionary with column names as keys.
-    Raise valueError: If the table type is not "conversation" or "interaction".
+    Raise valueError: If the table type is not "conversation", "interaction" or "prompt".
     """
     if table not in ["conversation", "interaction", "prompt"]:
         raise ValueError("Must specify the table type for function 'pack'.")
@@ -72,9 +83,12 @@ def pack(rowTuple: tuple, table: Literal["conversation", "interaction", "prompt"
     colnameList = []
 
     if table == "conversation":
-        colnameList = ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "modelCount", "userID"]
+        colnameList = ["ID", "llmID", "title", "description",
+                       "created", "modified", "messageCount", "workflowCount",
+                       "userID"]
     elif table == "interaction":
-        colnameList = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime", "typeMessage",
+        colnameList = ["ID", "conversationID", "promptID",
+                       "requestText", "contextText", "requestTime", "typeMessage",
                        "responseText", "responseTime", "workflow", "executionLog"]
     elif table == "prompt":
         colnameList = ["ID", "llmID", "version", "template", "promptType"]

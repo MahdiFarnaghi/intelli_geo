@@ -20,6 +20,35 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+
+/**************************************************************************
+
+IntelliGeoDockWidget
+
+This module contains the IntelliGeoDockWidget class, which is a custom
+QDockWidget used within IntelliGeo. The widget provides an interface for
+displaying, updating, and managing conversation cards, which include
+information like titles, descriptions, metadata, and actions for editing,
+deleting, and opening conversations.
+
+Classes:
+    IntelliGeoDockWidget: A QDockWidget subclass for managing conversation
+                          cards in a QGIS plugin interface.
+
+Usage:
+    - Initialize the IntelliGeoDockWidget with an optional parent widget.
+    - Use displayConversationCard to populate the widget with conversation
+      cards based on the data provided by a dataloader.
+    - Update or remove conversation cards using the provided methods.
+    - Handle user input and events through the event filter and predefined
+      slots.
+
+Dependencies:
+    - QGIS
+    - datetime
+    - utils (local module)
+***************************************************************************/
+
 """
 
 import os
@@ -106,7 +135,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         conversationCard = QGroupBox()
         cardLayout = QVBoxLayout()
 
-        # "ID", "llmID", "title", "description", "created", "modified", "userID"
+        # "ID", "llmID", "title", "description", "created", "modified", "messageCount", "workflowCount", "userID"
         (conversationID,
          llmID,
          title,
@@ -114,7 +143,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
          created,
          lastEdit,
          messageCount,
-         modelCount,
+         workflowCount,
          userID) = unpack(metaInfo, "conversation")
 
         titleLabel = QLabel(highlight(title))
@@ -127,7 +156,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         verticalSpacer = QSpacerItem(0, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        metadata = f"Created: {created} | LLM: {llmID} \n Messages: {messageCount} | Model: {modelCount} "
+        metadata = f"Created: {created} | LLM: {llmID} \n Messages: {messageCount} | Workflow: {workflowCount} "
         metadataLabel = QLabel(metadata)
         metadataLabel.setAlignment(Qt.AlignRight)
 
@@ -179,7 +208,10 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             del self.conversationCards[conversationID]
 
     @handleNoneConversation
-    def updateGeneralInfo(self, conversation):
+    def updateGeneralInfo(self, conversation) -> None:
+        """
+        Update general information dock under "Messages" tab.
+        """
         self.lbTitle.setText(conversation.title)
         self.lbDescription.setText(formatDescription(conversation.description))
 
@@ -187,10 +219,16 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.lbMetadata.setText(metadata)
 
     @handleNoneConversation
-    def updateConversation(self, conversation):
+    def updateConversation(self, conversation) -> None:
+        """
+        Update chat log under "Messages" tab.
+        """
         # get updated log
         log = conversation.fetch()
         self.txHistory.setPlainText(log)
+
+        # set text browser read only
+        self.txHistory.setReadOnly(True)
 
         # always show the bottom of streaming conversation
         self.txHistory.verticalScrollBar().setValue(self.txHistory.verticalScrollBar().maximum())

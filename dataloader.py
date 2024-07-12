@@ -137,7 +137,7 @@ class Dataloader:
                        "created TEXT NOT NULL",
                        "modified TEXT NOT NULL",
                        "messageCount INT NOT NULL",
-                       "modelCount INT NOT NULL",
+                       "workflowCount INT NOT NULL",
                        "userID TEXT NOT NULL",
                        f"FOREIGN KEY (llmID) REFERENCES {self.llmTableName}(ID)"]
             createTableSql = f"CREATE TABLE IF NOT EXISTS {self.conversationTableName} ({', '.join(columns)})"
@@ -190,7 +190,7 @@ class Dataloader:
     def insertConversationInfo(self, conversationInfoDict):
         insertSQL = f"""
             INSERT INTO {self.conversationTableName} 
-            (ID, llmID, title, description, created, modified, messageCount, modelCount, userID) 
+            (ID, llmID, title, description, created, modified, messageCount, workflowCount, userID) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
         conversationInfoList = unpack(conversationInfoDict, "conversation")
@@ -218,7 +218,7 @@ class Dataloader:
                 messageCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
                                      f"AND typeMessage != 'internal'")
                 self.cursor.execute(messageCountQuery, (rowConversationID,))
-                row["modelCount"] = self.cursor.fetchone()[0]
+                row["messageCount"] = self.cursor.fetchone()[0]
 
                 # Query to count rows with a specific conversationID and non-empty workflow
                 workflowCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
@@ -244,11 +244,13 @@ class Dataloader:
          created,
          modified,
          messageCount,
-         modelCount,
+         workflowCount,
          userID) = unpack(metaInfo, "conversation")
         updateSQL = (f"UPDATE {self.conversationTableName} SET llmID = ?, title = ?, description = ?, "
-                     f"created = ?, modified = ?, userID = ? WHERE ID = ?")
-        self.cursor.execute(updateSQL, (llmID, title, description, created, modified, userID, conversationID))
+                     f"created = ?, modified = ?, messageCount = ?, workflowCount = ?, userID = ? WHERE ID = ?")
+        self.cursor.execute(updateSQL,
+                            (llmID, title, description, created, modified,
+                             messageCount, workflowCount, userID, conversationID))
         self.connection.commit()
 
     def createConversation(self, metaInfo):

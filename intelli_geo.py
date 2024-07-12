@@ -32,6 +32,7 @@ from .resources import *
 from .intelli_geo_dockwidget import IntelliGeoDockWidget
 import os.path
 import re
+import logging
 import pyperclip
 
 # https://github.com/qgis/QGIS/tree/master/python/console
@@ -50,6 +51,7 @@ from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_po
 from .retrievalVectorbase import RetrievalVectorbase
 
 from .environment import QgisEnvironment
+
 
 class IntelliGeo:
     """QGIS Plugin Implementation."""
@@ -461,7 +463,7 @@ class IntelliGeo:
         self.dockwidget.pbSearchConversationCard.clicked.disconnect(self.onSearchConversationCard)
         self.dockwidget.searchPressed.disconnect(self.onSearchConversationCard)
 
-        self.dockwidget.pbSearchConversationCard.setText("Clear")
+        self.dockwidget.pbSearchConversationCard.setText("Cancel")
         self.dockwidget.pbSearchConversationCard.clicked.connect(self.switchClearMode)
 
     def switchClearMode(self):
@@ -473,18 +475,20 @@ class IntelliGeo:
         self.dockwidget.pbSearchConversationCard.setText("Search")
 
     def activateConsole(self, code, run):
-        consoleWidget = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+        consoleWidget = iface.mainWindow().findChild(QDockWidget, "PythonConsole")
         if not consoleWidget or not consoleWidget.isVisible():
             iface.actionShowPythonDialog().trigger()
-
-        consoleWidget = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+            consoleWidget = iface.mainWindow().findChild(QDockWidget, "PythonConsole")
 
         pythonConsole = consoleWidget.findChild(console.console.PythonConsoleWidget)
+
+        pythonConsole.tabEditorWidget.newTabEditor(tabName='IntelliGeo', filename=None)
+        pyperclip.copy(code)
+        pythonConsole.pasteEditor()
+
         editorWidget = pythonConsole.findChild(console.console_editor.Editor)
         if not editorWidget or not editorWidget.isVisible:
             pythonConsole.showEditorButton.trigger()
-        pyperclip.copy(code)
-        pythonConsole.pasteEditor()
 
         return None
 
@@ -494,5 +498,3 @@ class IntelliGeo:
         dialog.show()
 
         return None
-
-

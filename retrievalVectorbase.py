@@ -1,3 +1,45 @@
+"""
+/***************************************************************************
+
+RetrievalVectorbase
+
+This module defines the RetrievalVectorbase class, which manages vector
+stores for document retrieval and few-shot learning examples. It leverages
+FAISS for efficient vector storage and search, and SentenceTransformer for
+encoding text into embeddings.
+
+Classes:
+    RetrievalVectorbase: Handles the creation, loading, and querying of
+                         vector stores for both documents and few-shot
+                         examples.
+
+Usage:
+    - Initialize the RetrievalVectorbase with a specified version.
+    - Use createDocumentStore and createFewshotStore to set up the vector
+      stores.
+    - Retrieve relevant documents or examples based on user input using
+      retrieveDocument and retrieveExample methods.
+
+Dependencies:
+    - requests
+    - faiss
+    - re
+    - os
+    - json
+    - csv
+    - BeautifulSoup from bs4
+    - SentenceTransformer from sentence_transformers
+    - WebBaseLoader from langchain_community.document_loaders
+    - RecursiveCharacterTextSplitter, HTMLSectionSplitter from
+      langchain_text_splitters
+    - utils (local module)
+
+Note:
+    The vector stores are saved in the user's Documents folder under
+    "QGIS_IntelliGeo/.vectorDB".
+***************************************************************************/
+"""
+
 import requests
 import faiss
 import re
@@ -10,7 +52,7 @@ from sentence_transformers import SentenceTransformer
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter, HTMLSectionSplitter
 
-from .utils import readURL, splitAtPattern
+from .utils import readURL, splitAtPattern, show_variable_popup
 
 
 class RetrievalVectorbase:

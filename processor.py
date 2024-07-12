@@ -163,7 +163,7 @@ class Processor:
             toolOutput = selectedTool.invoke(toolcall["args"])
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
-        contextText = "-------------".join([message.content for message in messageList])
+        contextText = "\n-------------\n".join([message.content for message in messageList])
 
         # langchain inference
         modelProducerChain = llmWithTools | self.outputParser
@@ -194,10 +194,11 @@ class Processor:
         show_variable_popup(docStr)
 
         # get few-shot examples
-        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, exampleType="Script")[0]
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Script")[0]
         exampleStr = ""
         for example in retrievedExample:
             exampleStr += "\n\n" + example
+        # TODO: to be removed
         exampleStr = ""
 
         # show few-shot examples

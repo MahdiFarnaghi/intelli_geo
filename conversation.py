@@ -1,4 +1,6 @@
 import os
+import queue
+import threading
 
 from langchain_cohere import ChatCohere
 from langchain_openai import OpenAIEmbeddings
@@ -14,14 +16,15 @@ class Conversation:
     def __init__(self, ID, dataloader, retrivalDatabase):
         """
         >>> metaInfo.keys()
-        ... ["ID", "llmID", "title", "description", "created", "modified", "userID"]
+        ... ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "workflowCount", "userID"]
         """
         metaInfo = dataloader.selectConversationInfo(ID)
         self.metaInfo = metaInfo
 
         self.dataloader = dataloader
         self.LLMFinished = True
-        # self.messageCount, self.modelCount = 0, 0
+        # self.messageCount, self.workflowCount = 0, 0
+
         # TODO: model chooser logic
         self.llmProvider, self.llmName = self.dataloader.getLLMInfo(self.llmID)
         # ONWORKING: model chooser logic
@@ -42,7 +45,8 @@ class Conversation:
         self.workflowManager = WorkflowManager()
 
     def __getattr__(self, name):
-        # available variables: "ID", "llmID", "title", "description", "created", "modified", "userID"
+        # available variables: "ID", "llmID", "title", "description", "created", "modified", "messageCount",
+        # "workflowCount", "userID"
         if name != 'metaInfo' and name in self.metaInfo:
             return self.metaInfo[name]
         else:
@@ -70,12 +74,10 @@ class Conversation:
         response, workflow = self.Processor.response(message, responseType)
 
         if workflow != "empty":
-            modelPath = self.workflowManager.saveWorkflow(response, workflow, self.title, self.modelCount)
-            self.modelCount += 1
-
+            modelPath = self.workflowManager.saveWorkflow(response, workflow, self.title, self.workflowCount)
+            self.workflowCount += 1
         else:
             modelPath = None
-            # self.dataloader.insertInteraction(self.ID, sender="LLM", message=response)
 
         self.LLMFinished = True
         self.messageCount += 1
@@ -83,9 +85,11 @@ class Conversation:
 
         return response, workflow, modelPath
 
-
-    def fetch(self):
-        log = ''
+    def fetch(self) -> str:
+        """
+        Get entire conversation history from local database
+        """
+        log = ""
         interactionHistory = self.dataloader.selectInteraction(self.ID)
         # TODO: fetch loops through the databse and takes everything, for larger database can be time wasting
         # TODO: should we have an alternative method 'dispaly' that simply take the current shown content and
@@ -97,23 +101,23 @@ class Conversation:
             if messageDict["typeMessage"] == "input":
                 log += f"User: {messageDict['requestText']} \t {messageDict['requestTime']}\n\n"
             elif messageDict["typeMessage"] == "return":
-                log += f"User: {messageDict['responseText']} \t {messageDict['responseTime']}\n\n"
+                log += f"LLM: {messageDict['responseText']} \t {messageDict['responseTime']}\n\n"
 
         return log
 
     def fetchTail(self):
-        logTail = ''
+        logTail = ""
 
     def getMetadata(self):
         metadata = (f"Created: {self.created} | LLM: {self.llmName} | Messages: {str(self.messageCount)} | "
-                    f"Model: {str(self.modelCount)} ")
+                    f"Workflow: {str(self.workflowCount)} ")
 
         return metadata
 
     def clear(self):
         self.dataloader.cleartable(self.ID)
         self.messageCount = 0
-        self.modelCount = 0
+        self.workflowCount = 0
 
     def delete(self):
         self.dataloader.deleteConversation(self.ID)
