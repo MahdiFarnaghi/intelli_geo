@@ -49,9 +49,6 @@ import csv
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
 
-from langchain_community.document_loaders import WebBaseLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter, HTMLSectionSplitter
-
 from .utils import readURL, splitAtPattern, show_variable_popup
 
 

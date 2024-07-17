@@ -1,6 +1,4 @@
 import os
-import queue
-import threading
 
 from langchain_cohere import ChatCohere
 from langchain_openai import OpenAIEmbeddings

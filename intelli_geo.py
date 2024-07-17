@@ -481,14 +481,13 @@ class IntelliGeo:
             consoleWidget = iface.mainWindow().findChild(QDockWidget, "PythonConsole")
 
         pythonConsole = consoleWidget.findChild(console.console.PythonConsoleWidget)
+        editorWidget = pythonConsole.findChild(console.console_editor.Editor)
+        if not editorWidget or not editorWidget.isVisible:
+            pythonConsole.showEditorButton.trigger()
 
         pythonConsole.tabEditorWidget.newTabEditor(tabName='IntelliGeo', filename=None)
         pyperclip.copy(code)
         pythonConsole.pasteEditor()
-
-        editorWidget = pythonConsole.findChild(console.console_editor.Editor)
-        if not editorWidget or not editorWidget.isVisible:
-            pythonConsole.showEditorButton.trigger()
 
         return None
 

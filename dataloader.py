@@ -10,6 +10,11 @@ class Dataloader:
         self.connection = None
         self.cursor = None
         self.llmFullDict = None
+        folderPath = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
+        if not os.path.exists(folderPath):
+            os.makedirs(folderPath)
+
+        self.databasePath = os.path.join(folderPath, self.databaseName)
 
         # llm table
         self.llmTableName = "llm"
@@ -40,8 +45,10 @@ class Dataloader:
     def connect(self) -> None:
         """
         Connect and Initialization
+        If there is no existing database then create one.
         """
-        self.connection = sqlite3.connect(self.databaseName)
+
+        self.connection = sqlite3.connect(self.databasePath)
         self.cursor = self.connection.cursor()
 
         self._createLLMTable()
