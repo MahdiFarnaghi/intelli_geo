@@ -328,7 +328,7 @@ class IntelliGeo:
 
     def onConversationNewed(self):
         if self.editdialog is None or not self.editdialog.isVisible():
-            self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict)
+            self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict, self.dataloader.fetchAllConfig())
             self.editdialog.show()
             if self.editdialog.exec_() == QDialog.Accepted:
                 # The dialog was accepted, handle the data if needed
@@ -342,8 +342,9 @@ class IntelliGeo:
                                  created, modified, 0, 0, "{userID}"),
                                 "conversation")
 
-                # Dataloader: Create corresponding table in database
+                # Dataloader: Create corresponding table in database & update apikey
                 self.dataloader.createConversation(metaInfo)
+                self.dataloader.updateAPIKey(apiKey, llmID)
 
                 # Conversation: Update live conversation to new conversation
                 self.liveConversation = Conversation(self.liveConversationID, self.dataloader, self.retrievalVectorbase)
@@ -411,6 +412,7 @@ class IntelliGeo:
         if self.editdialog is None or not self.editdialog.isVisible():
             editConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
             self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict,
+                                                        self.dataloader.fetchAllConfig(),
                                                         editConversation.title,
                                                         editConversation.description,
                                                         editConversation.llmID)
@@ -418,7 +420,7 @@ class IntelliGeo:
 
             if self.editdialog.exec_() == QDialog.Accepted:
                 # Conversation: Dialog was accepted, update conversation meta-information
-                editConversation.title, editConversation.description, _, _, _ = self.editdialog.onUpdateMetadata()
+                editConversation.title, editConversation.description, llmID, _, apiKey = self.editdialog.onUpdateMetadata()
                 editConversation.lastEdit = getCurrentTimeStamp()
 
                 # the information don't have to be about liveConversation
@@ -426,10 +428,13 @@ class IntelliGeo:
 
                 # Dataloader: Update meta-information
                 self.dataloader.updateConversationInfo(editConversation.metaInfo)
+                self.dataloader.updateAPIKey(apiKey, llmID)
 
                 # Dock Interface: If editing live conversation, update general information in 'Messages' Tab
                 if conversationID == self.liveConversationID:
+                    self.liveConversation = editConversation
                     self.dockwidget.updateGeneralInfo(self.liveConversation)
+
                 # Dock Interface: Update corresponding conversation card
                 slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
                 self.dockwidget.updateConversationCard(editConversation.metaInfo, slotsFunctions)

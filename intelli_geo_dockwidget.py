@@ -212,6 +212,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """
         Update general information dock under "Messages" tab.
         """
+        show_variable_popup(conversation.description)
         self.lbTitle.setText(conversation.title)
         self.lbDescription.setText(formatDescription(conversation.description))
 

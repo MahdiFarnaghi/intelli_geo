@@ -10,6 +10,8 @@ class Dataloader:
         self.connection = None
         self.cursor = None
         self.llmFullDict = None
+        self.llmEndpointDict = None
+        self.apiKeyDict = None
         folderPath = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
@@ -68,6 +70,16 @@ class Dataloader:
         self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo"]
         self.llmFullDict["default"] = ["default"]
 
+        self.llmEndpointDict = dict()
+        self.llmEndpointDict["OpenAI"] = "https://api.openai.com/v1/chat/completions"
+        self.llmEndpointDict["Cohere"] = " https://api.cohere.com/v1/chat"
+        self.llmEndpointDict["default"] = "default"
+
+        self.apiKeyDict = dict()
+        self.apiKeyDict["OpenAI"] = os.getenv("OPENAI_API_KEY")
+        self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY")
+        self.apiKeyDict["default"] = "default"
+
         if not self._checkExistence(self.llmTableName):
             columns = ["ID TEXT NOT NULL PRIMARY KEY",
                        "name TEXT NOT NULL",
@@ -81,7 +93,9 @@ class Dataloader:
             for llmProvider, llmNameList in self.llmFullDict.items():
                 for llmName in llmNameList:
                     llmID = f"{llmProvider}::{llmName}"
-                    rowToInsert.append([llmID, llmName, None, None])
+                    endpoint = self.llmEndpointDict[llmProvider]
+                    apiKey = self.apiKeyDict[llmProvider]
+                    rowToInsert.append([llmID, llmName, endpoint, apiKey])
 
             self.cursor.executemany(f"""
                 INSERT INTO {self.llmTableName} (ID, name, endpoint, apiKey)
@@ -203,6 +217,43 @@ class Dataloader:
         conversationInfoList = unpack(conversationInfoDict, "conversation")
         self.cursor.execute(insertSQL, conversationInfoList)
         self.connection.commit()
+
+    def updateAPIKey(self, apiKey, ID):
+        show_variable_popup(ID)
+        _, oldAPIKey = self.fetchAPIKey(ID)
+        if oldAPIKey == apiKey:
+            return
+
+        updateSQL = f"""
+            UPDATE {self.llmTableName}
+            SET apiKey = ? WHERE ID = ?
+            """
+
+        self.cursor.execute(updateSQL, (apiKey, ID))
+        self.connection.commit()
+
+    def fetchAPIKey(self, ID) -> tuple[str, str]:
+        fetchSQL = f"""
+            SELECT endpoint, apiKey FROM {self.llmTableName}
+            WHERE ID = ?
+            """
+        self.cursor.execute(fetchSQL, (ID,))
+        result = self.cursor.fetchone()
+
+        if result:
+            endpoint, apiKey = result
+            return endpoint, apiKey
+        else:
+            raise ValueError(f"No record found with ID: {ID}", ID)
+
+    def fetchAllConfig(self):
+        fetchSQL = f"""
+            SELECT * FROM {self.llmTableName}
+            """
+        self.cursor.execute(fetchSQL)
+        rows = self.cursor.fetchall()
+
+        return rows
 
     def selectConversationInfo(self, conversationID=None):
         if self.conversationTableName is None:

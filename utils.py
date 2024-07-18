@@ -190,6 +190,7 @@ def splitAtPattern(inputStr, pattern=r'13.*?\n'):
 
 
 def show_variable_popup(variable):
+    return
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists

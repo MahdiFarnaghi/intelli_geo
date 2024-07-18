@@ -19,9 +19,10 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
     closed = pyqtSignal()
     titleEnterPressed = pyqtSignal(str)
 
-    def __init__(self, llmFullDict, title=None, description=None, llmID=None, parent=None):
+    def __init__(self, llmFullDict, configfullList, title=None, description=None, llmID=None, parent=None):
         """Constructor."""
         super(NewEditConversationDialog, self).__init__(parent)
+        self.configfullList = configfullList
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -41,8 +42,15 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
             self.cbLLM.setEditable(False)
             self.cbLLM.setEnabled(False)
 
+        currentIndex = self.cbLLM.currentIndex()
+        endpoint, apiKey = self.configfullList[currentIndex][-2:]
+        self.leAPIEndpoint.setText(endpoint)
+        self.leAPIEndpoint.setReadOnly(True)
+        self.leAPIKey.setText(apiKey)
+
         self.pbOkay.clicked.connect(self.handleOkay)
         self.pbCancel.clicked.connect(self.close)
+        self.cbLLM.currentIndexChanged.connect(self.onIndexChanged)
 
         # flag of update
         self.isUpdate = False
@@ -67,6 +75,11 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
         # Call onUpdateMetadata and process output
         name, description, LLM, endpoint, apiKey = self.onUpdateMetadata()
         self.accept()  # Close the dialog
+
+    def onIndexChanged(self, index):
+        endpoint, apiKey = self.configfullList[index][-2:]
+        self.leAPIEndpoint.setText(endpoint)
+        self.leAPIKey.setText(apiKey)
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress and obj is self.ptName:
