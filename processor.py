@@ -214,12 +214,13 @@ class Processor:
         messageList = [humanMessage]
 
         tools = [readEnvironment]
+        toolDict = {"readenvironment": readEnvironment}
         llmWithTools = self.llm.bind_tools(tools)
         llmMessage = llmWithTools.invoke(messageList)
         messageList.append(llmMessage)
 
         for toolcall in llmMessage.tool_calls:
-            selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
+            selectedTool = toolDict[toolcall["name"].lower()]
             toolOutput = selectedTool.invoke(toolcall["args"])
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 

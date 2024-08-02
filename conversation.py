@@ -5,7 +5,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_cohere.embeddings import CohereEmbeddings
 from langchain_openai import ChatOpenAI
 
-from .utils import getCurrentTimeStamp, getVersion, show_variable_popup, pack
+from .utils import getCurrentTimeStamp, getVersion, pack
 from .processor import Processor
 from .workflowManager import WorkflowManager
 

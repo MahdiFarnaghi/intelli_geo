@@ -1,7 +1,9 @@
 import sqlite3
 import os
 import json
-from .utils import getCurrentTimeStamp, unpack, show_variable_popup, tuple2Dict
+import requests
+import logging
+from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict
 
 
 class Dataloader:
@@ -34,6 +36,10 @@ class Dataloader:
         self.interactionTableName = "interaction"
         self.interactionTableColname = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime",
                                         "typeMessage", "responseText", "responseTime", "workflow", "executionLog"]
+
+        # backend url
+        # will be changed
+        self.backendURL = "http://localhost:8000"
 
     def _checkExistence(self, tableName):
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name = ? ;"
@@ -178,7 +184,8 @@ class Dataloader:
                        "responseTime TEXT",
                        "workflow TEXT",
                        "executionLog TEXT",
-                       f"FOREIGN KEY (conversationID) REFERENCES {self.conversationTableName}(ID)"]
+                       f"FOREIGN KEY (conversationID) REFERENCES {self.conversationTableName}(ID)"
+                       f"FOREIGN KEY (promptID) REFERENCES {self.promptTableName}(ID)"]
 
             createTableSql = f"CREATE TABLE IF NOT EXISTS {self.interactionTableName} ({', '.join(columns)})"
             self.cursor.execute(createTableSql)
@@ -197,12 +204,9 @@ class Dataloader:
             return "default", "default"
 
     def fetchPrompt(self, llmID, promptType):
-        show_variable_popup(llmID)
-        show_variable_popup(promptType)
         fetchPromptSql = f"SELECT * FROM {self.promptTableName} WHERE llmID = ? AND promptType = ?"
         self.cursor.execute(fetchPromptSql, (llmID, promptType))
         allPromptRows = self.cursor.fetchall()
-        show_variable_popup(allPromptRows)
         rows = tuple2Dict(allPromptRows, "prompt")
         sortedRows = sorted(rows, key=lambda x: x["version"], reverse=True)
 
@@ -218,8 +222,9 @@ class Dataloader:
         self.cursor.execute(insertSQL, conversationInfoList)
         self.connection.commit()
 
+        self.postData("conversation", conversationInfoDict)
+
     def updateAPIKey(self, apiKey, ID):
-        show_variable_popup(ID)
         _, oldAPIKey = self.fetchAPIKey(ID)
         if oldAPIKey == apiKey:
             return
@@ -267,7 +272,6 @@ class Dataloader:
                 selectSQL = f"SELECT * FROM {self.conversationTableName} WHERE ID = ?"
                 self.cursor.execute(selectSQL, (conversationID,))
                 rowList = tuple2Dict(self.cursor.fetchall(), "conversation")
-                show_variable_popup(conversationID)
 
             for row in rowList:
                 rowConversationID = row["ID"]
@@ -310,6 +314,7 @@ class Dataloader:
                             (llmID, title, description, created, modified,
                              messageCount, workflowCount, userID, conversationID))
         self.connection.commit()
+        self.updateData("conversation", conversationID, metaInfo)
 
     def createConversation(self, metaInfo):
         self.insertConversationInfo(metaInfo)
@@ -336,6 +341,9 @@ class Dataloader:
         self.cursor.execute(insertSQL, interaction)
         self.connection.commit()
 
+        interactionDict = pack(interaction, "interaction")
+        self.postData("interaction", interactionDict)
+
     def selectInteraction(self, conversationID, columns=None):
         if columns:
             selectSQL = (f"SELECT {', '.join(columns)} FROM {self.interactionTableName} "
@@ -346,6 +354,16 @@ class Dataloader:
         self.cursor.execute(selectSQL, (conversationID, "input", "return"))
         rows = self.cursor.fetchall()
         return rows
+
+    def postData(self, endpoint, data):
+        response = requests.post(f"{self.backendURL}/{endpoint}/", json=data)
+        # if response.status_code == 200:
+        #     print(f"Data successfully added to {endpoint}: {response.json()}")
+        # else:
+        #     print(f"Failed to add data to {endpoint}: {response.status_code} - {response.text}")
+
+    def updateData(self, endpoint, ID, data):
+        response = requests.put(f"{self.backendURL}/{endpoint}/{ID}", json=data)
 
     def close(self):
         if self.connection:

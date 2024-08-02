@@ -5,10 +5,26 @@ from qgis.PyQt import QtGui, QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
 
 from qgis.PyQt.QtCore import QEvent, Qt
+from qgis.PyQt.QtWidgets import QLineEdit
 
 # Import customized widgets for message
 from . import messageEdit
 from .utils import nestedDict2list, show_variable_popup
+
+
+class PasswordLineEdit(QLineEdit):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setEchoMode(QLineEdit.Password)  # Start in password mode
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.setEchoMode(QLineEdit.Normal)  # Show text in normal mode when focused
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.setEchoMode(QLineEdit.Password)  # Hide text in password mode when not focused
+
 
 # Load the UI file
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -46,7 +62,10 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
         endpoint, apiKey = self.configfullList[currentIndex][-2:]
         self.leAPIEndpoint.setText(endpoint)
         self.leAPIEndpoint.setReadOnly(True)
+
+        # API key input lineEdit
         self.leAPIKey.setText(apiKey)
+        self.leAPIKey.setEchoMode(QLineEdit.Password)
 
         self.pbOkay.clicked.connect(self.handleOkay)
         self.pbCancel.clicked.connect(self.close)
