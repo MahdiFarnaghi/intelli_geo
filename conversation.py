@@ -1,13 +1,11 @@
 import os
-import queue
-import threading
 
 from langchain_cohere import ChatCohere
 from langchain_openai import OpenAIEmbeddings
 from langchain_cohere.embeddings import CohereEmbeddings
 from langchain_openai import ChatOpenAI
 
-from .utils import getCurrentTimeStamp, getVersion, show_variable_popup, pack
+from .utils import getCurrentTimeStamp, getVersion, pack
 from .processor import Processor
 from .workflowManager import WorkflowManager
 
@@ -28,20 +26,8 @@ class Conversation:
         # TODO: model chooser logic
         self.llmProvider, self.llmName = self.dataloader.getLLMInfo(self.llmID)
         # ONWORKING: model chooser logic
-        if self.llmProvider == "OpenAI":
-            apiKey = os.getenv("OPENAI_API_KEY")
-            self.llm = ChatOpenAI(model=self.llmName, openai_api_key=apiKey, temperature=0)
-            self.embedding = OpenAIEmbeddings(openai_api_key=apiKey)
-        elif self.llmProvider == "Cohere":
-            apiKey = os.getenv("COHERE_API_KEY")
-            self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
-            self.embedding = CohereEmbeddings(cohere_api_key=apiKey)
-        else:
-            apiKey = os.getenv("COHERE_API_KEY")
-            self.llm = ChatCohere(model="command-r-plus", cohere_api_key=apiKey, temperature=0)
-            self.embedding = CohereEmbeddings(cohere_api_key=apiKey)
 
-        self.Processor = Processor(self.llm, self.llmID, self.ID, retrivalDatabase, self.dataloader)
+        self.Processor = Processor(self.llmID, self.ID, retrivalDatabase, self.dataloader)
         self.workflowManager = WorkflowManager()
 
     def __getattr__(self, name):

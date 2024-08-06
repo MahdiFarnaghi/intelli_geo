@@ -2,14 +2,14 @@
 import json
 import os
 
-from PyQt5.QtCore import QResource
-
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.runnables import RunnableLambda
 from langchain_core.messages import HumanMessage, ToolMessage
 from langchain_community.vectorstores import FAISS
+from langchain_cohere import ChatCohere
+from langchain_openai import ChatOpenAI
 
 from .utils import show_variable_popup, getVersion, getCurrentTimeStamp
 from .tools import readEnvironment
@@ -17,12 +17,18 @@ from .environment import QgisEnvironment
 
 
 class Processor:
-    def __init__(self, llm, llmID, conversationID, retrievalVectorbase, dataloader):
-        self.llm = llm
+    def __init__(self, llmID, conversationID, retrievalVectorbase, dataloader):
         self.llmID = llmID
+        self.dataloader = dataloader
+        self.llmProvider, self.llmName = llmID.split("::")
+        _, apiKey = dataloader.fetchAPIKey(self.llmID)
+        if self.llmProvider == "OpenAI":
+            self.llm = ChatOpenAI(model=self.llmName, openai_api_key=apiKey, temperature=0)
+        elif self.llmProvider == "Cohere":
+            self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
+
         self.conversationID = conversationID
         self.retrivalDatabase = retrievalVectorbase
-        self.dataloader = dataloader
         self.outputParser = StrOutputParser()
         self.version = getVersion()
 
@@ -208,12 +214,13 @@ class Processor:
         messageList = [humanMessage]
 
         tools = [readEnvironment]
+        toolDict = {"readenvironment": readEnvironment}
         llmWithTools = self.llm.bind_tools(tools)
         llmMessage = llmWithTools.invoke(messageList)
         messageList.append(llmMessage)
 
         for toolcall in llmMessage.tool_calls:
-            selectedTool = {"readenvironment": readEnvironment}[toolcall["name"].lower()]
+            selectedTool = toolDict[toolcall["name"].lower()]
             toolOutput = selectedTool.invoke(toolcall["args"])
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 

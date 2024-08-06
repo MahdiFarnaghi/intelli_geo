@@ -1,7 +1,9 @@
 import sqlite3
 import os
 import json
-from .utils import getCurrentTimeStamp, unpack, show_variable_popup, tuple2Dict
+import requests
+import logging
+from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict
 
 
 class Dataloader:
@@ -10,6 +12,13 @@ class Dataloader:
         self.connection = None
         self.cursor = None
         self.llmFullDict = None
+        self.llmEndpointDict = None
+        self.apiKeyDict = None
+        folderPath = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
+        if not os.path.exists(folderPath):
+            os.makedirs(folderPath)
+
+        self.databasePath = os.path.join(folderPath, self.databaseName)
 
         # llm table
         self.llmTableName = "llm"
@@ -28,6 +37,10 @@ class Dataloader:
         self.interactionTableColname = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime",
                                         "typeMessage", "responseText", "responseTime", "workflow", "executionLog"]
 
+        # backend url
+        # will be changed
+        self.backendURL = "http://localhost:8000"
+
     def _checkExistence(self, tableName):
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name = ? ;"
         self.cursor.execute(query, (tableName,))
@@ -40,8 +53,10 @@ class Dataloader:
     def connect(self) -> None:
         """
         Connect and Initialization
+        If there is no existing database then create one.
         """
-        self.connection = sqlite3.connect(self.databaseName)
+
+        self.connection = sqlite3.connect(self.databasePath)
         self.cursor = self.connection.cursor()
 
         self._createLLMTable()
@@ -61,6 +76,16 @@ class Dataloader:
         self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo"]
         self.llmFullDict["default"] = ["default"]
 
+        self.llmEndpointDict = dict()
+        self.llmEndpointDict["OpenAI"] = "https://api.openai.com/v1/chat/completions"
+        self.llmEndpointDict["Cohere"] = " https://api.cohere.com/v1/chat"
+        self.llmEndpointDict["default"] = "default"
+
+        self.apiKeyDict = dict()
+        self.apiKeyDict["OpenAI"] = os.getenv("OPENAI_API_KEY")
+        self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY")
+        self.apiKeyDict["default"] = "default"
+
         if not self._checkExistence(self.llmTableName):
             columns = ["ID TEXT NOT NULL PRIMARY KEY",
                        "name TEXT NOT NULL",
@@ -74,7 +99,9 @@ class Dataloader:
             for llmProvider, llmNameList in self.llmFullDict.items():
                 for llmName in llmNameList:
                     llmID = f"{llmProvider}::{llmName}"
-                    rowToInsert.append([llmID, llmName, None, None])
+                    endpoint = self.llmEndpointDict[llmProvider]
+                    apiKey = self.apiKeyDict[llmProvider]
+                    rowToInsert.append([llmID, llmName, endpoint, apiKey])
 
             self.cursor.executemany(f"""
                 INSERT INTO {self.llmTableName} (ID, name, endpoint, apiKey)
@@ -157,7 +184,8 @@ class Dataloader:
                        "responseTime TEXT",
                        "workflow TEXT",
                        "executionLog TEXT",
-                       f"FOREIGN KEY (conversationID) REFERENCES {self.conversationTableName}(ID)"]
+                       f"FOREIGN KEY (conversationID) REFERENCES {self.conversationTableName}(ID)"
+                       f"FOREIGN KEY (promptID) REFERENCES {self.promptTableName}(ID)"]
 
             createTableSql = f"CREATE TABLE IF NOT EXISTS {self.interactionTableName} ({', '.join(columns)})"
             self.cursor.execute(createTableSql)
@@ -176,12 +204,9 @@ class Dataloader:
             return "default", "default"
 
     def fetchPrompt(self, llmID, promptType):
-        show_variable_popup(llmID)
-        show_variable_popup(promptType)
         fetchPromptSql = f"SELECT * FROM {self.promptTableName} WHERE llmID = ? AND promptType = ?"
         self.cursor.execute(fetchPromptSql, (llmID, promptType))
         allPromptRows = self.cursor.fetchall()
-        show_variable_popup(allPromptRows)
         rows = tuple2Dict(allPromptRows, "prompt")
         sortedRows = sorted(rows, key=lambda x: x["version"], reverse=True)
 
@@ -197,6 +222,44 @@ class Dataloader:
         self.cursor.execute(insertSQL, conversationInfoList)
         self.connection.commit()
 
+        self.postData("conversation", conversationInfoDict)
+
+    def updateAPIKey(self, apiKey, ID):
+        _, oldAPIKey = self.fetchAPIKey(ID)
+        if oldAPIKey == apiKey:
+            return
+
+        updateSQL = f"""
+            UPDATE {self.llmTableName}
+            SET apiKey = ? WHERE ID = ?
+            """
+
+        self.cursor.execute(updateSQL, (apiKey, ID))
+        self.connection.commit()
+
+    def fetchAPIKey(self, ID) -> tuple[str, str]:
+        fetchSQL = f"""
+            SELECT endpoint, apiKey FROM {self.llmTableName}
+            WHERE ID = ?
+            """
+        self.cursor.execute(fetchSQL, (ID,))
+        result = self.cursor.fetchone()
+
+        if result:
+            endpoint, apiKey = result
+            return endpoint, apiKey
+        else:
+            raise ValueError(f"No record found with ID: {ID}", ID)
+
+    def fetchAllConfig(self):
+        fetchSQL = f"""
+            SELECT * FROM {self.llmTableName}
+            """
+        self.cursor.execute(fetchSQL)
+        rows = self.cursor.fetchall()
+
+        return rows
+
     def selectConversationInfo(self, conversationID=None):
         if self.conversationTableName is None:
             rowList = []
@@ -209,7 +272,6 @@ class Dataloader:
                 selectSQL = f"SELECT * FROM {self.conversationTableName} WHERE ID = ?"
                 self.cursor.execute(selectSQL, (conversationID,))
                 rowList = tuple2Dict(self.cursor.fetchall(), "conversation")
-                show_variable_popup(conversationID)
 
             for row in rowList:
                 rowConversationID = row["ID"]
@@ -252,6 +314,7 @@ class Dataloader:
                             (llmID, title, description, created, modified,
                              messageCount, workflowCount, userID, conversationID))
         self.connection.commit()
+        self.updateData("conversation", conversationID, metaInfo)
 
     def createConversation(self, metaInfo):
         self.insertConversationInfo(metaInfo)
@@ -278,6 +341,9 @@ class Dataloader:
         self.cursor.execute(insertSQL, interaction)
         self.connection.commit()
 
+        interactionDict = pack(interaction, "interaction")
+        self.postData("interaction", interactionDict)
+
     def selectInteraction(self, conversationID, columns=None):
         if columns:
             selectSQL = (f"SELECT {', '.join(columns)} FROM {self.interactionTableName} "
@@ -288,6 +354,16 @@ class Dataloader:
         self.cursor.execute(selectSQL, (conversationID, "input", "return"))
         rows = self.cursor.fetchall()
         return rows
+
+    def postData(self, endpoint, data):
+        response = requests.post(f"{self.backendURL}/{endpoint}/", json=data)
+        # if response.status_code == 200:
+        #     print(f"Data successfully added to {endpoint}: {response.json()}")
+        # else:
+        #     print(f"Failed to add data to {endpoint}: {response.status_code} - {response.text}")
+
+    def updateData(self, endpoint, ID, data):
+        response = requests.put(f"{self.backendURL}/{endpoint}/{ID}", json=data)
 
     def close(self):
         if self.connection:
