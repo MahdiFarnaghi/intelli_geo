@@ -11,3 +11,5 @@ faiss-cpu >= 1.8.0
 requests >= 2.31.0
 
 sentence-transformers >= 3.0.1
+netifaces~=0.11.0
+psutil~=6.0.0

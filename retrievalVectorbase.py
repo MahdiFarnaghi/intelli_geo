@@ -55,29 +55,30 @@ from .utils import readURL, splitAtPattern, show_variable_popup
 class RetrievalVectorbase:
     def __init__(self, version):
         self.version = version
-        self.embeddingModel = SentenceTransformer('all-MiniLM-L6-v2')
-        self.vectorStorePath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo", ".vectorDB")
-        os.makedirs(self.vectorStorePath, exist_ok=True)
+        self.backendURL = "http://localhost:8000"
+        # self.embeddingModel = SentenceTransformer('all-MiniLM-L6-v2')
+        # self.vectorStorePath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo", ".vectorDB")
+        # os.makedirs(self.vectorStorePath, exist_ok=True)
 
         # Load/Create vector store for PyQgis document
-        self.documentStorePath = os.path.join(self.vectorStorePath, f"Document_{version}.faiss")
-        self.documentContentPath = os.path.join(self.vectorStorePath, f"Document_{version}.json")
-        if not os.path.exists(self.documentStorePath) or not os.path.exists(self.documentContentPath):
-            self.createDocumentStore()
+        # self.documentStorePath = os.path.join(self.vectorStorePath, f"Document_{version}.faiss")
+        # self.documentContentPath = os.path.join(self.vectorStorePath, f"Document_{version}.json")
+        # if not os.path.exists(self.documentStorePath) or not os.path.exists(self.documentContentPath):
+        #     self.createDocumentStore()
 
-        self.documentVectorStore = faiss.read_index(self.documentStorePath)
-        with open(self.documentContentPath, 'r') as file:
-            self.documentContent = json.load(file)
+        # self.documentVectorStore = faiss.read_index(self.documentStorePath)
+        # with open(self.documentContentPath, 'r') as file:
+        #     self.documentContent = json.load(file)
 
-        # Load/Create vector store for few-shot examples
-        self.fewshotStorePath = os.path.join(self.vectorStorePath, f"Fewshot_{version}.faiss")
-        self.fewshotContentPath = os.path.join(self.vectorStorePath, f"Fewshot_{version}.json")
-        if not os.path.exists(self.fewshotStorePath) or not os.path.exists(self.fewshotContentPath):
-            self.createFewshotStore()
+        # # Load/Create vector store for few-shot examples
+        # self.fewshotStorePath = os.path.join(self.vectorStorePath, f"Fewshot_{version}.faiss")
+        # self.fewshotContentPath = os.path.join(self.vectorStorePath, f"Fewshot_{version}.json")
+        # if not os.path.exists(self.fewshotStorePath) or not os.path.exists(self.fewshotContentPath):
+        #     self.createFewshotStore()
 
-        self.fewshotVectorStore = faiss.read_index(self.fewshotStorePath)
-        with open(self.fewshotContentPath, 'r') as file:
-            self.fewshotContent = json.load(file)
+        # self.fewshotVectorStore = faiss.read_index(self.fewshotStorePath)
+        # with open(self.fewshotContentPath, 'r') as file:
+        #     self.fewshotContent = json.load(file)
 
     def createDocumentStore(self) -> None:
         cookbookPrefixURL = f"https://docs.qgis.org/{self.version}/en/docs/pyqgis_developer_cookbook/"
@@ -167,31 +168,36 @@ class RetrievalVectorbase:
         return docLink
 
     def retrieveDocument(self, userInput, topK=4):
-        if type(userInput) is str:
-            userInput = [userInput]
+        url = self.backendURL + "/retrieve_document"
+        payload = {
+            "version": self.version,
+            "userInput": userInput,
+            "topK": topK
+        }
 
-        inputEmbedding = self.embeddingModel.encode(userInput)
-        crossProduct, indexArray = self.documentVectorStore.search(inputEmbedding, k=topK)
-
-        ans = []
-        for indexList in indexArray:
-            ans.append([])
-            for i in indexList:
-                ans[-1].append(self.documentContent[i])
-
-        return ans
+        try:
+            response = requests.post(url, json=payload)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            data = response.json()
+            return data["results"]
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            return None
 
     def retrieveExample(self, userInput, topK=4, exampleType="Model"):
-        if type(userInput) is str:
-            userInput = [userInput]
+        url = self.backendURL + "/retrieve_document"
+        payload = {
+            "version": self.version,
+            "userInput": userInput,
+            "topK": topK,
+            "exampleType": exampleType
+        }
 
-        inputEmbedding = self.embeddingModel.encode(userInput)
-        crossProduct, indexArray = self.fewshotVectorStore.search(inputEmbedding, k=topK)
-
-        ans = []
-        for indexList in indexArray:
-            ans.append([])
-            for i in indexList:
-                ans[-1].append(self.fewshotContent[i][exampleType])
-
-        return ans
+        try:
+            response = requests.post(url, json=payload)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            data = response.json()
+            return data["results"]
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            return None

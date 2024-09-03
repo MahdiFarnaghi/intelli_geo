@@ -12,9 +12,12 @@ from typing import Literal
 import uuid
 import re
 import requests
+import netifaces
+import psutil
 
 from qgis.core import Qgis
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QLabel, QDialog, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QDialog, QScrollArea, QVBoxLayout,
+                             QWidget, QMessageBox, QPushButton, QLineEdit)
 import inspect
 
 
@@ -25,7 +28,7 @@ def generateUniqueID():
 
 def getCurrentTimeStamp():
     currentTime = datetime.now()
-    timeString = currentTime.strftime("%B %d %Y %H:%M:%S")
+    timeString = currentTime.strftime("%m %d %Y %H:%M:%S")
 
     return timeString
 
@@ -187,6 +190,97 @@ def splitAtPattern(inputStr, pattern=r'13.*?\n'):
     parts.append(inputStr[start:])
 
     return parts
+
+
+def getSystemInfo():
+    macAddresses = []
+    for interface, addrs in psutil.net_if_addrs().items():
+        for addr in addrs:
+            if addr.family == psutil.AF_LINK:
+                macAddresses.append(addr.address)
+    interfaces = netifaces.interfaces()
+    ethInterfaces = [iface for iface in interfaces if netifaces.AF_LINK in netifaces.ifaddresses(iface)]
+    qgisVersion = getVersion()
+
+    systemInfo = {
+        "macID": macAddresses[0] if macAddresses else "N/A",
+        "ethInterfaces": ', '.join(ethInterfaces),
+        "qgisVersion": qgisVersion
+    }
+
+    return systemInfo
+
+
+def captcha_popup(captcha_dict):
+    """
+    Creates a dialog to display a captcha question, with an input field for the answer and confirm/cancel buttons.
+    If no button is clicked and the dialog is closed, the function does not return any value.
+
+    :param captcha_dict: Dictionary containing the captcha question and values.
+    :return: The user's answer if confirmed, None if canceled, and nothing if no button is clicked.
+    """
+    app = QApplication.instance() or QApplication([])  # Create a QApplication if it doesn't exist
+
+    # Create a QDialog as the main window
+    dialog = QDialog()
+    dialog.setWindowTitle("Captcha Verification")
+
+    # Create the layout
+    layout = QVBoxLayout()
+
+    # Create and add the label with the question
+    question_label = QLabel(captcha_dict.get('question', ''))
+    layout.addWidget(question_label)
+
+    # Create and add the QLineEdit for user input
+    answer_input = QLineEdit()
+    layout.addWidget(answer_input)
+
+    # Create the confirm and cancel buttons
+    button_layout = QHBoxLayout()
+
+    confirm_button = QPushButton("Confirm")
+    cancel_button = QPushButton("Cancel")
+
+    button_layout.addWidget(confirm_button)
+    button_layout.addWidget(cancel_button)
+
+    layout.addLayout(button_layout)
+
+    # Set the layout for the dialog
+    dialog.setLayout(layout)
+
+    # Variable to store the user's answer
+    user_answer = None
+    button_clicked = False
+
+    # Define a function to handle the confirm button click
+    def on_confirm():
+        nonlocal user_answer, button_clicked
+        user_answer = answer_input.text()
+        if user_answer:
+            button_clicked = True
+            dialog.accept()  # Close the dialog and accept the result
+
+    # Define a function to handle the cancel button click
+    def on_cancel():
+        nonlocal user_answer, button_clicked
+        user_answer = None  # Ensure user_answer is None when cancel is clicked
+        button_clicked = True
+        dialog.reject()  # Close the dialog and reject the result
+
+    # Connect the buttons to their respective functions
+    confirm_button.clicked.connect(on_confirm)
+    cancel_button.clicked.connect(on_cancel)
+
+    # Execute the dialog and wait for the user response
+    result = dialog.exec_()
+
+    # Return the input value or None depending on the user action, or nothing if no button was clicked
+    if result == QDialog.Accepted and button_clicked:
+        return user_answer
+    return None
+
 
 
 def show_variable_popup(variable):

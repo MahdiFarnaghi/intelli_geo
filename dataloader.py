@@ -1,9 +1,10 @@
+import copy
 import sqlite3
 import os
 import json
 import requests
 import logging
-from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict
+from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captcha_popup
 
 
 class Dataloader:
@@ -36,6 +37,10 @@ class Dataloader:
         self.interactionTableName = "interaction"
         self.interactionTableColname = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime",
                                         "typeMessage", "responseText", "responseTime", "workflow", "executionLog"]
+
+        # credential table
+        self.credentialTableName = "credential"
+        self.credentialTableColName = ["ID", "sessionID", "sessionKey"]
 
         # backend url
         # will be changed
@@ -196,6 +201,14 @@ class Dataloader:
             self.cursor.execute(createIndexSql)
             self.connection.commit()
 
+    def _createCrendentialTable(self):
+        if not self._checkExistence(self.credentialTableName):
+            columns = ["ID TEXT PRIMARY KEY",
+                       "sessionID TEXT",
+                       "sessionKey TEXT"]
+            createTableSql = f"CREATE TABLE IF NOT EXISTS {self.credentialTableName} ({', '.join(columns)})"
+            self.cursor.execute(createTableSql)
+
     def getLLMInfo(self, llmID):
         provider, llmName = llmID.split("::", 1)
         if llmName in self.llmFullDict[provider]:
@@ -314,7 +327,27 @@ class Dataloader:
                             (llmID, title, description, created, modified,
                              messageCount, workflowCount, userID, conversationID))
         self.connection.commit()
-        self.updateData("conversation", conversationID, metaInfo)
+
+    def loadCredential(self):
+        querySQL = f"SELECT * FROM {self.credentialTableName} ORDER BY ID LIMIT 1"
+        self.cursor.execute(querySQL)
+        row = self.cursor.fetchone()
+        return row[1], row[2]
+
+    def updateCredential(self, sessionID, sessionKey):
+        self.cursor.execute(f"SELECT ID FROM {self.credentialTableName} ORDER BY ID LIMIT 1")
+        row = self.cursor.fetchone()
+        if row:
+            # Row exists, update it
+            self.cursor.execute(f"UPDATE {self.credentialTableName} SET sessionID = ?, sessionKey = ? WHERE ID = ?",
+                           (sessionID, sessionKey, row[0]))
+        else:
+            # No row exists, insert a new row
+            new_id = "1"
+            self.cursor.execute(f"INSERT INTO {self.credentialTableName} (ID, sessionID, sessionKey) VALUES (?, ?, ?)",
+                           (new_id, sessionID, sessionKey))
+
+        self.connection.commit()
 
     def createConversation(self, metaInfo):
         self.insertConversationInfo(metaInfo)
@@ -356,11 +389,38 @@ class Dataloader:
         return rows
 
     def postData(self, endpoint, data):
-        response = requests.post(f"{self.backendURL}/{endpoint}/", json=data)
-        # if response.status_code == 200:
-        #     print(f"Data successfully added to {endpoint}: {response.json()}")
-        # else:
-        #     print(f"Failed to add data to {endpoint}: {response.status_code} - {response.text}")
+        payload = data
+        header = getSystemInfo()
+
+        while True:
+            dataDict = copy.deepcopy(data)
+            sessionID, sessionKey = self.loadCredential()
+            dataDict["sessionID"] = sessionID
+            dataDict["sessionKey"] = sessionKey
+            try:
+                response = requests.post(f"{self.backendURL}/{endpoint}", json=dataDict, headers=header)
+                if response.status_code == 200:
+                    break
+                else:
+                    errorResponse = response.json()
+                    captchaDict = errorResponse.get('detail', {})
+                    answer = captcha_popup(captchaDict)
+                    body = {"answer": answer}
+
+                    header = getSystemInfo()
+                    header["sendtime"] = getCurrentTimeStamp()
+
+                    response = requests.post(f"{self.backendURL}/register", headers=header, json=body)
+                    if response.status_code == 200:
+                        response_data = response.json()
+
+                        # Extract the credentials
+                        sessionID = response_data.get("sessionID")
+                        sessionKey = response_data.get("sessionKey")
+                        self.updateCredential(sessionID, sessionKey)
+
+            except requests.exceptions.HTTPError as httpErr:
+                continue
 
     def updateData(self, endpoint, ID, data):
         response = requests.put(f"{self.backendURL}/{endpoint}/{ID}", json=data)

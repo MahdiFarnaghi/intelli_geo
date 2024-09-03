@@ -112,7 +112,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.scrollAreaWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         metaTable = dataloader.selectConversationInfo()
-        metaTable.sort(key=lambda info: datetime.strptime(info['modified'], "%B %d %Y %H:%M:%S"))
+        metaTable.sort(key=lambda info: datetime.strptime(info['modified'], "%m %d %Y %H:%M:%S"))
 
         for metaInfo in metaTable:
             if searchFilter(metaInfo):
