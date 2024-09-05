@@ -95,6 +95,12 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.ptMessage.installEventFilter(self)
         self.ptSearchConversationCard.installEventFilter(self)
 
+        # TODO: to be removed in version v0.0.2
+        for index in reversed(range(self.twTabs.count())):
+            tab = self.twTabs.widget(index)
+            if tab.objectName() in ["tbContext", "tabModels"]:
+                self.twTabs.removeTab(index)
+
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
