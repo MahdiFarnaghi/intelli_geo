@@ -217,13 +217,20 @@ class Dataloader:
             return "default", "default"
 
     def fetchPrompt(self, llmID, promptType):
-        fetchPromptSql = f"SELECT * FROM {self.promptTableName} WHERE llmID = ? AND promptType = ?"
-        self.cursor.execute(fetchPromptSql, (llmID, promptType))
-        allPromptRows = self.cursor.fetchall()
-        rows = tuple2Dict(allPromptRows, "prompt")
-        sortedRows = sorted(rows, key=lambda x: x["version"], reverse=True)
+        # fetchPromptSql = f"SELECT * FROM {self.promptTableName} WHERE llmID = ? AND promptType = ?"
+        # self.cursor.execute(fetchPromptSql, (llmID, promptType))
+        # allPromptRows = self.cursor.fetchall()
+        # rows = tuple2Dict(allPromptRows, "prompt")
+        # sortedRows = sorted(rows, key=lambda x: x["version"], reverse=True)
+        params = {
+            'llmID': 'Cohere::command-r-plus',
+            'promptType': promptType
+        }
+        endpoint = f"{self.backendURL}/prompt_by/"
+        # Send the GET request
+        response = requests.get(endpoint, params=params)
 
-        return sortedRows[0]
+        return response.json()
 
     def insertConversationInfo(self, conversationInfoDict):
         insertSQL = f"""
