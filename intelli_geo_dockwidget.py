@@ -100,7 +100,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             tab = self.twTabs.widget(index)
             if tab.objectName() in ["tbContext", "tabModels"]:
                 self.twTabs.removeTab(index)
-
+        self.rbtCode.setChecked(True)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
