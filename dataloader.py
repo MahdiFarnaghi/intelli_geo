@@ -43,8 +43,7 @@ class Dataloader:
         self.credentialTableColName = ["ID", "sessionID", "sessionKey"]
 
         # backend url
-        # will be changed
-        self.backendURL = "http://localhost:8000"
+        self.backendURL = "https://owsgip.itc.utwente.nl/intelligeo/"
 
     def _checkExistence(self, tableName):
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name = ? ;"
@@ -68,6 +67,7 @@ class Dataloader:
         self._createConversationTable()
         self._createPromptTable()
         self._createInteractionTable()
+        self._createCrendentialTable()
 
     def _createLLMTable(self):
         """
@@ -87,8 +87,8 @@ class Dataloader:
         self.llmEndpointDict["default"] = "default"
 
         self.apiKeyDict = dict()
-        self.apiKeyDict["OpenAI"] = os.getenv("OPENAI_API_KEY")
-        self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY")
+        self.apiKeyDict["OpenAI"] = os.getenv("OPENAI_API_KEY", "")
+        self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY", "")
         self.apiKeyDict["default"] = "default"
 
         if not self._checkExistence(self.llmTableName):
@@ -332,7 +332,10 @@ class Dataloader:
         querySQL = f"SELECT * FROM {self.credentialTableName} ORDER BY ID LIMIT 1"
         self.cursor.execute(querySQL)
         row = self.cursor.fetchone()
-        return row[1], row[2]
+        if row is not None:
+            return row[1], row[2]
+        else:
+            return "", ""
 
     def updateCredential(self, sessionID, sessionKey):
         self.cursor.execute(f"SELECT ID FROM {self.credentialTableName} ORDER BY ID LIMIT 1")

@@ -84,7 +84,6 @@ class Processor:
 
     def reactionRouter(self, userInput, responseType):
         decision = self.classifier(userInput)
-        show_variable_popup(decision)
 
         if "no" in decision.lower():
             generalChatResponse = self.generalChat(userInput)
@@ -197,8 +196,6 @@ class Processor:
         for doc in retrievedDoc:
             docStr += "\n\n" + doc
 
-        show_variable_popup(docStr)
-
         # get few-shot examples
         retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Script")[0]
         exampleStr = ""
@@ -206,9 +203,6 @@ class Processor:
             exampleStr += "\n\n" + example
         # TODO: to be removed
         exampleStr = ""
-
-        # show few-shot examples
-        show_variable_popup(exampleStr)
 
         humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
         messageList = [humanMessage]

@@ -12,7 +12,6 @@ from typing import Literal
 import uuid
 import re
 import requests
-import netifaces
 import psutil
 
 from qgis.core import Qgis
@@ -198,8 +197,12 @@ def getSystemInfo():
         for addr in addrs:
             if addr.family == psutil.AF_LINK:
                 macAddresses.append(addr.address)
-    interfaces = netifaces.interfaces()
-    ethInterfaces = [iface for iface in interfaces if netifaces.AF_LINK in netifaces.ifaddresses(iface)]
+    interfaces = psutil.net_if_addrs()
+
+    # Filter only Ethernet interfaces (assuming Ethernet uses AF_LINK)
+    ethInterfaces = [iface for iface, addrs in interfaces.items() if
+                      any(addr.family == psutil.AF_LINK for addr in addrs)]
+
     qgisVersion = getVersion()
 
     systemInfo = {
@@ -284,7 +287,6 @@ def captcha_popup(captcha_dict):
 
 
 def show_variable_popup(variable):
-    return
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists

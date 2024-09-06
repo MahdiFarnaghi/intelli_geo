@@ -55,7 +55,7 @@ from .utils import readURL, splitAtPattern, show_variable_popup
 class RetrievalVectorbase:
     def __init__(self, version):
         self.version = version
-        self.backendURL = "http://localhost:8000"
+        self.backendURL = "https://owsgip.itc.utwente.nl/intelligeo/"
         # self.embeddingModel = SentenceTransformer('all-MiniLM-L6-v2')
         # self.vectorStorePath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo", ".vectorDB")
         # os.makedirs(self.vectorStorePath, exist_ok=True)
@@ -182,7 +182,7 @@ class RetrievalVectorbase:
             return data["results"]
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
-            return None
+            return [[]]
 
     def retrieveExample(self, userInput, topK=4, exampleType="Model"):
         url = self.backendURL + "/retrieve_document"
@@ -200,4 +200,4 @@ class RetrievalVectorbase:
             return data["results"]
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
-            return None
+            return [[]]

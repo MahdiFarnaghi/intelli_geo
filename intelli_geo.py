@@ -362,7 +362,6 @@ class IntelliGeo:
         qgis = QgisEnvironment()
         qgis.refresh()
         info = qgis.getLayerAttributes()
-        show_variable_popup(info)
 
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID

@@ -44,8 +44,9 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
 
         self.llmFullList = nestedDict2list(llmFullDict)
-        show_variable_popup(self.llmFullList)
         for llmIDItem in self.llmFullList:
+            if llmIDItem == "default::default":
+                continue
             self.cbLLM.addItem(llmIDItem)
 
         if title is not None:
