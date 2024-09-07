@@ -201,8 +201,6 @@ class Processor:
         exampleStr = ""
         for example in retrievedExample:
             exampleStr += "\n\n" + example
-        # TODO: to be removed
-        exampleStr = ""
 
         humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
         messageList = [humanMessage]

@@ -168,10 +168,10 @@ class RetrievalVectorbase:
         return docLink
 
     def retrieveDocument(self, userInput, topK=4):
-        url = self.backendURL + "/retrieve_document"
+        url = self.backendURL + "/retrieve_document/"
         payload = {
-            "version": self.version,
-            "userInput": userInput,
+            "version": str(self.version),
+            "query": str(userInput),
             "topK": topK
         }
 
@@ -185,10 +185,10 @@ class RetrievalVectorbase:
             return [[]]
 
     def retrieveExample(self, userInput, topK=4, exampleType="Model"):
-        url = self.backendURL + "/retrieve_document"
+        url = self.backendURL + "/retrieve_example/"
         payload = {
             "version": self.version,
-            "userInput": userInput,
+            "query": userInput,
             "topK": topK,
             "exampleType": exampleType
         }
