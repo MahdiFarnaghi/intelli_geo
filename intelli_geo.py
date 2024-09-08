@@ -335,11 +335,11 @@ class IntelliGeo:
                 title, description, llmID, endpoint, apiKey = self.editdialog.onUpdateMetadata()
                 created = getCurrentTimeStamp()
                 modified = created
-                # TODO: userID
-                self.liveConversationID = "{userID}_" + generateUniqueID()
+                sessionID, _ = self.dataloader.loadCredential()
+                self.liveConversationID = f"{sessionID}_" + generateUniqueID()
 
                 metaInfo = pack((self.liveConversationID, llmID, title, description,
-                                 created, modified, 0, 0, "{userID}"),
+                                 created, modified, 0, 0, f"{sessionID}"),
                                 "conversation")
 
                 # Dataloader: Create corresponding table in database & update apikey
