@@ -1,6 +1,7 @@
 # IntelliGeo
 
 ![Static Badge](https://img.shields.io/badge/QGIS->=3.34-86f060)
+![Static Badge](https://img.shields.io/badge/plugin-IntelliGeo-2D9596)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/MahdiFarnaghi/intelli_geo)
 ![Github Created At](https://img.shields.io/github/created-at/MahdiFarnaghi/intelli_geo)
 ![GitHub License](https://img.shields.io/github/license/MahdiFarnaghi/intelli_geo)
