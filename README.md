@@ -30,7 +30,7 @@ Designed for GIS professionals, it assists users by automatically operating QGIS
 
 Download the Plugin:
 
-- Visit the [IntelliGeo GitHub repository](https://github.com/MahdiFarnaghi/intelli_geo) and download the latest release of the plugin as a ZIP file.
+- Visit the [IntelliGeo GitHub repository](https://github.com/MahdiFarnaghi/intelli_geo) and download the latest [release](https://github.com/MahdiFarnaghi/intelli_geo/releases) of the plugin as a ZIP file.
 
 Install via QGIS Plugin Manager:
 
