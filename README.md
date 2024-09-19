@@ -6,7 +6,9 @@ The plugin is in development phase. Soon, we will release version 0.1.
 
 ## The Repository
 
-Welcome to the IntelliGeo repository. This is the central hub where our team, in collaboration with the community, develops the IntelliGeo software. Here you'll find the source code and issue tracker for the project. The code is released under the Apache 2.0 license.
+Welcome to the IntelliGeo repository. 
+
+This is the central hub where our team, in collaboration with the community, develops the IntelliGeo software. Here you'll find the source code and issue tracker for the project. The code is released under the Apache 2.0 license.
 
 ## IntelliGeo
 
@@ -22,20 +24,25 @@ IntelliGeo is a QGIS plugin that leverages Large Language Models (LLMs) to autom
 
 Download the Plugin:
 
-    - Visit the [IntelliGeo GitHub repository](https://github.com/MahdiFarnaghi/intelli_geo) and download the latest release of the plugin as a ZIP file.
+- Visit the [IntelliGeo GitHub repository](https://github.com/MahdiFarnaghi/intelli_geo) and download the latest release of the plugin as a ZIP file.
 
 Install via QGIS Plugin Manager:
 
-    - Open QGIS.
-    - Go to `Plugins` > `Manage and Install Plugins`.
-    - Click the `Install from ZIP` button.
-    - Browse to the location where you downloaded the IntelliGeo ZIP file and select it.
-    - Click `Install Plugin`.
+- Open QGIS.
+- Go to `Plugins` > `Manage and Install Plugins`.
+- Click the `Install from ZIP` button.
+- Browse to the location where you downloaded the IntelliGeo ZIP file and select it.
+- Click `Install Plugin`.
     
 Activate the Plugin:
 
-    - Go to `Plugins` > `Manage and Install Plugins`.
-    - Find IntelliGeo in the list and check the box next to it to activate the plugin.
+- Go to `Plugins` > `Manage and Install Plugins`.
+- Find IntelliGeo in the list and check the box next to it to activate the plugin.
+
+
+### How to use
+
+
 
 ### Bug Reports & Feature Requests
 
