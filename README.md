@@ -50,7 +50,7 @@ Activate the Plugin:
 > [!NOTE]
 > In some cases, you may need to install the dependencies manually. We are working on fixing this issue, but some users may still need to take this step.
 
-For Linux or macOS, use `pip` to install the Python dependencies listed in the requirements.txt file.
+For Linux or macOS, use `pip` to install the Python dependencies listed in the [requirements.txt](https://github.com/MahdiFarnaghi/intelli_geo/blob/main/requirements.txt) file.
 
 For Windows, ...
 
