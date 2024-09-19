@@ -1,8 +1,19 @@
 # IntelliGeo
 
+![Static Badge](https://img.shields.io/badge/QGIS->=3.34-86f060)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/MahdiFarnaghi/intelli_geo)
+![Github Created At](https://img.shields.io/github/created-at/MahdiFarnaghi/intelli_geo)
+![GitHub License](https://img.shields.io/github/license/MahdiFarnaghi/intelli_geo)
+![GitHub last commit](https://img.shields.io/github/last-commit/MahdiFarnaghi/intelli_geo)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/MahdiFarnaghi/intelli_geo)
+
+
+
+
+
 IntelliGeo is a [QGIS](https://www.qgis.org/) plugin that facilitates interaction with Large Language Models in QGIS environment.
 
-The plugin is in development phase. Soon, we will release version `0.1`. 
+The plugin is in development phase. Soon, we will release version `0.0.1`. 
 
 ## The Repository
 
