@@ -8,7 +8,7 @@ The plugin is in development phase. Soon, we will release version 0.1.
 
 Welcome to the IntelliGeo repository. 
 
-This is the central hub where our team, in collaboration with the community, develops the IntelliGeo software. Here you'll find the source code and issue tracker for the project. The code is released under the Apache 2.0 license.
+This is the central hub where our team ([Mahdi Farnaghi](https://github.com/MahdiFarnaghi), [Gustavo García](https://github.com/chape1331)， [Zehao Lu](https://github.com/com3dian) ）, in collaboration with the community, develops the IntelliGeo software. Here you'll find the source code and issue tracker for the project. The code is released under the Apache 2.0 license.
 
 ## IntelliGeo
 
