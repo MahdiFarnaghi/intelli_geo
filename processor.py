@@ -199,9 +199,10 @@ class Processor:
         # get few-shot examples
         retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Script")[0]
         exampleStr = ""
+        """
         for example in retrievedExample:
             exampleStr += "\n\n" + example
-
+        """
         humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
         messageList = [humanMessage]
 

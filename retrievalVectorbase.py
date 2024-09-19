@@ -41,10 +41,7 @@ Note:
 """
 
 import requests
-import re
-import os
-import json
-import csv
+
 
 from .utils import readURL, splitAtPattern, show_variable_popup
 

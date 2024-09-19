@@ -11,7 +11,7 @@ from .workflowManager import WorkflowManager
 
 
 class Conversation:
-    def __init__(self, ID, dataloader, retrivalDatabase):
+    def __init__(self, ID: str, dataloader, retrivalDatabase):
         """
         >>> metaInfo.keys()
         ... ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "workflowCount", "userID"]

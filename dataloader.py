@@ -4,11 +4,11 @@ import os
 import json
 import requests
 import logging
-from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captcha_popup
+from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captchaPopup
 
 
 class Dataloader:
-    def __init__(self, databaseName):
+    def __init__(self, databaseName: str):
         self.databaseName = databaseName
         self.connection = None
         self.cursor = None
@@ -46,6 +46,19 @@ class Dataloader:
         self.backendURL = "https://owsgip.itc.utwente.nl/intelligeo/"
 
     def _checkExistence(self, tableName):
+        """
+        Checks whether a table with the specified name exists in the SQLite database.
+
+        Args:
+            tableName (str): The name of the table to check for existence.
+
+        Returns:
+            bool: `True` if the table exists, `False` otherwise.
+
+        Example:
+            >>> exists = self._checkExistence("users")
+            # exists will be True if the "users" table exists, otherwise False.
+        """
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name = ? ;"
         self.cursor.execute(query, (tableName,))
 
@@ -414,7 +427,7 @@ class Dataloader:
                 else:
                     errorResponse = response.json()
                     captchaDict = errorResponse.get('detail', {})
-                    answer = captcha_popup(captchaDict)
+                    answer = captchaPopup(captchaDict)
                     body = {"answer": answer}
 
                     header = getSystemInfo()

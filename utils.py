@@ -26,6 +26,19 @@ def generateUniqueID():
 
 
 def getCurrentTimeStamp():
+    """
+    Returns the current timestamp as a formatted string.
+
+    This function retrieves the current date and time using the system's local time,
+    and formats it into a string in the format "MM DD YYYY HH:MM:SS".
+
+    Returns:
+        str: The current timestamp in the format "MM DD YYYY HH:MM:SS".
+
+    Example:
+        current_time = getCurrentTimeStamp()
+        # current_time might return something like "09 15 2023 14:30:45"
+    """
     currentTime = datetime.now()
     timeString = currentTime.strftime("%m %d %Y %H:%M:%S")
 
@@ -47,7 +60,50 @@ def formatDescription(description):
     return description + '\n'
 
 
-def unpack(rowDict: dict, table: Literal["conversation", "interaction", "prompt"]) -> list:
+def unpack(rowDict: dict,
+           table: Literal["conversation", "interaction", "prompt"]) -> list:
+    """
+    Unpacks a dictionary containing row data into a list of values based on the specified table type.
+
+    This function ensures that the input dictionary (`rowDict`) contains the correct columns
+    for the specified table type (`conversation`, `interaction`, or `prompt`). The columns for each
+    table type are predefined, and the function raises a `KeyError` if the dictionary keys do not
+    match the expected columns. It returns a list of values corresponding to the dictionary's
+    values in the correct column order.
+
+    Args:
+        rowDict (dict): A dictionary representing a row of data, where keys are column names, and values
+                        are the corresponding data entries.
+        table (Literal["conversation", "interaction", "prompt"]): The table type that determines the expected
+                                                                 columns in `rowDict`. Must be one of:
+                                                                 - "conversation"
+                                                                 - "interaction"
+                                                                 - "prompt"
+
+    Returns:
+        list: A list of values from `rowDict`, ordered according to the column names of the specified table.
+
+    Raises:
+        ValueError: If an invalid table type is specified.
+        KeyError: If the keys in `rowDict` do not match the expected column names for the specified table.
+
+    Example:
+        conversation_row = {
+            "ID": 1,
+            "llmID": 123,
+            "title": "Sample Conversation",
+            "description": "A test conversation",
+            "created": "2023-09-15",
+            "modified": "2023-09-16",
+            "messageCount": 5,
+            "workflowCount": 2,
+            "userID": 456
+        }
+
+        unpacked_row = unpack(conversation_row, "conversation")
+        # unpacked_row would be [1, 123, "Sample Conversation", "A test conversation", "2023-09-15",
+        #                        "2023-09-16", 5, 2, 456]
+    """
     if table not in ["conversation", "interaction", "prompt"]:
         raise ValueError("Must specify the table type for function 'unpack'")
 
@@ -73,7 +129,8 @@ def unpack(rowDict: dict, table: Literal["conversation", "interaction", "prompt"
     return rowList
 
 
-def pack(rowTuple: tuple, table: Literal["conversation", "interaction", "prompt"]) -> dict:
+def pack(rowTuple: tuple,
+         table: Literal["conversation", "interaction", "prompt"]) -> dict:
     """
     Converts a tuple of row data into a dictionary with column names as keys.
     Raise valueError: If the table type is not "conversation", "interaction" or "prompt".
@@ -107,7 +164,8 @@ def getVersion():
     return ".".join(fullVersion.split('.')[:2])
 
 
-def tuple2Dict(allRowList: list[tuple], table: Literal["conversation", "interaction", "prompt"]) -> list[dict]:
+def tuple2Dict(allRowList: list[tuple],
+               table: Literal["conversation", "interaction", "prompt"]) -> list[dict]:
     result = []
     for rowTuple in allRowList:
         result.append(pack(rowTuple, table))
@@ -156,7 +214,27 @@ def extractXml(response: str) -> str:
             return ""
 
 
-def readURL(url):
+def readURL(url: str):
+    """
+    Fetches and returns the text content of a webpage from a given URL.
+
+    This function sends a GET request to the provided URL and checks for a successful response.
+    If the status code is not 200 (OK), it raises an exception. Otherwise, it parses the webpage's
+    content and extracts all the text, removing HTML tags.
+
+    Args:
+        url (str): The URL of the webpage to retrieve.
+
+    Returns:
+        str: The plain text content of the webpage.
+
+    Raises:
+        Exception: If the webpage cannot be retrieved (i.e., response status code is not 200).
+
+    Example:
+        >>> page_text = readURL("https://example.com")
+        # page_text will contain the text content of the webpage.
+    """
     response = requests.get(url)
     if response.status_code != 200:
         raise Exception(f"Failed to retrieve the webpage. Status code: {response.status_code}")
@@ -167,7 +245,8 @@ def readURL(url):
     return pageText
 
 
-def splitAtPattern(inputStr, pattern=r'13.*?\n'):
+def splitAtPattern(inputStr: str,
+                   pattern: str = r'13.*?\n'):
     # Find all matches of the pattern in the input string
     matches = re.finditer(pattern, inputStr)
 
@@ -191,6 +270,11 @@ def splitAtPattern(inputStr, pattern=r'13.*?\n'):
     return parts
 
 
+def cleanLatin1String(inputString: str):
+    # Encode to latin-1 and decode to handle non-latin-1 characters
+    return inputString.encode('latin-1', 'replace').decode('latin-1')
+
+
 def getSystemInfo():
     macAddresses = []
     for interface, addrs in psutil.net_if_addrs().items():
@@ -201,20 +285,20 @@ def getSystemInfo():
 
     # Filter only Ethernet interfaces (assuming Ethernet uses AF_LINK)
     ethInterfaces = [iface for iface, addrs in interfaces.items() if
-                      any(addr.family == psutil.AF_LINK for addr in addrs)]
+                     any(addr.family == psutil.AF_LINK for addr in addrs)]
 
     qgisVersion = getVersion()
 
     systemInfo = {
-        "macID": macAddresses[0] if macAddresses else "N/A",
-        "ethInterfaces": ', '.join(ethInterfaces),
+        "macID": cleanLatin1String(macAddresses[0]) if macAddresses else "N/A",
+        "ethInterfaces": cleanLatin1String(', '.join(ethInterfaces)),
         "qgisVersion": qgisVersion
     }
 
     return systemInfo
 
 
-def captcha_popup(captcha_dict):
+def captchaPopup(captcha_dict):
     """
     Creates a dialog to display a captcha question, with an input field for the answer and confirm/cancel buttons.
     If no button is clicked and the dialog is closed, the function does not return any value.
