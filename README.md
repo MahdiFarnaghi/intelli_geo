@@ -45,10 +45,20 @@ Activate the Plugin:
 - Go to `Plugins` > `Manage and Install Plugins`.
 - Find IntelliGeo in the list and check the box next to it to activate the plugin.
 
+### Dependency
 
-### How to use
+> [!NOTE]
+> In some cases, you may need to install the dependencies manually. We are working on fixing this issue, but some users may still need to take this step.
 
+For Linux or macOS, use `pip` to install the Python dependencies listed in the requirements.txt file.
 
+For Windows, ...
+
+### How to Use
+
+![user interface](https://github.com/MahdiFarnaghi/intelli_geo/blob/main/.github/IMAGES/Screenshot%20from%202024-09-19%2015-27-26.png)
+
+IntelliGeo offers a chat interface that allows users to input requests and receive either PyQGIS code or a graphical model. This output can be used to execute QGIS operations directly.
 
 ### Bug Reports & Feature Requests
 
