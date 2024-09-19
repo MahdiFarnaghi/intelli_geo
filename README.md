@@ -1,6 +1,6 @@
 # IntelliGeo
 
-IntelliGeo will be a QGIS plugin that facilitates interaction with Large Language Models in QGIS environment.
+IntelliGeo is a QGIS plugin that facilitates interaction with Large Language Models in QGIS environment.
 
 The plugin is in development phase. Soon, we will release version 0.1. 
 
@@ -14,7 +14,9 @@ The code is released under the Apache 2.0 license.
 
 ## IntelliGeo
 
-IntelliGeo is a QGIS plugin that leverages **Large Language Models** (LLMs) to automate geospatial workflows. Designed for GIS professionals, it assists users by automatically operating QGIS software through two primary methods: generating PyQGIS scripts or creating graphical models. This AI-powered tool streamlines complex GIS tasks, enabling users to efficiently design and execute geoprocessing workflows without extensive manual coding or model building. By integrating seamlessly with QGIS, IntelliGeo enhances productivity and simplifies the execution of sophisticated geospatial analyses.
+IntelliGeo is a QGIS plugin that leverages **Large Language Models** (LLMs) to automate geospatial workflows. 
+
+Designed for GIS professionals, it assists users by automatically operating QGIS software through two primary methods: generating **PyQGIS scripts** or creating **graphical models**. This AI-powered tool streamlines complex GIS tasks, enabling users to efficiently design and execute geoprocessing workflows without extensive manual coding or model building. By integrating seamlessly with QGIS, IntelliGeo enhances productivity and simplifies the execution of sophisticated geospatial analyses.
 
 ### Key Features
 
