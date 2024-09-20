@@ -64,7 +64,7 @@ Activate the Plugin:
 
 For Linux or macOS, use `pip` to install the Python dependencies listed in the [requirements.txt](https://github.com/MahdiFarnaghi/intelli_geo/blob/main/requirements.txt) file.
 
-For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open the OSGeo4W shell (found in the QGIS installation folder). Then, use the `pip` command to install packages, just as you would in a regular Python environment, by running `pip install package_name`. This will ensure that the packages are installed in the environment QGIS uses. For a step-by-step guide, you can watch [this video tutorial](https://www.youtube.com/watch?v=9Jdc331qofg) that demonstrates the process in detail.
+For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open the OSGeo4W shell (found in the QGIS installation folder). Then, use the `pip` command to install packages listed in the [requirements.txt](https://github.com/MahdiFarnaghi/intelli_geo/blob/main/requirements.txt) file., just as you would in a regular Python environment, by running `pip install package_name`. This will ensure that the packages are installed in the environment QGIS uses. For a step-by-step guide, you can watch [this video tutorial](https://www.youtube.com/watch?v=9Jdc331qofg) that demonstrates the process in detail.
 
 ### How to Use
 
