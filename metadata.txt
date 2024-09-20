@@ -6,14 +6,14 @@
 name=IntelliGeo
 qgisMinimumVersion=3.0
 description=IntelliGeo is QGIS plugin that facilitates interaction with Large Language Models in QGIS environment
-version=0.1
+version=0.0.1
 author=GIP Department, Faculty ITC, University of Twente
 email=m.farnaghi@utwente.nl
 
 about=IntelliGeo is QGIS plugin that facilitates interaction with Large Language Models in QGIS environment
 
-tracker=https://github.com/MahdiFarnaghi/IntelliGeo/issues
-repository=https://github.com/MahdiFarnaghi/IntelliGeo
+tracker=https://github.com/MahdiFarnaghi/Intelli_Geo/issues
+repository=https://github.com/MahdiFarnaghi/Intelli_Geo
 # End of mandatory metadata
 
 # Recommended items:
@@ -23,9 +23,9 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python, large language model
 
-homepage=https://github.com/MahdiFarnaghi/IntelliGeo
+homepage=https://github.com/MahdiFarnaghi/Intelli_Geo
 category=Plugins
 icon=icon.png
 # experimental flag
