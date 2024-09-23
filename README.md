@@ -72,6 +72,11 @@ For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open th
 
 IntelliGeo offers a chat interface that allows users to input requests and receive either PyQGIS code or a graphical model. This output can be used to execute QGIS operations directly.
 
+
+> [!IMPORTANT]
+> To use the IntelliGeo plugin, you need to select a desired LLM provider and provide an API key (we won’t take your key!). For OpenAI, log into your account and visit the [provide link](https://platform.openai.com/api-keys). For Cohere, visit the [this link](https://dashboard.cohere.com/api-keys).
+
+
 ### Bug Reports & Feature Requests
 
 If you encounter any issues while using IntelliGeo, please report them on our [GitHub repository](https://github.com/MahdiFarnaghi/intelli_geo). Your feedback helps us enhance the plugin and provide a better experience for all users. To submit a bug report or feature request, visit our [GitHub Issues page](https://github.com/MahdiFarnaghi/intelli_geo/issues).
