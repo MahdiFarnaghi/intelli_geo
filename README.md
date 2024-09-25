@@ -68,7 +68,7 @@ For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open th
 
 ### How to Use
 
-![user interface](https://github.com/MahdiFarnaghi/intelli_geo/blob/main/.github/IMAGES/Screenshot%20from%202024-09-19%2015-27-26.png)
+![BufferExample](https://github.com/user-attachments/assets/6ba5f6ae-3091-456f-8925-731e5f58498a)
 
 IntelliGeo offers a chat interface that allows users to input requests and receive either PyQGIS code or a graphical model. This output can be used to execute QGIS operations directly.
 
