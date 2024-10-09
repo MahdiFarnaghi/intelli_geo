@@ -40,7 +40,15 @@ Designed for GIS professionals, it assists users by automatically operating QGIS
 
 ### Installation
 
-Download the Plugin:
+There are two ways to install the IntelliGeo plugin: via the QGIS plugin hub or by installing it from the source.
+
+**Install from plugin hub**:
+
+![Screenshot from 2024-10-09 12-51-30](https://github.com/user-attachments/assets/2737f989-e808-440d-997e-2d80c601fdf5)
+
+In QGIS, click on `plugins`->`Manage and install Plugins`, In the search bar, type "IntelliGeo", locate the plugin and click on `Install Experimental Plugin`.
+
+**Install from source**:
 
 - Visit the [IntelliGeo GitHub repository](https://github.com/MahdiFarnaghi/intelli_geo) and download the latest [release](https://github.com/MahdiFarnaghi/intelli_geo/releases) of the plugin as a ZIP file.
 
