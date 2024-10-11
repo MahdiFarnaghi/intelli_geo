@@ -76,10 +76,12 @@ For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open th
 
 ### How to Use
 
+> [!NOTE]
+> You need to go to your OpenAI or Cohere account to get your own API key. If you do not have one yet, you need to create one. Then, copy the API key and enter it when creating new conversations. The key will be stored only in your local database; IntelliGeo backend does not store or access your key.
+> 
+> ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
 
 https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e
-
-
 
 IntelliGeo offers a chat interface that allows users to input requests and receive either PyQGIS code or a graphical model. This output can be used to execute QGIS operations directly.
 
