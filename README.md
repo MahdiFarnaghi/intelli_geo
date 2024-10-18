@@ -76,10 +76,14 @@ For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open th
 
 ### How to Use
 
+To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API call. Currently, we support [OpenAI](https://openai.com/) and [Cohere](https://cohere.com/). Based on our experience, OpenAI’s models perform better, but they are not free. Cohere offers free access to their API calls, although their performance is not as high as that of OpenAI’s models.
+
 > [!NOTE]
 > You need to go to your OpenAI or Cohere account to get your own API key. If you do not have one yet, you need to create one. Then, copy the API key and enter it when creating new conversations. The key will be stored only in your local database; IntelliGeo backend does not store or access your key.
 > 
 > ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+
+After setting up your API key, you can now use the IntelliGeo plugin. Clicking on the IntelliGeo icon will open the chat interface. To start chatting and experience the powerful AI-driven geo-workflow, you can follow the video tutorial.
 
 https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e
 
