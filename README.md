@@ -78,10 +78,51 @@ For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open th
 
 To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API call. Currently, we support [OpenAI](https://openai.com/) and [Cohere](https://cohere.com/). Based on our experience, OpenAI’s models perform better, but they are not free. Cohere offers free access to their API calls, although their performance is not as high as that of OpenAI’s models.
 
-> [!NOTE]
-> You need to go to your OpenAI or Cohere account to get your own API key. If you do not have one yet, you need to create one. Then, copy the API key and enter it when creating new conversations. The key will be stored only in your local database; IntelliGeo backend does not store or access your key.
-> 
-> ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+#### OpenAI Manual
+
+##### Step 1: Signing up
+
+Sign up for Chat GPT at https://platform.openai.com/signup?launch
+You can register using your email address or an existing Google, Microsoft, or Apple account.
+
+##### Step 2: Open dashborad
+After registration, you will go to to OpenAI dashboard https://platform.openai.com/api-keys to get your API key.
+
+##### Step 3: Create API key
+Create a new ChatGPT API key by clicking on `API Keys` to access the API Keys page. Then, click `+ Create new secret key` and enter an optional name in the popup. Click 'Create secret key' to generate your unique alphanumeric API key. Be sure to save it somewhere safe.
+
+![Screenshot from 2024-10-18 16-51-01](https://github.com/user-attachments/assets/e07d2b29-8793-44a0-994c-d64d0484d999)
+
+The ChatGPT API key is universal for all models; you do not need to create separate keys for each one.
+
+##### Step 4: Use the API key in IntelliGeo
+
+Copy the API key and enter it when creating new conversations. The key will be stored only in your local database; IntelliGeo backend does not store or access your key.
+
+![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+
+#### Cohere manual
+
+Sign up for Chat GPT at [https://platform.openai.com/signup?launch](https://dashboard.cohere.com/welcome/register)
+You can register using your email address or an existing Google, or github account.
+
+##### Step 2: Open dashborad
+After registration, Once logged in, navigate to the API Keys section.
+
+##### Step 3: Create API key
+Create a new ChatGPT API key by clicking on `API Keys` to access the API Keys page. Then, click `+ New Trial key` and enter an optional name in the popup. Click 'Create secret key' to generate your unique alphanumeric API key. Be sure to save it somewhere safe.
+
+![image](https://github.com/user-attachments/assets/476d4fdf-79f2-41ea-a954-1312574eb63f)
+
+
+
+The Cohere API key is universal for all models; you do not need to create separate keys for each one.
+
+##### Step 4: Use the API key in IntelliGeo
+
+Copy the API key and enter it when creating new conversations. The key will be stored only in your local database; IntelliGeo backend does not store or access your key.
+
+![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
 
 After setting up your API key, you can now use the IntelliGeo plugin. Clicking on the IntelliGeo icon will open the chat interface. To start chatting and experience the powerful AI-driven geo-workflow, you can follow the video tutorial.
 
