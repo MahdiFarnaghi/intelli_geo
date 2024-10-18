@@ -91,7 +91,8 @@ After registration, you will go to to OpenAI dashboard https://platform.openai.c
 ##### Step 3: Create API key
 Create a new ChatGPT API key by clicking on `API Keys` to access the API Keys page. Then, click `+ Create new secret key` and enter an optional name in the popup. Click 'Create secret key' to generate your unique alphanumeric API key. Be sure to save it somewhere safe.
 
-![Screenshot from 2024-10-18 16-51-01](https://github.com/user-attachments/assets/e07d2b29-8793-44a0-994c-d64d0484d999)
+![Screenshot from 2024-10-18 16-51-01](https://github.com/user-attachments/assets/eda6d221-3168-4741-b14d-a0f0e6a4a8f3)
+
 
 The ChatGPT API key is universal for all models; you do not need to create separate keys for each one.
 
@@ -103,7 +104,8 @@ Copy the API key and enter it when creating new conversations. The key will be s
 
 #### Cohere manual
 
-Sign up for Chat GPT at [https://platform.openai.com/signup?launch](https://dashboard.cohere.com/welcome/register)
+##### Step 1: Signning up
+Sign up for Cohere at https://dashboard.cohere.com/welcome/register
 You can register using your email address or an existing Google, or github account.
 
 ##### Step 2: Open dashborad
