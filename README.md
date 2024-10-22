@@ -114,7 +114,7 @@ After registration, Once logged in, navigate to the API Keys section.
 ##### Step 3: Create API key
 Create a new ChatGPT API key by clicking on `API Keys` to access the API Keys page. Then, click `+ New Trial key` and enter an optional name in the popup. Click 'Create secret key' to generate your unique alphanumeric API key. Be sure to save it somewhere safe.
 
-![Screenshot from 2024-10-18 17-15-56](https://github.com/user-attachments/assets/90e0970b-9fff-4927-98ca-ff6bfb294ec8)
+![image](https://github.com/user-attachments/assets/ecc2ba35-6480-46cd-bf93-57834127302f)
 
 
 The Cohere API key is universal for all models; you do not need to create separate keys for each one.
