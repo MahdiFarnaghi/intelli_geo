@@ -1,0 +1,18 @@
+site_name: IntelliGeo 
+theme:
+  name: lux #spacelab #material
+
+# Set navigation
+nav:
+  - Home: index.md       # Use readme.md as the homepage
+  - Installation: installation.md
+  - How to use: use.md
+  - Development: development.md  # Link to development.md
+
+# Set the documentation directory to the root folder
+docs_dir: docs  # This tells MkDocs to look for markdown files in the root directory
+
+# Optional: Enable built-in search functionality
+plugins:
+  - search
+
