@@ -112,7 +112,7 @@ You can register using your email address or an existing Google, or github accou
 After registration, Once logged in, navigate to the API Keys section.
 
 ##### Step 3: Create API key
-Create a new ChatGPT API key by clicking on `API Keys` to access the API Keys page. Then, click `+ New Trial key` and enter an optional name in the popup. Click 'Create secret key' to generate your unique alphanumeric API key. Be sure to save it somewhere safe.
+Create a new Cohere API key by clicking on `API Keys` to access the API Keys page. Then, click `+ New Trial key` and enter an optional name in the popup. Click 'Create secret key' to generate your unique alphanumeric API key. Be sure to save it somewhere safe.
 
 ![image](https://github.com/user-attachments/assets/ecc2ba35-6480-46cd-bf93-57834127302f)
 
