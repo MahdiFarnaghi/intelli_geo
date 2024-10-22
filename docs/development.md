@@ -87,6 +87,22 @@ ed files, write a comment, request for change. At the end, if the team agrees wi
 10. It is also possible to delete the old branch.
 
 
+## Documentation
+
+The documentation in this project is handled using *mkdocs*. The documentation is created from *.md files located in the docs folder. The settings to generate the documentation resides in `mkdocs.yml` in the root of the repository.
+
+### Test the documentation locally
+
+To test the generated documents locally run the following command:
+
+    `mkdocs serve`
+
+This will start a local server and make your site available at http://127.0.0.1:8000/. You can visit this URL in your browser to view your documentation site.
+
+### Build the Site
+
+The build process is performed automatically through GitHub actions. Check `.github\workflows\deploy.yml`.
+
 ## Develop Roadmap
 
 Known Issues & to-be-discussed

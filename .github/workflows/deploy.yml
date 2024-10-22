@@ -1,0 +1,28 @@
+name: Deploy MkDocs site
+
+# Run the workflow when code is pushed to the 'main' branch
+on:
+  push:
+    branches:
+      - main  # or the branch you want to trigger the deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install mkdocs mkdocs-material mkdocs-bootswatch  # Install MkDocs and the theme you're using
+
+      - name: Deploy to GitHub Pages
+        run: |
+          mkdocs gh-deploy --force  # Build and deploy the site to GitHub Pages
