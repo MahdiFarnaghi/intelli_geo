@@ -1,121 +1,142 @@
-# Development Instruction
+# Development Instructions
 
-## Run the project on your local machine
+## Running the Project Locally
 
-1. Clone the project ino the plugins folder of your QGIS
-    - To find the path, open QGIS and then go to `Settings > User profiles > Open Active Profile Folder`. The plugin folder is with `python` folder.
-2. Create `QGISDIR` environmental variable pointing to the plugins folder.
-3. Create a Python environment in your project and activate it in a terminal.
-4. Use QT Designer to modify the interface 
+1. **Clone the project into the QGIS plugins folder:**
+    - To locate the folder, open QGIS and navigate to `Settings > User profiles > Open Active Profile Folder`. The plugins folder is located within the `python` folder.
 
-    - Open QT designer installed by QGIS
-    - Open the `intelli_geo_dockwidget_base.ui`
-    
-        - Modify
-        - Save
-5. Compile the interface using `pb_tools`
+2. **Set up the `QGISDIR` environment variable:**  
+   Point the `QGISDIR` variable to the plugins folder.
 
-    - Using pip install the pb_tools
+3. **Create a Python environment:**  
+   Set up and activate a Python environment in your project through the terminal.
 
-        `pip install pb-tool`
+4. **Modify the interface using QT Designer:**
+    - Open the QT Designer installed by QGIS.
+    - Open the `intelli_geo_dockwidget_base.ui` file.
+        - Make modifications.
+        - Save the file.
 
-    - Using pip install pyqt5ac
-
-        `pip install pyqt5ac`
-    - On linux, due to a [known issue](https://github.com/qgis/QGIS/issues/48368#issuecomment-1293898268), using pip installing qt will introduce some incompatible packages with QT5, therefore, solution is to install use
+5. **Compile the interface using `pb_tool`:**
+    - Install `pb_tool` using pip:
+        ```bash
+        pip install pb-tool
         ```
+    - Install `pyqt5ac` using pip:
+        ```bash
+        pip install pyqt5ac
+        ```
+    - On Linux, due to a [known issue](https://github.com/qgis/QGIS/issues/48368#issuecomment-1293898268), installing Qt via pip may cause incompatibility with QT5. The solution is to install the following packages:
+        ```bash
         sudo apt-get install python3-pyqt5
         sudo apt-get install qtcreator pyqt5-dev-tools
         sudo apt-get install qttools5-dev-tools
-        ```  
-    - Check to see if the pb_tool.exe is in the scripts folder of the python environment
-    - On the terminal, go the the intelli_geo module folder and compile using the following command
-        `pbt compile`
-6. In QGIS, go to plugins > manage and install plugins. Select the Installed tab. Check the checkbox beside IntelliGeo. Close the plugins manager. You should see the IntelliGeo menu bar in the Plugins menu.
+        ```
+    - Verify if `pb_tool.exe` is located in the Python environment’s scripts folder.
+    - Navigate to the `intelli_geo` module folder in the terminal and run:
+        ```bash
+        pbt compile
+        ```
 
-## Contribute to the project - if you're not part of our team
+6. **Activate the plugin in QGIS:**
+    - In QGIS, go to `Plugins > Manage and Install Plugins`.
+    - Select the "Installed" tab and check the box next to IntelliGeo.
+    - Close the plugins manager, and the IntelliGeo menu should appear in the Plugins menu.
 
-If you want to contribute to IntelliGeo project, then you need to fork our repo. Since you do not have access to our repository to create a branch, you need to create a copy of the repository into your GitHub account, using fork functionality.
+## Contributing to the Project - External Contributors
 
-1. On GitHub.com, navigate to the [IntelliGeo repository](https://github.com/MahdiFarnaghi/intelli_geo).
+If you want to contribute to the IntelliGeo project but are not part of the team, follow these steps to fork the repository:
 
-2. In the top-right corner of the page, click Fork. For more information check the [GitHub information page about Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo).
+1. Go to the [IntelliGeo repository](https://github.com/MahdiFarnaghi/intelli_geo) on GitHub.
 
-![Fork](img/fork.png "Fork")
+2. In the top-right corner, click **Fork**. For more information, see the [GitHub Forking Guide](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo).
 
-3. Clone the forked repo from your GitHub account into my hard drive. Work on the project, add functionalities, fix bugs, etc. Then commit the changes to your forked repository on GitHub. 
+   ![Fork](img/fork.png "Fork")
 
-4. If you want to send the changes to the main IntelliGeo repository, you need to register a *pull request*. On the forked repo (on your GitHub account), click on New pull request. This pull request is sent to the original IntelliGeo repository.
+3. Clone the forked repository to your local machine, make changes, and commit them to your forked repository.
 
-![New pull request](/img/new_pull_request.png "New pull request")
+4. To propose your changes to the main IntelliGeo repository, create a pull request:
+   - On your forked repository, click **New pull request**.
 
-Notice that you can check whether there is a conflict or not, but you cannot merge it. The IntelliGeo team can review the changes and accept/reject the changes.
+   ![New pull request](img/new_pull_request.png "New pull request")
 
-## Contribute to the project - if you're part of our team
+   GitHub will check for merge conflicts, but only the IntelliGeo team can approve or merge changes.
 
-1. In the project folder, pull the main branch.
-    `git checkout main`
-    `git pull origin main`
+## Contributing to the Project - Team Members
 
-2. Check out a new branch.
-    `git checkout -b <new_branch_name>`
+1. **Pull the latest version of the `main` branch:**
+    ```bash
+    git checkout main
+    git pull origin main
+    ```
 
-3. Modify the code and add new features.
+2. **Create a new branch:**
+    ```bash
+    git checkout -b <new_branch_name>
+    ```
 
-4.  Add the chagnes to staged area.
-    `git add .`
+3. **Make your changes.**
 
-5. I commit the changes into the local repo.
-    `git commit -m "Provide a detailed message"`
+4. **Stage your changes:**
+    ```bash
+    git add .
+    ```
 
-6. Push the branch to GitHub so that for review.
-    `git push origin <new_branch_name>`
+5. **Commit your changes:**
+    ```bash
+    git commit -m "Detailed message about the changes"
+    ```
 
-7. Check the GitHub repo. You will see the new branch added. Use the *Compare & pull request* button to compare the changes on this branch with the *main* branch.
+6. **Push the branch for review:**
+    ```bash
+    git push origin <new_branch_name>
+    ```
 
-![Compare and Pull Request Button](/img/compare_and_pull_request.png "Compare and Pull Request Button").
+7. On GitHub, you will see the new branch. Use the **Compare & pull request** button to initiate a pull request with the `main` branch.
 
-8. Then, *Open a pull request* window is shown. Write a message, select reviewers, and press the *Create pull request* button.
+   ![Compare and Pull Request Button](img/compare_and_pull_request.png "Compare and Pull Request Button")
 
- ![Open a pull request window](/img/open_pull_request.png "Open a pull request window").
+8. In the **Open a pull request** window, add a description, select reviewers, and click **Create pull request**.
 
-9. Other team members will receive a message. They can see the committed
-ed files, write a comment, request for change. At the end, if the team agrees with the changes, they can merge the new branch into the `main` branch using the *Merge pull request* button.  
+   ![Open a pull request window](img/open_pull_request.png "Open a pull request window")
 
-![Merge pull request button](/img/merge_pull_request.png "Merge pull request button")
+9. The team will review the changes. If approved, they will merge the branch into the `main` branch using the **Merge pull request** button.
 
-10. It is also possible to delete the old branch.
+   ![Merge pull request button](img/merge_pull_request.png "Merge pull request button")
 
+10. Optionally, delete the old branch after merging.
 
 ## Documentation
 
-The documentation in this project is handled using *mkdocs*. The documentation is created from *.md files located in the docs folder. The settings to generate the documentation resides in `mkdocs.yml` in the root of the repository.
+The project's documentation is managed using **MkDocs**. Documentation is generated from the `.md` files in the `docs` folder, with settings configured in `mkdocs.yml` at the root of the repository.
 
-### Test the documentation locally
+### Testing the Documentation Locally
 
-To test the generated documents locally run the following command:
+To test the documentation locally, run the following command:
 
-    `mkdocs serve`
-
-This will start a local server and make your site available at http://127.0.0.1:8000/. You can visit this URL in your browser to view your documentation site.
-
-### Build the Site
-
-The build process is performed automatically through GitHub actions. Check `.github\workflows\deploy.yml`.
-
-## Develop Roadmap
-
-Known Issues & to-be-discussed
-
-### User Interface
-#### Message panel layout
-
-```diff
-- ENTER hitting checkbox for sending message.
-+ User deletion right (GDPR)
+```bash
+mkdocs serve
 ```
 
-### Backend
-```diff
-! Langchain backend handling empty inupts.
-```
+This will start a local server and make your site available at `http://127.0.0.1:8000/`. Open this URL in your browser to view the documentation.
+
+### Building the Site
+
+The build process is automated via GitHub Actions. You can review the workflow in `.github/workflows/deploy.yml`.
+
+## Development Roadmap
+
+### Known Issues & Discussions
+
+#### User Interface
+- **Message panel layout**
+  ```diff
+  - ENTER hitting checkbox for sending message.
+  + User deletion rights (GDPR compliance).
+  ```
+
+#### Backend
+- **Handle empty inputs in Langchain backend:**
+  ```diff
+  ! Langchain backend handling empty inputs.
+  ```
