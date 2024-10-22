@@ -124,6 +124,8 @@ This will start a local server and make your site available at `http://127.0.0.1
 
 The build process is automated via GitHub Actions. You can review the workflow in `.github/workflows/deploy.yml`.
 
+To check the workflow prior to pushing it on GitHub, we use [act](https://nektosact.com/introduction.html#introduction).
+
 ## Development Roadmap
 
 ### Known Issues & Discussions

@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Intall required tools on Ubuntu
+        run: apt-get update && apt-get install -y lsb-release && apt-get clean all
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -21,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mkdocs mkdocs-material mkdocs-bootswatch  # Install MkDocs and the theme you're using
+          pip install -U mkdocs mkdocs-material mkdocs-bootswatch  
 
       - name: Deploy to GitHub Pages
         run: |
