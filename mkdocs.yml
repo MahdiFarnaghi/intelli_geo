@@ -4,15 +4,13 @@ theme:
 
 # Set navigation
 nav:
-  - Home: index.md       # Use readme.md as the homepage
+  - Home: index.md       
   - Installation: installation.md
   - How to use: use.md
-  - Development: development.md  # Link to development.md
+  - Development: development.md  
 
-# Set the documentation directory to the root folder
-docs_dir: docs  # This tells MkDocs to look for markdown files in the root directory
+docs_dir: docs  
 
-# Optional: Enable built-in search functionality
 plugins:
   - search
 
