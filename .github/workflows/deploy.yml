@@ -6,9 +6,13 @@ on:
     branches:
       - main # or the branch you want to trigger the deployment
 
+    
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    permissions:
+          contents: write  # Add this to grant permission to push changes
 
     steps:
       - name: Intall required tools on Ubuntu
