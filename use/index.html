@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html data-bs-theme="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../img/favicon.ico" rel="shortcut icon"/>
+<title>How to use - IntelliGeo</title>
+<link href="../css/bootstrap.min.css" rel="stylesheet"/>
+<link href="../css/fontawesome.min.css" rel="stylesheet"/>
+<link href="../css/brands.min.css" rel="stylesheet"/>
+<link href="../css/solid.min.css" rel="stylesheet"/>
+<link href="../css/v4-font-face.min.css" rel="stylesheet"/>
+<link href="../css/base.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css" id="hljs-light" rel="stylesheet"/>
+<link disabled="" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" id="hljs-dark" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<meta content="How to use" name="title"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/><meta content="website" property="og:type"/><meta content="use" property="og:url"/><meta content="How to use" property="og:title"/><meta content="To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API. Currently, we support both OpenAI and Cohere. Based on our experience, OpenAI models perform better but require a paid plan. Cohere, while offering free access to their API, delivers slightly lower performance compared to OpenAI." property="og:description"/><meta content="https://github.com/user-attachments/assets/eda6d221-3168-4741-b14d-a0f0e6a4a8f3" property="og:image"/><meta content="summary_large_image" property="twitter:card"/><meta content="use" property="twitter:url"/><meta content="How to use" property="twitter:title"/><meta content="To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API. Currently, we support both OpenAI and Cohere. Based on our experience, OpenAI models perform better but require a paid plan. Cohere, while offering free access to their API, delivers slightly lower performance compared to OpenAI." property="twitter:description"/><meta content="https://github.com/user-attachments/assets/eda6d221-3168-4741-b14d-a0f0e6a4a8f3" property="twitter:image"/><style>
+.git-info, .dates-container, .authors-container, .share-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.git-info {
+    font-size: 0.8em;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.dates-container, .authors-container {
+    margin-bottom: 10px;
+}
+
+.date-item, .author-link, .share-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.date-item {
+    margin-right: 10px;
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+    font-size: 1.6em;
+    margin-right: 5px;
+}
+
+.author-link .hover-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background-color: #f0f0f0;  /* Placeholder color */
+    opacity: 0;  /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+    opacity: 1;  /* Fade in when src is set (image loaded) */
+}
+
+.hover-item:hover {
+    transform: scale(1.2);
+    filter: grayscale(0%);
+}
+
+.share-buttons {
+    margin-top: 10px;
+}
+
+.share-button {
+    background-color: #1da1f2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.95em;
+    margin: 5px;
+    transition: all 0.2s ease;
+}
+
+.share-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+    background-color: #0077b5;
+}
+
+.share-button i {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+    .git-info {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .dates-container, .authors-container {
+        width: 100%;
+    }
+}
+</style></head>
+<body>
+<div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+<div class="container">
+<a class="navbar-brand" href="..">IntelliGeo</a>
+<!-- Expander button -->
+<button aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar-collapse" data-bs-toggle="collapse" type="button">
+<span class="navbar-toggler-icon"></span>
+</button>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse" id="navbar-collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li class="nav-item">
+<a class="nav-link" href="..">Home</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="../installation/">Installation</a>
+</li>
+<li class="nav-item">
+<a aria-current="page" class="nav-link active" href="./">How to use</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="../development/">Development</a>
+</li>
+</ul>
+<ul class="nav navbar-nav ms-md-auto">
+<li class="nav-item">
+<a class="nav-link" data-bs-target="#mkdocs_search_modal" data-bs-toggle="modal" href="#">
+<i class="fa fa-search"></i> Search
+                            </a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="../installation/" rel="prev">
+<i class="fa fa-arrow-left"></i> Previous
+                                </a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="../development/" rel="next">
+                                    Next <i class="fa fa-arrow-right"></i>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="row">
+<div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+<div class="navbar-header">
+<button class="navbar-toggler collapsed" data-bs-target="#toc-collapse" data-bs-toggle="collapse" title="Table of Contents" type="button">
+<span class="fa fa-angle-down"></span>
+</button>
+</div>
+<div class="navbar-collapse collapse card bg-body-tertiary" id="toc-collapse">
+<ul class="nav flex-column">
+<li class="nav-item" data-bs-level="1"><a class="nav-link" href="#how-to-use">How to Use</a>
+<ul class="nav flex-column">
+<li class="nav-item" data-bs-level="2"><a class="nav-link" href="#openai-guide">OpenAI Guide</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-bs-level="2"><a class="nav-link" href="#cohere-guide">Cohere Guide</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="how-to-use">How to Use</h1>
+<p>To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API. Currently, we support both <a href="https://openai.com/">OpenAI</a> and <a href="https://cohere.com/">Cohere</a>. Based on our experience, OpenAI models perform better but require a paid plan. Cohere, while offering free access to their API, delivers slightly lower performance compared to OpenAI.</p>
+<h2 id="openai-guide">OpenAI Guide</h2>
+<h3 id="step-1-sign-up">Step 1: Sign Up</h3>
+<p>Register for ChatGPT at <a href="https://platform.openai.com/signup?launch">OpenAI Signup</a>. You can sign up using an email address or an existing Google, Microsoft, or Apple account.</p>
+<h3 id="step-2-open-the-dashboard">Step 2: Open the Dashboard</h3>
+<p>Once registered, navigate to the OpenAI dashboard at <a href="https://platform.openai.com/api-keys">OpenAI Dashboard</a> to access your API keys.</p>
+<h3 id="step-3-generate-an-api-key">Step 3: Generate an API Key</h3>
+<p>To create a new API key, go to the <code>API Keys</code> section, click on <code>+ Create new secret key</code>, and optionally name it in the pop-up. Once you click 'Create secret key', a unique alphanumeric API key will be generated. Be sure to store this key securely.</p>
+<p><img alt="Screenshot from 2024-10-18 16-51-01" src="https://github.com/user-attachments/assets/eda6d221-3168-4741-b14d-a0f0e6a4a8f3"/></p>
+<p>This API key works universally for all OpenAI models; you don’t need separate keys for each model.</p>
+<h3 id="step-4-use-the-api-key-in-intelligeo">Step 4: Use the API Key in IntelliGeo</h3>
+<p>Copy your API key and input it when starting a new conversation within IntelliGeo. The key will be saved only in your local database; the IntelliGeo backend does not store or access your API key.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704"/></p>
+<h2 id="cohere-guide">Cohere Guide</h2>
+<h3 id="step-1-sign-up_1">Step 1: Sign Up</h3>
+<p>Sign up for Cohere at <a href="https://dashboard.cohere.com/welcome/register">Cohere Signup</a>. You can register using your email address or an existing Google or GitHub account.</p>
+<h3 id="step-2-access-the-dashboard">Step 2: Access the Dashboard</h3>
+<p>Once logged in, go to the API Keys section to manage your API keys.</p>
+<h3 id="step-3-create-an-api-key">Step 3: Create an API Key</h3>
+<p>To generate an API key, go to <code>API Keys</code>, then click <code>+ New Trial key</code>, optionally name it, and click 'Create secret key' to generate your unique API key. Make sure to store the key securely.</p>
+<p><img alt="Screenshot from 2024-10-18 17-15-56" src="https://github.com/user-attachments/assets/90e0970b-9fff-4927-98ca-ff6bfb294ec8"/></p>
+<p>The Cohere API key works for all models, so you don’t need to create multiple keys.</p>
+<h3 id="step-4-use-the-api-key-in-intelligeo_1">Step 4: Use the API Key in IntelliGeo</h3>
+<p>Copy your Cohere API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo’s backend.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704"/></p>
+<p>Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. </p>
+<p>Check out our video to get started:
+<a href="https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e">Tutorial video</a></p></div>
+</div>
+</div>
+<footer class="col-md-12">
+<hr/>
+<p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+</footer>
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+<script src="../js/base.js"></script>
+<script src="../search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+<button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+</div>
+<div class="modal-body">
+<p>From here you can search these documents. Enter your search terms below.</p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="search"/>
+</div>
+</form>
+<div data-no-results-text="No results found" id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
