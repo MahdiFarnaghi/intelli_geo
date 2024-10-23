@@ -26,7 +26,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -U mkdocs mkdocs-material mkdocs-bootswatch
+          pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
 
       - name: Deploy to GitHub Pages
         run: |
