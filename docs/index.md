@@ -19,7 +19,7 @@ The development of IntelliGeo is part of the project titled "IntelliGeo: Laying 
 
 The initiative's main goal is to develop tools that enable AI and human experts to collaboratively design sophisticated models for a variety of applications, including flood risk detection, crop yield estimation, and environmental change prediction.
 
-## About the Plugin
+## Use of LLMs
 
 IntelliGeo leverages **Large Language Models** to automate and simplify geospatial workflows within QGIS. 
 
