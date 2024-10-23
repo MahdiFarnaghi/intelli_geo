@@ -4,7 +4,7 @@ name: Deploy MkDocs site
 on:
   push:
     branches:
-      - main  # or the branch you want to trigger the deployment
+      - main # or the branch you want to trigger the deployment
 
 jobs:
   deploy:
@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Intall required tools on Ubuntu
-        run: apt-get update && apt-get install -y lsb-release && apt-get clean all
+        run: sudo apt-get update && sudo apt-get install -y lsb-release && sudo apt-get clean all
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,11 +20,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |
-          pip install -U mkdocs mkdocs-material mkdocs-bootswatch  
+          pip install -U mkdocs mkdocs-material mkdocs-bootswatch
 
       - name: Deploy to GitHub Pages
         run: |
