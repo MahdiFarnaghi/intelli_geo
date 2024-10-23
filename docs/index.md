@@ -1,4 +1,3 @@
-Here is a modified version of the text:
 # IntelliGeo
 
 ![QGIS Version Badge](https://img.shields.io/badge/QGIS->=3.34-86f060)
