@@ -3,7 +3,7 @@
 ## Running the Project Locally
 
 1. **Clone the project into the QGIS plugins folder:**
-    - To locate the folder, open QGIS and navigate to `Settings > User profiles > Open Active Profile Folder`. The plugins folder is located within the `python` folder.
+    - To locate the folder, open QGIS and navigate to `Settings > User profiles > Open Active Profile Folder`. The plugins folder is located within the `python/plugin` folder.
 
 2. **Set up the `QGISDIR` environment variable:**  
    Point the `QGISDIR` variable to the plugins folder.
@@ -112,11 +112,16 @@ The project's documentation is managed using **MkDocs**. Documentation is genera
 
 ### Testing the Documentation Locally
 
-To test the documentation locally, run the following command:
+To test the documentation locally, follow these steps:
 
-```bash
-mkdocs serve
-```
+    1. Install the required packages by running:
+    ```bash
+    pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
+    ```
+    2. Navigate to the `IntelliGeo` folder, then start the local server with:
+    ```bash
+    mkdocs serve
+    ```
 
 This will start a local server and make your site available at `http://127.0.0.1:8000/`. Open this URL in your browser to view the documentation.
 
@@ -130,15 +135,6 @@ To check the workflow prior to pushing it on GitHub, we use [act](https://nektos
 
 ### Known Issues & Discussions
 
-#### User Interface
-- **Message panel layout**
-  ```diff
-  - ENTER hitting checkbox for sending message.
-  + User deletion rights (GDPR compliance).
-  ```
+IntelliGeo team have noticed that Cohere language models are not very stable and likely to crash when they update backend services. In that sense, we suggest you to use openai when there are problems with Cohere.
 
-#### Backend
-- **Handle empty inputs in Langchain backend:**
-  ```diff
-  ! Langchain backend handling empty inputs.
-  ```
+If you meet any bug or issue with using our plugin, you can go to our issue list on github repository and check if there are any existing issues, if not you can post a new one. We are a very small team so we can not update the plugin very fast, we will try to react as fast as we can.
