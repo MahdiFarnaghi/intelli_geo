@@ -114,14 +114,14 @@ The project's documentation is managed using **MkDocs**. Documentation is genera
 
 To test the documentation locally, follow these steps:
 
-    1. Install the required packages by running:
-    ```bash
-    pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
-    ```
-    2. Navigate to the `IntelliGeo` folder, then start the local server with:
-    ```bash
-    mkdocs serve
-    ```
+1. Install the required packages by running:
+```bash
+pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
+```
+2. Navigate to the `IntelliGeo` folder, then start the local server with:
+```bash
+mkdocs serve
+```
 
 This will start a local server and make your site available at `http://127.0.0.1:8000/`. Open this URL in your browser to view the documentation.
 
