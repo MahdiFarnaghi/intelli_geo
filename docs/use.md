@@ -50,6 +50,7 @@ Copy your Cohere API key and input it when starting a new conversation in Intell
 
 ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
 
-Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. Check out our video tutorial to get started:
+Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
 
-https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e
+Check out our video to get started:
+[Tutorial video](https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e)

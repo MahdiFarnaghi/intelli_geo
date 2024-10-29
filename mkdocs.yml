@@ -1,18 +1,28 @@
-site_name: IntelliGeo 
+site_name: IntelliGeo
 theme:
   name: lux #spacelab #material
 
 # Set navigation
 nav:
-  - Home: index.md       
+  - Home: index.md
   - Installation: installation.md
   - How to use: use.md
   - Development: development.md 
   # - Core team: team.md
   # - Blogs: blogs.md 
 
-docs_dir: docs  
+docs_dir: docs
 
 plugins:
   - search
+  - ultralytics:
+      verbose: True
+      add_desc: True
+      add_image: True
+      add_keywords: True
+      add_share_buttons: True
+      add_dates: True
+      add_authors: True
 
+extra:
+  cname: "www.intelligeo.org"

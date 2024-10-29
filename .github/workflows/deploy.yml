@@ -1,12 +1,10 @@
 name: Deploy MkDocs site
 
-# Run the workflow when code is pushed to the 'main' branch
 on:
   push:
     branches:
       - main # or the branch you want to trigger the deployment
 
-    
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,8 +26,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -U mkdocs mkdocs-material mkdocs-bootswatch
+          pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
 
       - name: Deploy to GitHub Pages
         run: |
           mkdocs gh-deploy --force  # Build and deploy the site to GitHub Pages
+          
+      - name: Ensure gh-pages branch exists
+        run: |
+          git checkout -b gh-pages || true
