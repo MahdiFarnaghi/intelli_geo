@@ -28,6 +28,9 @@ jobs:
         run: |
           pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
 
+      - name: Add CNAME file for custom domain
+        run: echo "www.intelligeo.org" > docs/CNAME  
+
       - name: Deploy to GitHub Pages
         run: |
           mkdocs gh-deploy --force  # Build and deploy the site to GitHub Pages
