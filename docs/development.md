@@ -19,22 +19,22 @@
 
 5. **Compile the interface using `pb_tool`:**
     - Install `pb_tool` using pip:
-        ```bash
+        ```
         pip install pb-tool
         ```
     - Install `pyqt5ac` using pip:
-        ```bash
+        ```
         pip install pyqt5ac
         ```
     - On Linux, due to a [known issue](https://github.com/qgis/QGIS/issues/48368#issuecomment-1293898268), installing Qt via pip may cause incompatibility with QT5. The solution is to install the following packages:
-        ```bash
+        ```
         sudo apt-get install python3-pyqt5
         sudo apt-get install qtcreator pyqt5-dev-tools
         sudo apt-get install qttools5-dev-tools
         ```
     - Verify if `pb_tool.exe` is located in the Python environment’s scripts folder.
     - Navigate to the `intelli_geo` module folder in the terminal and run:
-        ```bash
+        ```
         pbt compile
         ```
 
@@ -63,30 +63,30 @@ If you want to contribute to the IntelliGeo project but are not part of the team
 ## Contributing to the Project - Team Members
 
 1. **Pull the latest version of the `main` branch:**
-    ```bash
+    ```
     git checkout main
     git pull origin main
     ```
 
 2. **Create a new branch:**
-    ```bash
+    ```
     git checkout -b <new_branch_name>
     ```
 
 3. **Make your changes.**
 
 4. **Stage your changes:**
-    ```bash
+    ```
     git add .
     ```
 
 5. **Commit your changes:**
-    ```bash
+    ```
     git commit -m "Detailed message about the changes"
     ```
 
 6. **Push the branch for review:**
-    ```bash
+    ```
     git push origin <new_branch_name>
     ```
 
@@ -113,12 +113,12 @@ The project's documentation is managed using **MkDocs**. Documentation is genera
 To test the documentation locally, follow these steps:
 
 1. Install the required packages by running:
-   ```bash
+   ```
    pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
    ```
 
 2. Navigate to the `IntelliGeo` folder, then start the local server with:
-   ```bash
+   ```
    mkdocs serve
    ```
 
