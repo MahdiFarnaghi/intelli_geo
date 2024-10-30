@@ -21,10 +21,28 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+# from PyQt5.QtWebEngineWidgets import QWebEngineView
+import subprocess
+import sys
+import os
+import asyncio
+
+try:
+    import langchain_cohere, langchain_openai, langchain
+    import requests, psutil
+    from bs4 import BeautifulSoup
+except:
+    # Path to your requirements.txt file
+    scriptDir = os.path.dirname(os.path.abspath(__file__))
+    requirementsPath = os.path.join(scriptDir, 'requirements.txt')
+    # Run the pip install command
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirementsPath])
+
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, QTimer, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard
 from qgis.PyQt.QtWidgets import QAction, QDialog, QPushButton, QWidget, QPlainTextEdit, QDockWidget, QApplication
 from qgis.utils import iface
+
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -32,8 +50,7 @@ from .resources import *
 from .intelli_geo_dockwidget import IntelliGeoDockWidget
 import os.path
 import re
-import logging
-import pyperclip
+from qasync import QEventLoop
 
 # https://github.com/qgis/QGIS/tree/master/python/console
 # import 'console' folder in QGIS python package
@@ -49,6 +66,7 @@ from .dataloader import Dataloader
 from .conversation import Conversation
 from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion
 from .retrievalVectorbase import RetrievalVectorbase
+from .debugDialog import DebugDialog
 
 from .environment import QgisEnvironment
 
@@ -102,6 +120,9 @@ class IntelliGeo:
 
         version = getVersion()
         self.retrievalVectorbase = RetrievalVectorbase(version)
+
+        self.consoleText = ""
+        self.consoleTracker = QTimer()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -304,12 +325,21 @@ class IntelliGeo:
             responseType = "Code"
 
         if self.liveConversation is not None:
-            response, workflow, modelPath = self.liveConversation.updateUserPrompt(message, responseType)
+            self.liveConversation.llmResponse.connect(self.onNewResponseReceived)
+            self.liveConversation.updateUserPrompt(message, responseType)
+            self.dockwidget.disableAllButtons()
+            self.dockwidget.disableAllTextEdit()
 
+    def onNewResponseReceived(self, response, workflow, modelPath):
+        if self.liveConversation is not None:
+            self.dockwidget.enableAllButtons()
+            self.dockwidget.enableAllTextEdit()
+            self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
             # Python Console Interface: Load python code from response
             if workflow == "withCode":
                 code = extractCode(response)
-                self.activateConsole(code, False)
+                self.consoleText = self.activateConsole(code, False)
+                self.startConsoleTracker()
 
             # Graphic Modeler Interface: Load .model3 from storage
             if workflow == "withModel":
@@ -379,7 +409,7 @@ class IntelliGeo:
         self.dockwidget.updateConversation(self.liveConversation)
         self.dockwidget.updateGeneralInfo(self.liveConversation)
 
-    def onConversationDeleted(self, conversationID):
+    def onConversationDeleted(self, conversationID: str) -> None:
         """
         Handle logic when a conversation is deleted.
         Drop table in database, and clear Interface in both 'Message' tab and 'Conversations' tab.
@@ -405,7 +435,7 @@ class IntelliGeo:
             # Dock Interface: Remove conversation card correlated with deleted conversation
             self.dockwidget.removeConversationCard(conversationID)
 
-    def onConversationEdited(self, conversationID):
+    def onConversationEdited(self, conversationID: str) -> None:
 
         # New/Edit Dialog Interface: If no dialog, create one
         if self.editdialog is None or not self.editdialog.isVisible():
@@ -478,7 +508,7 @@ class IntelliGeo:
 
         self.dockwidget.pbSearchConversationCard.setText("Search")
 
-    def activateConsole(self, code, run):
+    def activateConsole(self, code: str, run: bool) -> str:
         consoleWidget = iface.mainWindow().findChild(QDockWidget, "PythonConsole")
         if not consoleWidget or not consoleWidget.isVisible():
             iface.actionShowPythonDialog().trigger()
@@ -486,14 +516,93 @@ class IntelliGeo:
 
         pythonConsole = consoleWidget.findChild(console.console.PythonConsoleWidget)
         editorWidget = pythonConsole.findChild(console.console_editor.Editor)
+
         if not editorWidget or not editorWidget.isVisible:
             pythonConsole.showEditorButton.trigger()
 
+        shellOutputWidget = pythonConsole.findChild(console.console_output.ShellOutputScintilla)
+
         pythonConsole.tabEditorWidget.newTabEditor(tabName='IntelliGeo', filename=None)
-        pyperclip.copy(code)
+        QApplication.clipboard().setText(code)
         pythonConsole.pasteEditor()
 
-        return None
+        return shellOutputWidget.text()
+
+    def startConsoleTracker(self):
+        self.consoleTracker.timeout.connect(self.comparePythonConsoleOutput)
+
+        interval = 300
+        self.consoleTracker.start(interval)
+
+        # thread = QThread()
+        # consoleTracker.moveToThread(thread)
+        # thread.started.connect(lambda: consoleTracker.start(300))
+
+    def comparePythonConsoleOutput(self):
+        consoleWidget = iface.mainWindow().findChild(QDockWidget, "PythonConsole")
+        if not consoleWidget or not consoleWidget.isVisible():
+            self.consoleTracker.stop()
+            return
+        pythonConsole = consoleWidget.findChild(console.console.PythonConsoleWidget)
+        editorWidget = pythonConsole.findChild(console.console_editor.Editor)
+
+        if not editorWidget or not editorWidget.isVisible:
+            self.consoleTracker.stop()
+            return
+
+        shellOutputWidget = pythonConsole.findChild(console.console_output.ShellOutputScintilla)
+        currentFullLogMessage = shellOutputWidget.text()
+
+        if (currentFullLogMessage != self.consoleText) and (self.consoleText in currentFullLogMessage):
+            if currentFullLogMessage.find(self.consoleText) == 0:
+                newLogText = currentFullLogMessage[len(self.consoleText):]
+                self.consoleText = currentFullLogMessage
+                show_variable_popup(newLogText)
+                show_variable_popup(newLogText.count('\n'))
+                if len(newLogText) == 0:
+                    self.consoleTracker.stop()
+                    return
+
+                self.consoleTracker.stop()
+                if newLogText.count('\n') >= 2:
+                    self.activateDebugDialog(newLogText)
+
+        return
+
+    def activateDebugDialog(self, logMessage):
+        dialog = DebugDialog()
+        result = dialog.exec_()
+        self.consoleTracker.stop()
+        
+        if result != QDialog.Accepted:
+            return
+        self.liveConversation.llmReflection.connect(self.onDebugReceived)
+        self.liveConversation.updateReflection(logMessage, "code")
+        self.dockwidget.disableAllButtons()
+        self.dockwidget.disableAllTextEdit()
+
+    def onDebugReceived(self, response, workflow, modelPath):
+        self.liveConversation.llmReflection.disconnect(self.onDebugReceived)
+        self.dockwidget.enableAllButtons()
+        self.dockwidget.enableAllTextEdit()
+        if response == "":
+            return
+
+        code = extractCode(response)
+        show_variable_popup(code)
+        self.consoleText = self.activateConsole(code, False)
+        self.startConsoleTracker()
+
+        # Dock Interface: Update log & general information
+        self.dockwidget.updateConversation(self.liveConversation)
+        self.dockwidget.updateGeneralInfo(self.liveConversation)
+
+        # Dock Interface: Update conversation cards
+        slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
+        self.dockwidget.updateConversationCard(self.liveConversation.metaInfo, slotsFunctions)
+
+        # Dataloader: Update meta-information
+        self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
 
     def activeGraphicDesigner(self, modelPath, run):
         dialog = ModelerDialog()

@@ -381,7 +381,7 @@ class Dataloader:
         deleteSQL = f"DELETE from {self.interactionTableName} WHERE conversationID = ?"
         self.cursor.execute(deleteSQL, (conversationID,))
 
-    def insertInteraction(self, interactionInfo, conversationID):
+    def insertInteraction(self, interactionInfo: tuple, conversationID: str) -> str:
         # Get interaction index
         messageCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
                              f"AND typeMessage != 'internal'")
@@ -400,6 +400,8 @@ class Dataloader:
         interactionDict = pack(interaction, "interaction")
         self.postData("interaction", interactionDict)
 
+        return interactionIndex
+
     def selectInteraction(self, conversationID, columns=None):
         if columns:
             selectSQL = (f"SELECT {', '.join(columns)} FROM {self.interactionTableName} "
@@ -410,6 +412,25 @@ class Dataloader:
         self.cursor.execute(selectSQL, (conversationID, "input", "return"))
         rows = self.cursor.fetchall()
         return rows
+
+    def selectLatestInteraction(self, conversationID, interactionID=None):
+        if interactionID is not None:
+            selectSQL = (f"SELECT * FROM {self.interactionTableName} "
+                         f"WHERE conversationID = ? AND ID = ?")
+            self.cursor.execute(selectSQL, (conversationID, interactionID))
+            row = self.cursor.fetchone()
+            if row is not None:
+                return row
+
+        rows = self.selectInteraction(conversationID)
+        processedRows = []
+        for row in rows:
+            packedRow = pack(row, "interaction")
+            if packedRow["conversationID"] in packedRow["ID"]:
+                processedRows.append(list(row) + [int(packedRow["ID"][len(packedRow["conversationID"]):])])
+
+        sortedRows = sorted(processedRows, key=lambda x: x[-1])
+        return sortedRows[-1][:-1]
 
     def postData(self, endpoint, data):
         payload = data

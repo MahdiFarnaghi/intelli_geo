@@ -1,21 +1,28 @@
 import os
 
+from qgis.PyQt.QtCore import pyqtSignal, QObject
+
 from langchain_cohere import ChatCohere
 from langchain_openai import OpenAIEmbeddings
 from langchain_cohere.embeddings import CohereEmbeddings
 from langchain_openai import ChatOpenAI
 
-from .utils import getCurrentTimeStamp, getVersion, pack
+from .utils import getCurrentTimeStamp, getVersion, pack, show_variable_popup
 from .processor import Processor
 from .workflowManager import WorkflowManager
 
 
-class Conversation:
+class Conversation(QObject):
+    llmResponse = pyqtSignal(str, str, str)
+    llmReflection = pyqtSignal(str, str, str)
+
     def __init__(self, ID: str, dataloader, retrivalDatabase):
         """
         >>> metaInfo.keys()
         ... ["ID", "llmID", "title", "description", "created", "modified", "messageCount", "workflowCount", "userID"]
         """
+        super().__init__()  # Call the QObject constructor
+
         metaInfo = dataloader.selectConversationInfo(ID)
         self.metaInfo = metaInfo
 
@@ -29,6 +36,9 @@ class Conversation:
 
         self.Processor = Processor(self.llmID, self.ID, retrivalDatabase, self.dataloader)
         self.workflowManager = WorkflowManager()
+
+        self.modified = getCurrentTimeStamp()
+
 
     def __getattr__(self, name):
         # available variables: "ID", "llmID", "title", "description", "created", "modified", "messageCount",
@@ -50,14 +60,18 @@ class Conversation:
         # TODO: make a queue for LLM reaction & user input
         if self.LLMFinished:
             self.messageCount += 1
+            # Await the asynchronous updateLLMResponse method
             return self.updateLLMResponse(message, responseType)
         else:
             pass
 
     def updateLLMResponse(self, message, responseType):
         self.LLMFinished = False
+        self.Processor.responseReady.connect(self.onResponseReady)
+        self.Processor.asyncResponse(message, responseType)
 
-        response, workflow = self.Processor.response(message, responseType)
+    def onResponseReady(self, message, responseType, response, workflow):
+        self.Processor.responseReady.disconnect(self.onResponseReady)
 
         if workflow != "empty":
             modelPath = self.workflowManager.saveWorkflow(response, workflow, self.title, self.workflowCount)
@@ -68,8 +82,8 @@ class Conversation:
         self.LLMFinished = True
         self.messageCount += 1
         self.modified = getCurrentTimeStamp()
-
-        return response, workflow, modelPath
+        self.llmResponse.emit(response, workflow, modelPath)
+        # return response, workflow, modelPath
 
     def fetch(self) -> str:
         """
@@ -92,7 +106,13 @@ class Conversation:
         return log
 
     def fetchTail(self):
-        logTail = ""
+        latestInteraction = self.dataloader.selectLatestInteraction(self.ID, self.Processor.latestInteractionID)
+        messageDict = pack(latestInteraction, "interaction")
+
+        logTail = f"User: {messageDict['requestText']} \t {messageDict['requestTime']}\n\n"
+
+        return logTail
+
 
     def getMetadata(self):
         metadata = (f"Created: {self.created} | LLM: {self.llmName} | Messages: {str(self.messageCount)} | "
@@ -101,9 +121,40 @@ class Conversation:
         return metadata
 
     def clear(self):
+        """
+        remove every record related to an ID in the dataloader
+        """
         self.dataloader.cleartable(self.ID)
         self.messageCount = 0
         self.workflowCount = 0
 
     def delete(self):
         self.dataloader.deleteConversation(self.ID)
+
+    def updateReflection(self,
+                         logMessage: str,
+                         responseType: str = "code") -> tuple[str, str, str]:
+        """
+        When reflection loop is triggered, go to processor for a bug-fix
+        """
+        if self.LLMFinished:
+            self.messageCount += 1
+            self.LLMFinished = False
+
+            self.Processor.reflectionReady.connect(self.onReflectionReady)
+            self.Processor.asyncReflect(logMessage, responseType)
+
+    def onReflectionReady(self, logMessage, responseType, response, workflow):
+        show_variable_popup("Conversation.onReflectionReady")
+        self.LLMFinished = True
+        if workflow != "empty":
+            modelPath = self.workflowManager.saveWorkflow(response, workflow, self.title, self.workflowCount)
+            self.workflowCount += 1
+        else:
+            modelPath = None
+
+        self.LLMFinished = True
+        self.messageCount += 1
+        self.modified = getCurrentTimeStamp()
+
+        self.llmReflection.emit(response, workflow, modelPath)
