@@ -23,17 +23,18 @@ class ResponseWorker(QRunnable):
 
 
 class ReflectWorker(QRunnable):
-    def __init__(self, processor, logMessage, responseType):
+    def __init__(self, processor, executedCode, logMessage, responseType):
         super().__init__()
         self.processor = processor
         self.logMessage = logMessage
+        self.executedCode = executedCode
         self.responseType = responseType
         self.signals = WorkerSignals()
 
     def run(self):
         # Execute the long-running task
         self.processor.dataloader.connect()
-        response, workflow = self.processor.reflect(self.logMessage, self.responseType)
+        response, workflow = self.processor.reflect(self.logMessage, self.executedCode, self.responseType)
         # Emit the finished signal with the response and workflow
         self.signals.finished.emit(response, workflow)
         self.processor.dataloader.close()

@@ -133,7 +133,8 @@ class Conversation(QObject):
 
     def updateReflection(self,
                          logMessage: str,
-                         responseType: str = "code") -> tuple[str, str, str]:
+                         executedCode: str,
+                         responseType: str = "code") -> None:
         """
         When reflection loop is triggered, go to processor for a bug-fix
         """
@@ -142,7 +143,7 @@ class Conversation(QObject):
             self.LLMFinished = False
 
             self.Processor.reflectionReady.connect(self.onReflectionReady)
-            self.Processor.asyncReflect(logMessage, responseType)
+            self.Processor.asyncReflect(logMessage, executedCode, responseType)
 
     def onReflectionReady(self, logMessage, responseType, response, workflow):
         show_variable_popup("Conversation.onReflectionReady")

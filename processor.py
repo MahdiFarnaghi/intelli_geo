@@ -274,8 +274,8 @@ class Processor(QObject):
         response, workflow = self.reactionRouter(userInput, responseType)
         return response, workflow
 
-    def asyncReflect(self, logMessage, responseType: str = "code"):
-        worker = ReflectWorker(self, logMessage, responseType)
+    def asyncReflect(self, logMessage, executedCode, responseType: str = "code"):
+        worker = ReflectWorker(self, logMessage, executedCode, responseType)
         worker.signals.finished.connect(
             lambda response, workflow: self.handleReflect(logMessage,
                                                           responseType,
@@ -291,32 +291,74 @@ class Processor(QObject):
                                   response,
                                   workflow)
 
+    def reflect(self, logMessage, executedCode, responseType: str = "code"):
+        try:
+            requestTime = getCurrentTimeStamp()
+            codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
 
-    def reflect(self, logMessage, responseType: str = "code"):
-        requestTime = getCurrentTimeStamp()
-        codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
+            latestRow = self.dataloader.selectLatestInteraction(self.conversationID, self.latestInteractionID)
+            latestInteraction = pack(latestRow, "interaction")
 
-        latestRow = self.dataloader.selectLatestInteraction(self.conversationID, self.latestInteractionID)
-        latestInteraction = pack(latestRow, "interaction")
+            userInput = latestInteraction["requestText"]  # get the user Input
+            AIResponse = latestInteraction["responseText"]  # get the AI response
 
-        userInput = latestInteraction["requestText"]  # get the user Input
-        AIResponse = latestInteraction["responseText"]  # get the AI response
-        errorMessage = f"The code you provide returns the following error: {logMessage}, please fix it."
+            prompt = f"""
+                     Context:
+                     
+                     This LLM is a QGIS plugin named IntelliGEO. This LLM is a Python expert with a deep understanding of PyQGIS. This LLM is specialized in generating PyQGIS code scripts based on user descriptions.
+                     Previously, you were requested to generate PyQGIS code, and the generate code produced an error when executed. This error might come from the generated code or user editions. Below you will find relevant data.
+                     
+                     Data:
+                     Original user request: {userInput}
+                     Generated code: {AIResponse}
+                     Executed code: {executedCode}
+                     Error message: {logMessage}
+                     
+                     Task: Answer the following questions in order:
+                     1. Does the generated code align with the original request?
+                     2. What are the differences between the generated code and the executed code?
+                     3. Does the error message relates to the differences between generated code and executed code?
+                     Based on the answers to the previous questions, briefly describe a solution and edit the generated code to implement the proposed solution.
+                     
+                     
+                     Output:
+                     PyQGIS in markdown format:
+                     ```python
+                     # Insert you generated code here
+                     ```
+                     """
+            # userInput = latestInteraction["requestText"]  # get the user Input
+            # AIResponse = latestInteraction["responseText"]  # get the AI response
+            # errorMessage = f"The code you provide returns the following error: {logMessage}, please fix it."
+            #
+            # messageList = [HumanMessage(content=userInput),
+            #                AIMessage(content=AIResponse),
+            #                HumanMessage(content=errorMessage)]
+            #
+            # contextText = "-------------".join([message.content for message in messageList])
 
-        messageList = [HumanMessage(content=userInput),
-                       AIMessage(content=AIResponse),
-                       HumanMessage(content=errorMessage)]
+            codeDebuggerChain = self.llm | self.outputParser
+            codeReturn = codeDebuggerChain.invoke(prompt)
+            show_variable_popup("reflection finished")
+            responseTime = getCurrentTimeStamp()
+            interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
+                              userInput, prompt, requestTime, "return",
+                              codeReturn, responseTime, "withModel", ""]
 
-        contextText = "-------------".join([message.content for message in messageList])
-        codeDebuggerChain = self.llm | self.outputParser
-        codeReturn = codeDebuggerChain.invoke(messageList)
-        responseTime = getCurrentTimeStamp()
-        interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
-                          userInput, contextText, requestTime, "return",
-                          codeReturn, responseTime, "withModel", ""]
+            interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
+            self.latestInteractionID = interactionID
 
-        interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
-        self.latestInteractionID = interactionID
+            workflow = "withCode"
+            return codeReturn, workflow
+        
+        except Exception as e:
+            # Define error file path
+            documentsPath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo")
 
-        workflow = "withCode"
-        return codeReturn, workflow
+            os.makedirs(documentsPath, exist_ok=True) # Ensure the directory exists
+            errorFilePath = os.path.join(documentsPath, "error_log.txt")  # Define the error file path
+
+            # Write error message to file
+            with open(errorFilePath, "w") as error_file:
+                error_message = f"An error occurred at reflection:\n{str(e)}"
+                error_file.write(error_message)

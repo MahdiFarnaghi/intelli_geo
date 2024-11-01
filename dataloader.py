@@ -381,7 +381,7 @@ class Dataloader:
         deleteSQL = f"DELETE from {self.interactionTableName} WHERE conversationID = ?"
         self.cursor.execute(deleteSQL, (conversationID,))
 
-    def insertInteraction(self, interactionInfo: tuple, conversationID: str) -> str:
+    def insertInteraction(self, interactionInfo: list, conversationID: str) -> str:
         # Get interaction index
         messageCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
                              f"AND typeMessage != 'internal'")

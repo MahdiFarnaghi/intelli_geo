@@ -123,6 +123,7 @@ class IntelliGeo:
 
         self.consoleText = ""
         self.consoleTracker = QTimer()
+        self.newEditor = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -523,6 +524,9 @@ class IntelliGeo:
         shellOutputWidget = pythonConsole.findChild(console.console_output.ShellOutputScintilla)
 
         pythonConsole.tabEditorWidget.newTabEditor(tabName='IntelliGeo', filename=None)
+        tabIndex = pythonConsole.tabEditorWidget.count() - 1
+        self.newEditor = pythonConsole.tabEditorWidget.widget(tabIndex)
+
         QApplication.clipboard().setText(code)
         pythonConsole.pasteEditor()
 
@@ -564,12 +568,13 @@ class IntelliGeo:
                     return
 
                 self.consoleTracker.stop()
-                if newLogText.count('\n') >= 2:
-                    self.activateDebugDialog(newLogText)
+                if (newLogText.count('\n') >= 2) and ("Error" in newLogText):
+                    executedCode = self.newEditor.text()
+                    self.activateDebugDialog(newLogText, executedCode)
 
         return
 
-    def activateDebugDialog(self, logMessage):
+    def activateDebugDialog(self, logMessage, executedCode):
         dialog = DebugDialog()
         result = dialog.exec_()
         self.consoleTracker.stop()
@@ -577,7 +582,7 @@ class IntelliGeo:
         if result != QDialog.Accepted:
             return
         self.liveConversation.llmReflection.connect(self.onDebugReceived)
-        self.liveConversation.updateReflection(logMessage, "code")
+        self.liveConversation.updateReflection(logMessage, executedCode, "code")
         self.dockwidget.disableAllButtons()
         self.dockwidget.disableAllTextEdit()
 
