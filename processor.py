@@ -314,18 +314,13 @@ class Processor(QObject):
                      Executed code: {executedCode}
                      Error message: {logMessage}
                      
-                     Task: Answer the following questions in order:
-                     1. Does the generated code align with the original request?
-                     2. What are the differences between the generated code and the executed code?
-                     3. Does the error message relates to the differences between generated code and executed code?
-                     Based on the answers to the previous questions, briefly describe a solution and edit the generated code to implement the proposed solution.
+                     Task: Use the following questions to generate your response:
+                     1. Does the generated code align with the orignal request?
+                     2. What are the differenes between the generated code and the executed code?
+                     3. Are the changes needed to set parameters in the code?
+                     4. Does the error message relates to the differences between generated code and executed code?
                      
-                     
-                     Output:
-                     PyQGIS in markdown format:
-                     ```python
-                     # Insert you generated code here
-                     ```
+                     As output produce a brief description of a solution, but do not include answers to the questions, and only if needed generate an edited version of the code to implement the proposed solution.
                      """
             # userInput = latestInteraction["requestText"]  # get the user Input
             # AIResponse = latestInteraction["responseText"]  # get the AI response
