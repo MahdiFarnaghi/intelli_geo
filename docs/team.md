@@ -1,6 +1,6 @@
 # Core Team
 
-The core team that is working on the project are listed below. We would like to highlight that we invite anyone who is interested to join the development team to get in touch with us through the project email address: [IntelliGeo Email](mailto:intelligeo@utwente.nl).
+The core team that is working on the project are listed below. We would like to highlight that we invite anyone who is interested to join the development team to get in touch with us through the project email address: [IntelliGeo Email](mailto:intelligeo-itc@utwente.nl).
 
 ## Zehao Lu
 
