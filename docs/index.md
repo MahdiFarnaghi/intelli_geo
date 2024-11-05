@@ -8,7 +8,7 @@
 ![GitHub Last Commit](https://img.shields.io/github/last-commit/MahdiFarnaghi/intelli_geo)
 ![GitHub Issues](https://img.shields.io/github/issues/MahdiFarnaghi/intelli_geo)
 
-[IntelliGeo](https://plugins.qgis.org/plugins/intelli_geo/) is an innovative [QGIS](https://www.qgis.org/) plugin designed to bring the power of Large Language Models (LLMs) to the QGIS platform, making geospatial analysis more intuitive and efficient.
+[IntelliGeo](https://plugins.qgis.org/plugins/intelli_geo/) is an open source [QGIS](https://www.qgis.org/) plugin designed to bring the power of Large Language Models (LLMs) to the QGIS platform, making geospatial analysis more intuitive and efficient.
 
 The plugin is in development phase. We have recently released version `0.0.2`: [IntelliGeo on QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/intelli_geo/#plugin-about)
 
@@ -37,3 +37,9 @@ The code is licensed under the [Apache 2.0 license](https://github.com/MahdiFarn
 The development of IntelliGeo is part of the project titled "IntelliGeo: Laying the Groundwork for Integrating Large Language Models into GIS," funded by the Dutch Research Council ([NWO](https://www.nwo.nl/en)) under the [AiNed](https://www.nwo.nl/en/researchprogrammes/national-growth-fund/ained) program. This program aims to promote the development and application of AI within Dutch businesses and governmental institutions. The project is managed by the Geo-Information Processing Department at the Faculty of ITC, University of Twente, and is carried out in collaboration with the Barcelona Supercomputing Center - Centro Nacional de Supercomputación ([BSC](https://www.bsc.es/)). Running from March 2023 to March 2024, the project seeks to revolutionize how geographical models are created by integrating advanced AI language models into open-source GIS tools.
 
 The initiative's main goal is to develop tools that enable AI and human experts to collaboratively design sophisticated models for a variety of applications, including flood risk detection, crop yield estimation, and environmental change prediction.
+
+## Join Us
+
+We invite anyone passionate about open-source development, GIS, or AI to get involved! Whether you're interested in contributing code, improving documentation, or sharing ideas, your input is invaluable in shaping the future of IntelliGeo.
+
+If you’d like to join us, reach out via email at [IntelliGeo Email](mailto:intelligeo-itc@utwente.nl).  Don’t hesitate to open an issue if you encounter any bugs or have suggestions for improvements. Together, we can make geospatial analysis more powerful and accessible for everyone.
