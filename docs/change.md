@@ -1,6 +1,5 @@
 # Changelog
 
---------------------------------------------------------------
 
 ## IntelliGeo v0.0.2 - Second Release
 
@@ -14,7 +13,6 @@
 
 - **Chat Interface**: We will be updating the current chat interface in IntelliGeo over the next few versions to enhance user experience and functionality.
 
------------------------------------------------------------------------------------
 
 ## IntelliGeo v0.0.1 - First Release
 
