@@ -9,6 +9,7 @@ nav:
   - How to use: use.md
   - Development: development.md 
   # - Core team: team.md
+  - Change Log: change.md
   - Blogs: blogs.md 
 
 docs_dir: docs
