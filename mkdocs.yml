@@ -1,6 +1,6 @@
 site_name: IntelliGeo
 theme:
-  name: lux #spacelab #material
+  name: cinder #lux #spacelab #material
 
 # Set navigation
 nav:
