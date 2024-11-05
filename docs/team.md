@@ -18,8 +18,16 @@ Lu is a skilled developer and machine learning engineer with expertise in AI, na
 <div style="display: flex; align-items: center;">
   <div style="flex: 1;">
     
-Gustavo is a Lecturer at Geo-Information Processing Department, Faculty ITC, University of Twente. 
+Gustavo is a Lecturer and Researcher at the Geo-Information Processing Department, Faculty ITC, University of Twente. His teaching and research are in the domains of systems engineering and geo-informatics. His role in this project is as a Research Engineer. His work in IntelliGeo includes system workflow, user interface, data preparation for training and testing, prompt engineering, and troubleshooting.  
 
+  <ul>
+    <li>
+      <a href="https://people.utwente.nl/g.a.garciachapeton-1">Profile page<a>
+    </li>
+    <li>
+      <a href="https://www.linkedin.com/in/chape1331/">Linkedin<a>
+    </li>
+  </ul>
 
   </div>
   <div style="flex: 1; text-align: right;">
