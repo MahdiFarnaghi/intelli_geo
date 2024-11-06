@@ -8,18 +8,18 @@ Some nice images from the workshop:
 
 <table>
   <tr>
-    <td rowspan="2" colspan="2"><img src="img/uc2024_qgis_sk_1.jpg" alt="Spanning Image" width="400">
+    <td rowspan="2" colspan="2"><img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_1.jpg" alt="Spanning Image" width="400">
     </td>
-    <td><img src="img/uc2024_qgis_sk_3.jpg" alt="Image 2" width="200">
+    <td><img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_3.jpg" alt="Image 2" width="200">
     </td>
   </tr>
   <tr>
-    <td><img src="img/uc2024_qgis_sk_4.jpg" alt="Image 3" width="200"></td>
+    <td><img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_4.jpg" alt="Image 3" width="200"></td>
   </tr>
   <tr>
-    <td><img src="img/uc2024_qgis_sk_2.jpg" alt="Image 4" width="200"></td>
-    <td><img src="img/uc2024_qgis_sk_5.jpg" alt="Image 5" width="200"></td>
-    <td><img src="img/uc2024_qgis_sk_6.jpg" alt="Image 6" width="200"></td>
+    <td><img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_2.jpg" alt="Image 4" width="200"></td>
+    <td><img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_5.jpg" alt="Image 5" width="200"></td>
+    <td><img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_6.jpg" alt="Image 6" width="200"></td>
   </tr>
 </table>
 
