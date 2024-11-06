@@ -4,6 +4,25 @@
 
 In a [workshop](https://talks.osgeo.org/qgis-uc2024/talk/DNHKHQ/) at QGIS User Conference 2024, the **IntelliGeo** plugin was presented to the QGIS user community. We had a full room of interested people actively participating in the workshop. The workshop was started with an introduction to the IntelliGeo plugin and it's relation with AI/LLMs. Then the participants installed IntelliGeo, participated in a hands-on activity where they use the plugin to perform different GIS tasks. Finally, we had a very constructive feedback round where we collected amazing suggestion and collaboration opportunities. 
 
+Some nice images from the workshop:
+
+<table>
+  <tr>
+    <td rowspan="2" colspan="2"><img src="img/uc2024.qgis.sk/1.jpg" alt="Spanning Image" width="400">
+    </td>
+    <td><img src="img/uc2024.qgis.sk/3.jpg" alt="Image 2" width="200">
+    </td>
+  </tr>
+  <tr>
+    <td><img src="img/uc2024.qgis.sk/4.jpg" alt="Image 3" width="200"></td>
+  </tr>
+  <tr>
+    <td><img src="img/uc2024.qgis.sk/2.jpg" alt="Image 4" width="200"></td>
+    <td><img src="img/uc2024.qgis.sk/5.jpg" alt="Image 5" width="200"></td>
+    <td><img src="img/uc2024.qgis.sk/6.jpg" alt="Image 6" width="200"></td>
+  </tr>
+</table>
+
 
 ## **IntelliGeo** at ICT Open 2024
 
