@@ -1,25 +1,35 @@
 # Temporary imports
 import json
 import os
+import asyncio
+
+from qgis.PyQt.QtCore import QThreadPool, pyqtSignal, QObject
 
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.runnables import RunnableLambda
-from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
 from langchain_community.vectorstores import FAISS
 from langchain_cohere import ChatCohere
 from langchain_openai import ChatOpenAI
 
-from .utils import show_variable_popup, getVersion, getCurrentTimeStamp
+from .utils import show_variable_popup, getVersion, getCurrentTimeStamp, pack
 from .tools import readEnvironment
-from .environment import QgisEnvironment
+from .responseWorker import ResponseWorker, ReflectWorker
+from .dataloader import Dataloader
 
 
-class Processor:
+class Processor(QObject):
+    responseReady = pyqtSignal(str, str, str, str)
+    reflectionReady = pyqtSignal(str, str, str, str)
+
     def __init__(self, llmID, conversationID, retrievalVectorbase, dataloader):
+        super().__init__()
+        self.latestInteractionID = None
         self.llmID = llmID
-        self.dataloader = dataloader
+        self.dataloader = Dataloader("IntelliGeo.db")
+
         self.llmProvider, self.llmName = llmID.split("::")
         _, apiKey = dataloader.fetchAPIKey(self.llmID)
         if self.llmProvider == "OpenAI":
@@ -31,6 +41,8 @@ class Processor:
         self.retrivalDatabase = retrievalVectorbase
         self.outputParser = StrOutputParser()
         self.version = getVersion()
+
+        self.threadpool = QThreadPool()  # Create a thread pool
 
     # def loadPrompt(self, promptPath):
     #     """
@@ -95,7 +107,8 @@ class Processor:
                 modelProducerResponse = self.modelProducer(userInput)
                 return modelProducerResponse, "withModel"
             else:
-                codeProducerResponse = self.codeProducer(userInput)
+
+                codeProducerResponse, interactionID = self.codeProducer(userInput)
                 return codeProducerResponse, "withCode"
 
         else:
@@ -153,8 +166,6 @@ class Processor:
         for example in retrievedExample:
             exampleStr += "\n\n" + example
 
-        show_variable_popup(exampleStr)
-
         humanMessage = HumanMessage(template.format(input=userInput, example=exampleStr))
         messageList = [humanMessage]
 
@@ -185,10 +196,10 @@ class Processor:
 
         return modelReturn
 
-    def codeProducer(self, userInput: str) -> str:
+    def codeProducer(self, userInput: str) -> tuple[str, str]:
         requestTime = getCurrentTimeStamp()
-        generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
-        template = generalChatPromptRow["template"]
+        codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
+        template = codeProducerPromptRow["template"]
 
         # get documentation
         retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput)[0]
@@ -218,7 +229,7 @@ class Processor:
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------".join([message.content for message in messageList])
-
+        show_variable_popup(contextText)
         # langchain inference
         codeProducerChain = llmWithTools | self.outputParser
         codeReturn = codeProducerChain.invoke(messageList)
@@ -227,17 +238,122 @@ class Processor:
         # ["conversationID", "promptID",
         #  "requestText", "contextText", "requestTime", "typeMessage",
         #  "responseText", "responseTime", "workflow", "executionLog"]
-        interactionRow = [self.conversationID, generalChatPromptRow["ID"],
+        interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
                           userInput, contextText, requestTime, "return",
-                          codeReturn, responseTime, "withModel", ""]
-        self.dataloader.insertInteraction(interactionRow, self.conversationID)
+                          codeReturn, responseTime, "withCode", ""]
+        interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
+        self.latestInteractionID = interactionID
 
-        return codeReturn
+        return codeReturn, interactionID
 
     def confirmChain(self):
         return RunnableLambda(lambda x: "Are you sure?")
 
-    def response(self, userInput, responseType):
-        response, workflow = self.reactionRouter(userInput, responseType)
+    # def response(self, userInput, responseType):
+    #     response, workflow = self.reactionRouter(userInput, responseType)
+    #
+    #     return response, workflow
 
+    def asyncResponse(self, userInput, responseType):
+        worker = ResponseWorker(self, userInput, responseType)
+        # Connect the signal to handle the response
+        worker.signals.finished.connect(
+            lambda response, workflow: self.handleResponse(userInput, responseType, response, workflow)
+        )
+        self.threadpool.start(worker)  # Start the worker in the thread pool
+
+    def handleResponse(self, userInput, responseType, response, workflow):
+        # Handle the response from the worker
+        self.responseReady.emit(userInput, responseType, response, workflow)
+
+    def response(self, userInput, responseType):
+        """
+        Run the response method asynchronously.
+        """
+        # Run reactionRouter asynchronously to avoid blocking
+        response, workflow = self.reactionRouter(userInput, responseType)
         return response, workflow
+
+    def asyncReflect(self, logMessage, executedCode, responseType: str = "code"):
+        worker = ReflectWorker(self, logMessage, executedCode, responseType)
+        worker.signals.finished.connect(
+            lambda response, workflow: self.handleReflect(logMessage,
+                                                          responseType,
+                                                          response,
+                                                          workflow)
+        )
+        self.threadpool.start(worker)
+
+    def handleReflect(self, logMessage, responseType, response, workflow):
+        # Handle the response from the worker
+        self.reflectionReady.emit(logMessage,
+                                  responseType,
+                                  response,
+                                  workflow)
+
+    def reflect(self, logMessage, executedCode, responseType: str = "code"):
+        try:
+            requestTime = getCurrentTimeStamp()
+            codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
+
+            latestRow = self.dataloader.selectLatestInteraction(self.conversationID, self.latestInteractionID)
+            latestInteraction = pack(latestRow, "interaction")
+
+            userInput = latestInteraction["requestText"]  # get the user Input
+            AIResponse = latestInteraction["responseText"]  # get the AI response
+
+            prompt = f"""
+                     Context:
+                     
+                     This LLM is a QGIS plugin named IntelliGEO. This LLM is a Python expert with a deep understanding of PyQGIS. This LLM is specialized in generating PyQGIS code scripts based on user descriptions.
+                     Previously, you were requested to generate PyQGIS code, and the generate code produced an error when executed. This error might come from the generated code or user editions. Below you will find relevant data.
+                     
+                     Data:
+                     Original user request: {userInput}
+                     Generated code: {AIResponse}
+                     Executed code: {executedCode}
+                     Error message: {logMessage}
+                     
+                     Task: Use the following questions to generate your response:
+                     1. Does the generated code align with the orignal request?
+                     2. What are the differenes between the generated code and the executed code?
+                     3. Are the changes needed to set parameters in the code?
+                     4. Does the error message relates to the differences between generated code and executed code?
+                     
+                     As output produce a brief description of a solution, but do not include answers to the questions, and only if needed generate an edited version of the code to implement the proposed solution.
+                     """
+            # userInput = latestInteraction["requestText"]  # get the user Input
+            # AIResponse = latestInteraction["responseText"]  # get the AI response
+            # errorMessage = f"The code you provide returns the following error: {logMessage}, please fix it."
+            #
+            # messageList = [HumanMessage(content=userInput),
+            #                AIMessage(content=AIResponse),
+            #                HumanMessage(content=errorMessage)]
+            #
+            # contextText = "-------------".join([message.content for message in messageList])
+
+            codeDebuggerChain = self.llm | self.outputParser
+            codeReturn = codeDebuggerChain.invoke(prompt)
+            show_variable_popup("reflection finished")
+            responseTime = getCurrentTimeStamp()
+            interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
+                              userInput, prompt, requestTime, "return",
+                              codeReturn, responseTime, "withModel", ""]
+
+            interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
+            self.latestInteractionID = interactionID
+
+            workflow = "withCode"
+            return codeReturn, workflow
+        
+        except Exception as e:
+            # Define error file path
+            documentsPath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo")
+
+            os.makedirs(documentsPath, exist_ok=True) # Ensure the directory exists
+            errorFilePath = os.path.join(documentsPath, "error_log.txt")  # Define the error file path
+
+            # Write error message to file
+            with open(errorFilePath, "w") as error_file:
+                error_message = f"An error occurred at reflection:\n{str(e)}"
+                error_file.write(error_message)

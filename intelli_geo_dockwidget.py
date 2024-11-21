@@ -59,9 +59,9 @@ from qgis.PyQt.QtCore import pyqtSignal
 
 from qgis.PyQt.QtCore import QEvent, Qt
 from qgis.PyQt.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QPushButton, QSizePolicy, QSpacerItem,
-                                 QScrollArea, QWidget)
+                                 QScrollArea, QWidget, QPlainTextEdit)
 from qgis.PyQt.QtGui import QFont
-
+from .conversation import Conversation
 from .utils import handleNoneConversation, unpack, formatDescription, show_variable_popup
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -225,7 +225,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.lbMetadata.setText(metadata)
 
     @handleNoneConversation
-    def updateConversation(self, conversation) -> None:
+    def updateConversation(self, conversation: Conversation) -> None:
         """
         Update chat log under "Messages" tab.
         """
@@ -238,6 +238,45 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         # always show the bottom of streaming conversation
         self.txHistory.verticalScrollBar().setValue(self.txHistory.verticalScrollBar().maximum())
+
+    def disableAllButtons(self):
+        """
+        disable all button on interface so that won't trigger another response
+        """
+        # Find all QPushButton widgets (recursively searches all children)
+        buttons = self.findChildren(QPushButton)
+
+        # Disable each button
+        for button in buttons:
+            button.setDisabled(True)
+
+    def enableAllButtons(self):
+        """
+        enable all buttons on interface to allow next round conversation
+        """
+        # Find all QPushButton widgets (recursively searches all children)
+        buttons = self.findChildren(QPushButton)
+
+        # Enable each button
+        for button in buttons:
+            button.setDisabled(False)
+
+    def disableAllTextEdit(self):
+        # Find all Textedit widgets (recursively searches all children)
+        textedits = self.findChildren(QPlainTextEdit)
+
+        # Enable each button
+        for textedit in textedits:
+            textedit.setDisabled(True)
+
+    def enableAllTextEdit(self):
+        # Find all Textedit widgets (recursively searches all children)
+        textedits = self.findChildren(QPlainTextEdit)
+
+        # Enable each button
+        for textedit in textedits:
+            textedit.setDisabled(False)
+
 
     def eventFilter(self, QTObject, event):
         if event.type() == QEvent.KeyPress:
@@ -254,3 +293,4 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.switchClearMode.emit(self.ptSearchConversationCard.toPlainText())
 
         return super().eventFilter(QTObject, event)
+
