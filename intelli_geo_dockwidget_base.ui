@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>530</width>
-    <height>727</height>
+    <height>945</height>
    </rect>
   </property>
   <property name="features">
@@ -175,8 +175,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>454</width>
-                <height>528</height>
+                <width>98</width>
+                <height>28</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -325,9 +325,9 @@
             </layout>
            </item>
            <item>
-            <widget class="QTextBrowser" name="txHistory">
+            <widget class="QWebView" name="txHistory">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -335,18 +335,10 @@
              <property name="styleSheet">
               <string notr="true"/>
              </property>
-             <property name="sizeAdjustPolicy">
-              <enum>QAbstractScrollArea::AdjustIgnored</enum>
-             </property>
-             <property name="readOnly">
-              <bool>false</bool>
-             </property>
-             <property name="html">
-              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;right&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:11pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <property name="url">
+              <url>
+               <string>file:/home/com3dian/.local/share/QGIS/QGIS3/profiles/default/python/plugins/intelli_geo/resources/template_1.html</string>
+              </url>
              </property>
             </widget>
            </item>
@@ -462,6 +454,13 @@ p, li { white-space: pre-wrap; }
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebView</class>
+   <extends>QWidget</extends>
+   <header location="global">QtWebKitWidgets/QWebView</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

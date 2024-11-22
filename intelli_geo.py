@@ -389,11 +389,7 @@ class IntelliGeo:
                 self.dockwidget.addConversationCard(metaInfo, slotsFunctions)
 
     def onConversationLoad(self, conversationID):
-        # TODO: test, to be removed
-        qgis = QgisEnvironment()
-        qgis.refresh()
-        info = qgis.getLayerAttributes()
-
+        show_variable_popup("hello !!!!")
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID
         self.liveConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)

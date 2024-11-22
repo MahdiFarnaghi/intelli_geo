@@ -53,16 +53,18 @@ Dependencies:
 
 import os
 from datetime import datetime
+import mistune
 
 from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QPoint
+from qgis.PyQt.QtWebKit import QWebSettings
 
 from qgis.PyQt.QtCore import QEvent, Qt
 from qgis.PyQt.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QPushButton, QSizePolicy, QSpacerItem,
                                  QScrollArea, QWidget, QPlainTextEdit)
 from qgis.PyQt.QtGui import QFont
 from .conversation import Conversation
-from .utils import handleNoneConversation, unpack, formatDescription, show_variable_popup
+from .utils import handleNoneConversation, pack, unpack, formatDescription, show_variable_popup
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'intelli_geo_dockwidget_base.ui'))
@@ -229,15 +231,65 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """
         Update chat log under "Messages" tab.
         """
+        currentScriptPath = os.path.dirname(os.path.abspath(__file__))
+        cssPath = os.path.join(currentScriptPath, "resources/style.css")
+        currentHtml = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Chat Application</title>
+            <link rel="stylesheet" href="file://{str(cssPath)}">
+        </head>
+        <body>
+            <!-- Chat Container -->
+            <div id="container" class="chat-container">
+                <!-- New messages will be inserted here -->      
+            </div>
+        </body>
+        </html>
+        """
         # get updated log
-        log = conversation.fetch()
-        self.txHistory.setPlainText(log)
+        interactionHistory = conversation.fetch()
+        for interaction in interactionHistory:
+            messageDict = pack(interaction, "interaction")
+            if messageDict["typeMessage"] == "input":
+                newMessage = f"""<div class="message message-user">
+                    <div class="message-header">
+                        <span class="user">User</span>
+                        <span class="timestamp">{messageDict["requestTime"]}</span>
+                    </div>
+                    <div class="message-content">
+                        {mistune.create_markdown()(messageDict["requestText"])}
+                    </div>
+                </div>
+                <!-- New messages will be inserted here -->
+                            """
+                currentHtml = currentHtml.replace(
+                    '<!-- New messages will be inserted here -->',
+                    newMessage
+                )
 
-        # set text browser read only
-        self.txHistory.setReadOnly(True)
-
-        # always show the bottom of streaming conversation
-        self.txHistory.verticalScrollBar().setValue(self.txHistory.verticalScrollBar().maximum())
+            if messageDict["typeMessage"] == "return":
+                newMessage = f"""<div class="message message-system">
+                    <div class="message-header">
+                        <span class="user">IntelliGeo</span>
+                        <span class="timestamp">{messageDict["responseTime"]}</span>
+                    </div>
+                    <div class="message-content">
+                        {mistune.create_markdown()(messageDict["responseText"])}
+                    </div>
+                </div>
+                <!-- New messages will be inserted here -->
+                            """
+                currentHtml = currentHtml.replace(
+                    '<!-- New messages will be inserted here -->',
+                    newMessage
+                )
+        # update txHistory
+        self.txHistory.setHtml(currentHtml)
+        self.txHistory.page().mainFrame().scroll(0, 100)
 
     def disableAllButtons(self):
         """

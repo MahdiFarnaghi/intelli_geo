@@ -39,7 +39,6 @@ class Conversation(QObject):
 
         self.modified = getCurrentTimeStamp()
 
-
     def __getattr__(self, name):
         # available variables: "ID", "llmID", "title", "description", "created", "modified", "messageCount",
         # "workflowCount", "userID"
@@ -85,34 +84,20 @@ class Conversation(QObject):
         self.llmResponse.emit(response, workflow, modelPath)
         # return response, workflow, modelPath
 
-    def fetch(self) -> str:
+    def fetch(self) -> list[tuple]:
         """
         Get entire conversation history from local database
         """
         log = ""
         interactionHistory = self.dataloader.selectInteraction(self.ID)
-        # TODO: fetch loops through the databse and takes everything, for larger database can be time wasting
-        # TODO: should we have an alternative method 'dispaly' that simply take the current shown content and
-        # TODO: attach responses to the tail?
 
-        log += f"Displaying {str(len(interactionHistory))} messages.\n"
-        for message in interactionHistory:
-            messageDict = pack(message, "interaction")
-            if messageDict["typeMessage"] == "input":
-                log += f"User: {messageDict['requestText']} \t {messageDict['requestTime']}\n\n"
-            elif messageDict["typeMessage"] == "return":
-                log += f"LLM: {messageDict['responseText']} \t {messageDict['responseTime']}\n\n"
-
-        return log
+        return interactionHistory
 
     def fetchTail(self):
         latestInteraction = self.dataloader.selectLatestInteraction(self.ID, self.Processor.latestInteractionID)
         messageDict = pack(latestInteraction, "interaction")
 
-        logTail = f"User: {messageDict['requestText']} \t {messageDict['requestTime']}\n\n"
-
-        return logTail
-
+        return messageDict
 
     def getMetadata(self):
         metadata = (f"Created: {self.created} | LLM: {self.llmName} | Messages: {str(self.messageCount)} | "
