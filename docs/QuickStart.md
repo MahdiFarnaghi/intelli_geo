@@ -23,6 +23,8 @@ Before diving into the examples, ensure you have the following prerequisites:
 - API Key Ready: Make sure you have activated OpenAI's or Cohere's API key.
 - Sample Data:* Some examples use sample datasets.
 
+For a detailed guide, please refer to [use.md](https://github.com/MahdiFarnaghi/intelli_geo/blob/main/docs/use.md).
+
 *Once installed IntelliGeo, you should see the plugin's toolbar or menu added to your QGIS interface. You’re now ready to follow along with the examples!*
 
 
@@ -37,17 +39,25 @@ This example demonstrates how to generate a model that lists the attributes from
 
 **Note**: Replace the layer's name.
 
+![Screenshot from 2024-11-27 10-10-06](https://github.com/user-attachments/assets/735a097d-605b-4b7e-a9f4-49ae3a040c3e)
+
+
 ### Use Case 2: Producing Attribute Descriptions for a Vector Layer
 
 **Prompt**: Generate a model to produce a description for the attributes in a vector layer. The summary should include the attributes name, data type, number of NULL values, number of unique values. Select the layer by name.
 
 **Note**: Replace the layer's name.
 
+![image](https://github.com/user-attachments/assets/bd0a69ff-c009-44c7-b085-28c30e1610ba)
+
+
 ### Use Case 3: Producing Statistics for Polygon Areas
 
 **Prompt**: I need to produce statistics for the area of the polygons in a layer loaded in the workspace. The statistics should include minimum, maximum, average, standard deviation, and number of features. Generate a model for this purpose. Select the layer by name.
 
 **Note**: Replace the layer's name.
+
+![image](https://github.com/user-attachments/assets/ec65ef6b-106b-4ac7-a550-abed189ddd3a)
 
 
 
@@ -59,16 +69,21 @@ This example demonstrates how to generate a model that lists the attributes from
 
 **Note**: Replace the layer's name
 
-### Use Case 2: Random selection and buffer
+![image](https://github.com/user-attachments/assets/d4927870-2057-4588-bc2d-9465a89e4450)
 
-**Prompt**: Create a workflow that:
 
-1. Selects 10 percent of the features in a vector layer loaded in the workspace. Select the layer by name. Load the result as a temporal in-memory layer.
-2. Calculate buffers of 5000 meters and 50 segments around the temporal layer.
-
-### Use Case 3: Random Points
+### Use Case 2: Random Points
 
 **Prompt**: Create a model that generates 1000 random points over the current map extent. The coordinate system is EPSG:28992.
+
+![Screenshot from 2024-11-27 10-58-18](https://github.com/user-attachments/assets/8d972a92-73b5-4a25-9a2a-459e57eec87d)
+
+
+### Use Case 3: Random Lines
+
+**Prompt**: Create a model that generates 1000 random lines over the current map extent. Each line should be 5000 meters longs. The coordinate system is EPSG:28992. 
+
+![Screenshot from 2024-11-27 10-53-38](https://github.com/user-attachments/assets/d421b88a-00bc-403d-9870-4f205d556f17)
 
 
 
