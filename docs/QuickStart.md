@@ -89,7 +89,7 @@ This example demonstrates how to generate a model that lists the attributes from
 
 ## Troubleshooting and Tips
 
-One of the most frequent issues users encounter when working with the plugin is the problem of "hallucinated imports." This occurs when the script or model references imports or modules that do not exist in your QGIS environment or Python installation. To avoid this issue:
+One of the most frequent issues users encounter when working with the plugin is the problem of "hallucinated imports." This occurs when the script or model references imports or modules that do not exist in your QGIS environment or Python installation. To avoid this issue, yo may need to manually check the imported modules.
 
 
 
