@@ -21,7 +21,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-# from PyQt5.QtWebEngineWidgets import QWebEngineView
 import subprocess
 import sys
 import os
@@ -39,8 +38,9 @@ except:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirementsPath])
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, QTimer, pyqtSignal
-from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard
-from qgis.PyQt.QtWidgets import QAction, QDialog, QPushButton, QWidget, QPlainTextEdit, QDockWidget, QApplication
+from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard, QKeyEvent
+from qgis.PyQt.QtWidgets import (QAction, QDialog, QPushButton, QWidget, QPlainTextEdit, QDockWidget, QApplication,
+                                 QToolButton, QMenu)
 from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
@@ -322,8 +322,10 @@ class IntelliGeo:
         # Dock Interface: Get response mode
         if self.dockwidget.rbtVisualModel.isChecked():
             responseType = "Visual mode"
-        else:
+        elif self.dockwidget.rbtCode.isChecked():
             responseType = "Code"
+        else:
+            responseType = "Toolbox"
 
         if self.liveConversation is not None:
             self.liveConversation.llmResponse.connect(self.onNewResponseReceived)
@@ -341,6 +343,10 @@ class IntelliGeo:
                 code = extractCode(response)
                 self.consoleText = self.activateConsole(code, False)
                 self.startConsoleTracker()
+
+            if workflow == "withToolbox":
+                code = extractCode(response)
+                self.activateToolboxEditor(code, False)
 
             # Graphic Modeler Interface: Load .model3 from storage
             if workflow == "withModel":
@@ -389,11 +395,7 @@ class IntelliGeo:
                 self.dockwidget.addConversationCard(metaInfo, slotsFunctions)
 
     def onConversationLoad(self, conversationID):
-        # TODO: test, to be removed
-        qgis = QgisEnvironment()
-        qgis.refresh()
-        info = qgis.getLayerAttributes()
-
+        show_variable_popup("hello !!!!")
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID
         self.liveConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
@@ -538,10 +540,6 @@ class IntelliGeo:
         interval = 300
         self.consoleTracker.start(interval)
 
-        # thread = QThread()
-        # consoleTracker.moveToThread(thread)
-        # thread.started.connect(lambda: consoleTracker.start(300))
-
     def comparePythonConsoleOutput(self):
         consoleWidget = iface.mainWindow().findChild(QDockWidget, "PythonConsole")
         if not consoleWidget or not consoleWidget.isVisible():
@@ -615,3 +613,45 @@ class IntelliGeo:
         dialog.show()
 
         return None
+
+    def activateToolboxEditor(self, code, run):
+        return
+        # @ Zehao Lu
+        # shit code
+        # remember to fix later
+        for action in iface.mainWindow().findChildren(QAction):
+            if action.text() == "Processing Toolbox":  # Match by the button text
+                action.trigger()
+        widgets = QApplication.instance().allWidgets()
+
+        # Look for the "Processing Toolbox" widget
+        for widget in widgets:
+            if (type(widget).__name__ == "ProcessingToolbox" and
+                    widget.windowTitle() == "Processing Toolbox"):
+                # Get all child widgets of the Processing Toolbox
+                childWidgets = widget.findChildren(QWidget)
+
+                # Loop through each child and look for the specific QToolButton
+                for child in childWidgets:
+                    if (isinstance(child, QToolButton) and
+                            child.objectName() == "provideraction_script"):
+                        # Simulate a click on the button
+                        child.click()  # Trigger the click event
+                        menu = child.menu()
+
+                        downEvent = QKeyEvent(QKeyEvent.KeyPress, Qt.Key_Down, Qt.NoModifier)
+                        QApplication.postEvent(menu, downEvent)
+
+                        # Simulate pressing "Enter" key
+                        enterEvent = QKeyEvent(QKeyEvent.KeyPress, Qt.Key_Return, Qt.NoModifier)
+                        QApplication.postEvent(menu, enterEvent)
+
+                        topLevelWidgets = QApplication.topLevelWidgets()
+                        for topLevelChildwidget in topLevelWidgets:
+                            if (isinstance(topLevelChildwidget, QDialog) and
+                                topLevelChildwidget.windowTitle().startswith(
+                                    "Untitled Script - Processing Script Editor")):
+                                editor = topLevelChildwidget.findChild(QTextEdit)
+                                editor.setPlainText("hello")
+
+

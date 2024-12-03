@@ -53,16 +53,16 @@ Dependencies:
 
 import os
 from datetime import datetime
-
+    
 from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QPoint
 
 from qgis.PyQt.QtCore import QEvent, Qt
 from qgis.PyQt.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QPushButton, QSizePolicy, QSpacerItem,
-                                 QScrollArea, QWidget, QPlainTextEdit)
+                                 QScrollArea, QWidget, QPlainTextEdit, QTextEdit)
 from qgis.PyQt.QtGui import QFont
 from .conversation import Conversation
-from .utils import handleNoneConversation, unpack, formatDescription, show_variable_popup
+from .utils import handleNoneConversation, pack, unpack, formatDescription, show_variable_popup, createMarkdown
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'intelli_geo_dockwidget_base.ui'))
@@ -95,12 +95,14 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.ptMessage.installEventFilter(self)
         self.ptSearchConversationCard.installEventFilter(self)
 
-        # TODO: to be removed in version v0.0.2
+        # TODO: to be removed in version v0.0.3
         for index in reversed(range(self.twTabs.count())):
             tab = self.twTabs.widget(index)
             if tab.objectName() in ["tbContext", "tabModels"]:
                 self.twTabs.removeTab(index)
         self.rbtCode.setChecked(True)
+
+        self.ptMessage.setFixedHeight(64)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -229,15 +231,85 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """
         Update chat log under "Messages" tab.
         """
+        # TODO: separators between messages
+        # TODO: on chat interface
+        currentHtml = ""
         # get updated log
-        log = conversation.fetch()
-        self.txHistory.setPlainText(log)
+        interactionHistory = conversation.fetch()
+        for interaction in interactionHistory:
+            messageDict = pack(interaction, "interaction")
+            if messageDict["typeMessage"] == "input":
+                # newMessage = f"""<div class="message message-user">
+                #     <div class="message-header">
+                #         <span class="user" "style="color: blue;">User</span>
+                #         <span class="timestamp">{messageDict["requestTime"]}</span>
+                #     </div>
+                #     <div class="message-content" style="color: #E5E3D4; background-color: #85A98F">
+                #         {mistune.create_markdown()(messageDict["requestText"])}
+                #     </div>
+                # </div>
+                # <!-- New messages will be inserted here -->
+                #             """
+                # currentHtml = currentHtml.replace(
+                #     '<!-- New messages will be inserted here -->',
+                #     newMessage
+                # )
+                newMessage = f"""
+                                <div style="
+                                  margin: 0;
+                                  padding: 0;
+                                  line-height: 1;
+                                  color: #89A8B2;
+                                  background-color: #E9EFEC;">
+                                  User {messageDict["requestTime"]}
+                                </div>
+                                <div style="
+                                  margin: 0;
+                                  padding: 0;
+                                  line-height: 1;
+                                  color: #1C325B;
+                                  background-color: #E9EFEC;">
+                                  {messageDict["requestText"]}
+                                </div>
+                                <div>
+                                  <br>
+                                </div>
+                            """
+                currentHtml += newMessage
+
+            if messageDict["typeMessage"] == "return":
+                newMessage = f"""
+                                <div style="
+                                  margin: 0;
+                                  padding: 0;
+                                  line-height: 1;
+                                  color: #6A9C89;">
+                                  IntelliGeo {messageDict["responseTime"]}
+                                </div>
+                                <div style="
+                                  margin: 0;
+                                  padding: 0;
+                                  line-height: 1;
+                                  color: #16423C;">
+                                  {createMarkdown(messageDict["responseText"])}
+                                </div>
+                                <div>
+                                  <br>
+                                </div>
+                            """
+                currentHtml += newMessage
+        # update txHistory
+        self.txHistory.setHtml(currentHtml)
 
         # set text browser read only
         self.txHistory.setReadOnly(True)
 
         # always show the bottom of streaming conversation
         self.txHistory.verticalScrollBar().setValue(self.txHistory.verticalScrollBar().maximum())
+
+        # frames = self.txHistory.page().mainFrame().childFrames()
+        # show_variable_popup(self.txHistory.page().mainFrame().toHtml())
+        # show_variable_popup(self.txHistory.page().mainFrame().scrollBarMaximum(Qt.Vertical))
 
     def disableAllButtons(self):
         """

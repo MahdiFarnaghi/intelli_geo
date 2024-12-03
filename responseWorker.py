@@ -1,9 +1,9 @@
 from qgis.PyQt.QtCore import QRunnable, pyqtSignal, QObject
-
+from .utils import show_variable_popup
 
 class WorkerSignals(QObject):
     finished = pyqtSignal(object, object)  # Signal to emit when the task is finished
-
+    error = pyqtSignal()  # Signal to emit when error occurs
 
 class ResponseWorker(QRunnable):
     def __init__(self, processor, userInput, responseType):
@@ -14,12 +14,16 @@ class ResponseWorker(QRunnable):
         self.signals = WorkerSignals()
 
     def run(self):
-        # Execute the long-running task
-        self.processor.dataloader.connect()
-        response, workflow = self.processor.response(self.userInput, self.responseType)
-        # Emit the finished signal with the response and workflow
-        self.signals.finished.emit(response, workflow)
-        self.processor.dataloader.close()
+        try:
+            # Execute the long-running task
+            self.processor.dataloader.connect()
+            response, workflow = self.processor.response(self.userInput, self.responseType)
+            # Emit the finished signal with the response and workflow
+            self.signals.finished.emit(response, workflow)
+            self.processor.dataloader.close()
+        except Exception as e:
+            show_variable_popup(e)
+            self.signals.error.emit()
 
 
 class ReflectWorker(QRunnable):
