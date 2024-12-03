@@ -10,7 +10,7 @@ class WorkflowManager:
             os.makedirs(self.modelPath, exist_ok=True)
 
     def saveWorkflow(self, response, workflowType, conversationTitle, modelCount):
-        if workflowType not in ["withModel", "withCode"]:
+        if workflowType not in ["withModel", "withCode", "withToolbox"]:
             raise ValueError(f"workflowType should be either 'withModel' or 'withCode', got '{str(workflowType)}'")
 
         if workflowType == "withModel":

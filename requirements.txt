@@ -8,5 +8,3 @@ requests >= 2.31.0
 psutil~=6.0.0
 
 beautifulsoup4>=4.0.0
-
-mistune>=3.0.0

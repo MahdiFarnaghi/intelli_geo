@@ -369,8 +369,24 @@ def captchaPopup(captcha_dict):
     return None
 
 
+def createMarkdown(markdownText):
+    # Regular expression to match Markdown code blocks
+    codeBlockPattern = r"```(\w+)\n(.*?)```"
+
+    # Function to replace Markdown code block with HTML code block
+    def replacer(match):
+        language = match.group(1)  # Language (e.g., 'python')
+        code = match.group(2)  # Code content
+        # Convert to HTML
+        return f'<pre><code class="language-{language}">{code}</code></pre>'
+
+    # Use re.sub with the replacer function
+    htmlText = re.sub(codeBlockPattern, replacer, markdownText, flags=re.DOTALL)
+    return htmlText
+
 
 def show_variable_popup(variable):
+    return
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists

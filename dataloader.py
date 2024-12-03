@@ -89,9 +89,9 @@ class Dataloader:
         """
         # Full dict of llm names and providers. Will be used in `.getLLMInfo()`
         self.llmFullDict = dict()
+        self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo"]
         self.llmFullDict["Cohere"] = ["command-r-plus", "command-r", "command", "command-nightly",
                                       "command-light", "command-light-nightly"]
-        self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo"]
         self.llmFullDict["default"] = ["default"]
 
         self.llmEndpointDict = dict()

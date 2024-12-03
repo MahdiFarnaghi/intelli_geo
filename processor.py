@@ -106,10 +106,12 @@ class Processor(QObject):
             if responseType == "Visual mode":
                 modelProducerResponse = self.modelProducer(userInput)
                 return modelProducerResponse, "withModel"
-            else:
-
+            elif responseType == "Code":
                 codeProducerResponse, interactionID = self.codeProducer(userInput)
                 return codeProducerResponse, "withCode"
+            else:
+                codeProducerResponse, interactionID = self.toolBoxProducer(userInput)
+                return codeProducerResponse, "withToolbox"
 
         else:
             confirmChain = self.confirmChain()
@@ -228,6 +230,76 @@ class Processor(QObject):
             toolOutput = selectedTool.invoke(toolcall["args"])
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
+        contextText = "-------------\n".join([message.content for message in messageList])
+        show_variable_popup(contextText)
+        # langchain inference
+        codeProducerChain = llmWithTools | self.outputParser
+        codeReturn = codeProducerChain.invoke(messageList)
+        responseTime = getCurrentTimeStamp()
+
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
+                          userInput, contextText, requestTime, "return",
+                          codeReturn, responseTime, "withCode", ""]
+        interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
+        self.latestInteractionID = interactionID
+
+        return codeReturn, interactionID
+
+    def toolBoxProducer(self, userInput: str) -> tuple[str, str]:
+        requestTime = getCurrentTimeStamp()
+        codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
+        template = """
+                 Instructions:
+                 
+                 This LLM is a QGIS plugin named IntelliGEO.
+                 This LLM is a Python expert with a deep understanding of PyQGIS. This LLM is specialized in generating PyQGIS code scripts based on user descriptions.
+                 The user will provide specific requirements for a GIS task they need to accomplish, and goal of this LLM is to generate PyQGIS code for a custom algorithm to be added to the QGIS Processing Toolbox. Ensure to generate code for QGIS toolbox instead of scripts.
+                 Generate the code base on these documents and relevant examples: {doc}{example}
+                 
+                 Inputs:
+                 
+                 {input}
+                 
+                 Outputs:
+                 
+                 PyQGIS script:
+                 ```python
+                 # Insert your generated python code here base on the user description.
+                 ```
+                 """
+
+        # get documentation
+        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=2)[0]
+        docStr = ""
+        for doc in retrievedDoc:
+            docStr += "\n\n" + doc
+
+        # get few-shot examples
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Script")[0]
+        exampleStr = ""
+
+        for example in retrievedExample:
+            exampleStr += "\n\n" + example
+
+        humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
+        messageList = [humanMessage]
+
+        show_variable_popup(messageList)
+
+        tools = [readEnvironment]
+        toolDict = {"readenvironment": readEnvironment}
+        llmWithTools = self.llm.bind_tools(tools)
+        llmMessage = llmWithTools.invoke(messageList)
+        messageList.append(llmMessage)
+
+        for toolcall in llmMessage.tool_calls:
+            selectedTool = toolDict[toolcall["name"].lower()]
+            toolOutput = selectedTool.invoke(toolcall["args"])
+            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+
         contextText = "-------------".join([message.content for message in messageList])
         show_variable_popup(contextText)
         # langchain inference
@@ -282,6 +354,7 @@ class Processor(QObject):
                                                           response,
                                                           workflow)
         )
+        worker.signals.error.connect(self.errorHandling())
         self.threadpool.start(worker)
 
     def handleReflect(self, logMessage, responseType, response, workflow):
@@ -319,6 +392,7 @@ class Processor(QObject):
                      2. What are the differenes between the generated code and the executed code?
                      3. Are the changes needed to set parameters in the code?
                      4. Does the error message relates to the differences between generated code and executed code?
+                     5. Does the error message suggests there is an import error?
                      
                      As output produce a brief description of a solution, but do not include answers to the questions, and only if needed generate an edited version of the code to implement the proposed solution.
                      """
@@ -350,10 +424,13 @@ class Processor(QObject):
             # Define error file path
             documentsPath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo")
 
-            os.makedirs(documentsPath, exist_ok=True) # Ensure the directory exists
+            os.makedirs(documentsPath, exist_ok=True)  # Ensure the directory exists
             errorFilePath = os.path.join(documentsPath, "error_log.txt")  # Define the error file path
 
             # Write error message to file
             with open(errorFilePath, "w") as error_file:
                 error_message = f"An error occurred at reflection:\n{str(e)}"
                 error_file.write(error_message)
+
+    def errorHandling(self):
+        pass
