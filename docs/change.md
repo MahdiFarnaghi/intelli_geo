@@ -1,5 +1,16 @@
 # Changelog
 
+## IntelliGeo v0.0.3 - Third Release
+
+### New Features
+
+- **Enhanced Interface**: IntelliGeo now features an improved and more visually appealing chat interface.
+- **Toolbox Code Generation**: IntelliGeo now supports generating toolbox codes, making it easier to streamline your development process.
+
+### Next Plans
+
+- **Memory Support**: IntelliGeo will include short-term memory capabilities in the next version, allowing you to enhance or fix generated code more effectively.
+
 
 ## IntelliGeo v0.0.2 - Second Release
 
