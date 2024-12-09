@@ -385,8 +385,57 @@ def createMarkdown(markdownText):
     return htmlText
 
 
+def showErrorMessage(variable):
+    app = QApplication.instance()  # Get the existing QApplication instance
+    if not app:
+        app = QApplication([])  # Create a new instance if no instance exists
+
+    # Get the name of the variable from the caller's local variables
+    frame = inspect.currentframe().f_back
+    variableName = None
+    for name, val in frame.f_locals.items():
+        if val is variable:
+            variableName = name
+            break
+
+    if variableName is None:
+        variableName = 'Unknown'
+
+    # Create the dialog
+    dialog = QDialog()
+    dialog.setWindowTitle('String and Variable Name')
+
+    # Create the scroll area
+    scrollArea = QScrollArea()
+    scrollArea.setWidgetResizable(True)
+
+    # Create a widget to hold the contents
+    contentWidget = QWidget()
+    contentLayout = QVBoxLayout(contentWidget)
+
+    # Add content to the layout
+    message = f'Variable Name: {variableName}\nString Value: {variable}'
+    label = QLabel(message)
+    contentLayout.addWidget(label)
+
+    # Set the content widget to the scroll area
+    scrollArea.setWidget(contentWidget)
+
+    # Create the main layout and add the scroll area to it
+    mainLayout = QVBoxLayout(dialog)
+    mainLayout.addWidget(scrollArea)
+
+    # Set the dialog layout
+    dialog.setLayout(mainLayout)
+
+    # Show the dialog
+    dialog.exec_()
+
+    if not QApplication.instance():
+        app.exec_()  # Start the application loop if not already running
+
+
 def show_variable_popup(variable):
-    return
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists

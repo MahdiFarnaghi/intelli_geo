@@ -23,6 +23,7 @@ from .dataloader import Dataloader
 class Processor(QObject):
     responseReady = pyqtSignal(str, str, str, str)
     reflectionReady = pyqtSignal(str, str, str, str)
+    errorSignal = pyqtSignal(str)
 
     def __init__(self, llmID, conversationID, retrievalVectorbase, dataloader):
         super().__init__()
@@ -43,33 +44,6 @@ class Processor(QObject):
         self.version = getVersion()
 
         self.threadpool = QThreadPool()  # Create a thread pool
-
-    # def loadPrompt(self, promptPath):
-    #     """
-    #     Load pre-defined prompt
-    #     """
-    #     with open(promptPath, 'r') as file:
-    #         promptDict = json.load(file)
-    #     # resource = QResource(self.promptPath)
-    #     # data = resource.data()
-    #     # if not resource.isValid():
-    #     #     show_variable_popup(resource)
-    #     # show_variable_popup(data)
-    #     #
-    #     # jsonStr = data.data().decode('utf-8')
-    #     #
-    #     # promptDict = json.loads(jsonStr)
-    #
-    #     return promptDict
-
-    # def _promptMaker(self, promptDict):
-    #     template = ''
-    #     for key, value in promptDict.items():
-    #         template += key + "\n\n" + value + "\n\n"
-    #
-    #     promptTemplate = ChatPromptTemplate.from_template(template)
-    #
-    #     return promptTemplate
 
     def classifier(self, userInput: str) -> str:
         """
@@ -327,11 +301,13 @@ class Processor(QObject):
     #     return response, workflow
 
     def asyncResponse(self, userInput, responseType):
+        show_variable_popup("asyncResponse")
         worker = ResponseWorker(self, userInput, responseType)
         # Connect the signal to handle the response
         worker.signals.finished.connect(
             lambda response, workflow: self.handleResponse(userInput, responseType, response, workflow)
         )
+        worker.signals.error.connect(self.errorHandling)
         self.threadpool.start(worker)  # Start the worker in the thread pool
 
     def handleResponse(self, userInput, responseType, response, workflow):
@@ -354,7 +330,7 @@ class Processor(QObject):
                                                           response,
                                                           workflow)
         )
-        worker.signals.error.connect(self.errorHandling())
+        worker.signals.error.connect(self.errorHandling)
         self.threadpool.start(worker)
 
     def handleReflect(self, logMessage, responseType, response, workflow):
@@ -432,5 +408,7 @@ class Processor(QObject):
                 error_message = f"An error occurred at reflection:\n{str(e)}"
                 error_file.write(error_message)
 
-    def errorHandling(self):
-        pass
+    def errorHandling(self, error):
+        show_variable_popup("processer error")
+        self.errorSignal.emit(error)
+

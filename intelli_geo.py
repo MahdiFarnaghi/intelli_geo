@@ -50,7 +50,6 @@ from .resources import *
 from .intelli_geo_dockwidget import IntelliGeoDockWidget
 import os.path
 import re
-from qasync import QEventLoop
 
 # https://github.com/qgis/QGIS/tree/master/python/console
 # import 'console' folder in QGIS python package
@@ -64,7 +63,8 @@ from .digNewEditConversation import NewEditConversationDialog
 # Import plugin utilities
 from .dataloader import Dataloader
 from .conversation import Conversation
-from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion
+from .utils import (generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion,
+                    showErrorMessage)
 from .retrievalVectorbase import RetrievalVectorbase
 from .debugDialog import DebugDialog
 
@@ -329,6 +329,7 @@ class IntelliGeo:
 
         if self.liveConversation is not None:
             self.liveConversation.llmResponse.connect(self.onNewResponseReceived)
+            self.liveConversation.llmInterrupted.connect(self.onNewResponseNotReceived)
             self.liveConversation.updateUserPrompt(message, responseType)
             self.dockwidget.disableAllButtons()
             self.dockwidget.disableAllTextEdit()
@@ -338,6 +339,7 @@ class IntelliGeo:
             self.dockwidget.enableAllButtons()
             self.dockwidget.enableAllTextEdit()
             self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
+            self.liveConversation.llmInterrupted.disconnect(self.onNewResponseNotReceived)
             # Python Console Interface: Load python code from response
             if workflow == "withCode":
                 code = extractCode(response)
@@ -362,6 +364,15 @@ class IntelliGeo:
 
             # Dataloader: Update meta-information
             self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
+
+    def onNewResponseNotReceived(self, errorMessage):
+        self.dockwidget.enableAllButtons()
+        self.dockwidget.enableAllTextEdit()
+        self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
+        self.liveConversation.llmInterrupted.disconnect(self.onNewResponseNotReceived)
+
+        # TODO: popup window
+        showErrorMessage(errorMessage)
 
     def onConversationNewed(self):
         if self.editdialog is None or not self.editdialog.isVisible():

@@ -15,6 +15,7 @@ from .workflowManager import WorkflowManager
 class Conversation(QObject):
     llmResponse = pyqtSignal(str, str, str)
     llmReflection = pyqtSignal(str, str, str)
+    llmInterrupted = pyqtSignal(str)
 
     def __init__(self, ID: str, dataloader, retrivalDatabase):
         """
@@ -67,6 +68,7 @@ class Conversation(QObject):
     def updateLLMResponse(self, message, responseType):
         self.LLMFinished = False
         self.Processor.responseReady.connect(self.onResponseReady)
+        self.Processor.errorSignal.connect(self.onResponseInterrupted)
         self.Processor.asyncResponse(message, responseType)
 
     def onResponseReady(self, message, responseType, response, workflow):
@@ -83,6 +85,12 @@ class Conversation(QObject):
         self.modified = getCurrentTimeStamp()
         self.llmResponse.emit(response, workflow, modelPath)
         # return response, workflow, modelPath
+
+    def onResponseInterrupted(self, error):
+        self.Processor.responseReady.disconnect(self.onResponseReady)
+        self.Processor.errorSignal.disconnect(self.onResponseInterrupted)
+        self.llmInterrupted.emit(error)
+        self.LLMFinished = True
 
     def fetch(self) -> list[tuple]:
         """
