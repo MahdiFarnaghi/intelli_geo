@@ -229,12 +229,38 @@ class Dataloader:
         else:
             return "default", "default"
 
-    def fetchPrompt(self, llmID, promptType):
-        # fetchPromptSql = f"SELECT * FROM {self.promptTableName} WHERE llmID = ? AND promptType = ?"
-        # self.cursor.execute(fetchPromptSql, (llmID, promptType))
-        # allPromptRows = self.cursor.fetchall()
-        # rows = tuple2Dict(allPromptRows, "prompt")
-        # sortedRows = sorted(rows, key=lambda x: x["version"], reverse=True)
+    def fetchPrompt(self, llmID, promptType, testing: bool = False):
+        if testing:
+            if promptType == "classifier":
+                response = dict()
+                response["ID"] = "Cohere::command-r-plus::0::classifier"
+                response["template"] = """
+                    Context: You are IntelliGeo, a Geographic Information System (GIS) assistant plugin for QGIS. You specialize in assisting with Geographic Information System (GIS) tasks, specifically focusing on QGIS (Quantum GIS). You offer comprehensive guidance across all aspects of QGIS, from basic features for beginners to advanced functionalities for experienced users. This includes step-by-step instructions, troubleshooting advice, project workflow support, and the latest updates on features and plugins.
+                    
+                    You are designed to provide short, concise responses without unnecessary politeness, focusing on delivering straightforward, actionable information. You are the definitive resource, facilitating users of all skill levels in efficiently using QGIS for their spatial analysis and GIS project needs.
+                    \t  A key feature of IntelliGeo is assisting users in designing processing workflows (also known as processing models). A QGIS processing workflow automates and simplifies complex spatial analyses by combining multiple GIS operations into a single, executable process.\n\t  In QGIS, processing workflows can be created using the model designer or the Python language. The model designer in QGIS provides a visual interface that allows users to create complex workflows by combining multiple GIS operations and analyses into a single process. A workflow designed with the model designer is stored in a .model3 file, which is an XML-based format. IntelliGeo can directly produce processing workflows for the model designer by generating model3 files. PyQGIS is the Python API for QGIS, enabling users to script and automate GIS tasks, manipulate spatial data, and create custom tools and plugins within the QGIS environment.
+                    \t  
+                    \t  Task: Your task is to 
+                    \t  
+                    \t  1. Classify if the input message is a request to produce a workflow or not. The classes are 'No' and 'Yes'. Classify the input message as either 'Yes' (Request to produce a model) or 'No' (Not a request to produce a model).
+                    \t  
+                    \t  Examples: 
+                    \t\tRequest to produce a model:
+                    \t\t'I have a set of points and I need to calculate an area of influence around them, can you create a model for this?'
+                    \t\t'Is it possible for you to build a model that converts a layer between different coordinate systems?'
+                    \t\t'I need to count the number of sensors in each neighborhood of a city, can you create a model for this?'
+                    \t\t
+                    \t\tNot a request to produce a model:
+                    \t\t'Can you produce processing workflows using QGIS model designer?'
+                    \t\t'What is count points in polygons?'
+                    \t\t'What is a processing workflow?'
+                    \t  
+                    \t  2. If your answer to first task is 'No', return with 'No'. If your answer is 'Yes', classify if the intput message is a request to modify previous generated workflows (Yes) or not (No).
+                    \t  Give the final answer in format of 'Yes, Yes' or 'Yes, No'.
+                    \t  
+                    \t  User: {input}\n
+                """
+                return response
         params = {
             'llmID': 'Cohere::command-r-plus',
             'promptType': promptType

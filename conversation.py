@@ -7,7 +7,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_cohere.embeddings import CohereEmbeddings
 from langchain_openai import ChatOpenAI
 
-from .utils import getCurrentTimeStamp, getVersion, pack, show_variable_popup
+from .utils import getCurrentTimeStamp, getVersion, pack, show_variable_popup, extractCode
 from .processor import Processor
 from .workflowManager import WorkflowManager
 
@@ -39,6 +39,7 @@ class Conversation(QObject):
         self.workflowManager = WorkflowManager()
 
         self.modified = getCurrentTimeStamp()
+        self.codeList = []
 
     def __getattr__(self, name):
         # available variables: "ID", "llmID", "title", "description", "created", "modified", "messageCount",
@@ -99,6 +100,12 @@ class Conversation(QObject):
         log = ""
         interactionHistory = self.dataloader.selectInteraction(self.ID)
 
+        # when fetching also get the models
+        for interaction in interactionHistory:
+            interactionDict = pack(interaction, "interaction")
+            if interactionDict["workflow"] in ["withModel", "withCode", "withToolbox"]:
+                self.codeList.append(extractCode(interactionDict["responseText"]))
+
         return interactionHistory
 
     def fetchTail(self):
@@ -139,7 +146,6 @@ class Conversation(QObject):
             self.Processor.asyncReflect(logMessage, executedCode, responseType)
 
     def onReflectionReady(self, logMessage, responseType, response, workflow):
-        show_variable_popup("Conversation.onReflectionReady")
         self.LLMFinished = True
         if workflow != "empty":
             modelPath = self.workflowManager.saveWorkflow(response, workflow, self.title, self.workflowCount)

@@ -51,8 +51,10 @@ class Processor(QObject):
         Return "yes" or "no".
         """
         requestTime = getCurrentTimeStamp()
-        classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier")
+        classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier", testing=True)
         classifierPrompt = ChatPromptTemplate.from_template(classifierPromptRow["template"])
+
+        show_variable_popup(classifierPrompt)
 
         classifierChain = classifierPrompt | self.llm | self.outputParser
         decision = classifierChain.invoke({"input": userInput})
@@ -70,11 +72,35 @@ class Processor(QObject):
 
     def reactionRouter(self, userInput, responseType):
         decision = self.classifier(userInput)
+        show_variable_popup(decision)
 
-        if "no" in decision.lower():
-            generalChatResponse = self.generalChat(userInput)
+        if decision.lower() in ["no", "yes, yes", "yes, no"]:
+            if decision.lower() == "no":
+                generalChatResponse = self.generalChat(userInput)
 
-            return generalChatResponse, "empty"
+                return generalChatResponse, "empty"
+
+            elif decision.lower() == "yes, no":
+                if responseType == "Visual mode":
+                    modelProducerResponse = self.modelProducer(userInput)
+                    return modelProducerResponse, "withModel"
+                elif responseType == "Code":
+                    codeProducerResponse, interactionID = self.codeProducer(userInput)
+                    return codeProducerResponse, "withCode"
+                else:
+                    codeProducerResponse, interactionID = self.toolBoxProducer(userInput)
+                    return codeProducerResponse, "withToolbox"
+
+            else:
+                if responseType == "Visual mode":
+                    modelProducerResponse = self.modelRefine(userInput)
+                    return modelProducerResponse, "withModel"
+                elif responseType == "Code":
+                    codeProducerResponse, interactionID = self.codeRefine(userInput)
+                    return codeProducerResponse, "withCode"
+                else:
+                    codeProducerResponse, interactionID = self.toolBoxRefine(userInput)
+                    return codeProducerResponse, "withToolbox"
 
         elif "yes" in decision.lower():
             if responseType == "Visual mode":
@@ -95,6 +121,7 @@ class Processor(QObject):
 
         generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="generalChat")
         template = generalChatPromptRow["template"]
+        show_variable_popup(template)
         humanMessage = HumanMessage(template.format(input=userInput))
         messageList = [humanMessage]
 
@@ -118,6 +145,7 @@ class Processor(QObject):
             # langchain inference
             chatChain = llmWithTools | self.outputParser
             chatReturn = chatChain.invoke(messageList)
+        show_variable_popup(chatReturn)
         responseTime = getCurrentTimeStamp()
 
         # ["conversationID", "promptID",
@@ -205,7 +233,6 @@ class Processor(QObject):
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------\n".join([message.content for message in messageList])
-        show_variable_popup(contextText)
         # langchain inference
         codeProducerChain = llmWithTools | self.outputParser
         codeReturn = codeProducerChain.invoke(messageList)
@@ -275,7 +302,7 @@ class Processor(QObject):
             messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------".join([message.content for message in messageList])
-        show_variable_popup(contextText)
+
         # langchain inference
         codeProducerChain = llmWithTools | self.outputParser
         codeReturn = codeProducerChain.invoke(messageList)
@@ -301,7 +328,6 @@ class Processor(QObject):
     #     return response, workflow
 
     def asyncResponse(self, userInput, responseType):
-        show_variable_popup("asyncResponse")
         worker = ResponseWorker(self, userInput, responseType)
         # Connect the signal to handle the response
         worker.signals.finished.connect(
@@ -384,7 +410,6 @@ class Processor(QObject):
 
             codeDebuggerChain = self.llm | self.outputParser
             codeReturn = codeDebuggerChain.invoke(prompt)
-            show_variable_popup("reflection finished")
             responseTime = getCurrentTimeStamp()
             interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
                               userInput, prompt, requestTime, "return",
@@ -408,7 +433,98 @@ class Processor(QObject):
                 error_message = f"An error occurred at reflection:\n{str(e)}"
                 error_file.write(error_message)
 
+    def modelRefine(self, userInput: str):
+        return ""
+
+    def codeRefine(self, userInput: str) -> tuple[str, str]:
+        requestTime = getCurrentTimeStamp()
+        # codeRefinerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeRefiner")
+        # template = codeRefinerPromptRow["template"]
+
+        template = """
+        This LLM is a QGIS plugin named IntelliGEO.
+
+        This LLM, IntelliGEO, is a QGIS plugin specializing in PyQGIS. It generates or refines PyQGIS scripts based on user requirements or feedback. Users can request new scripts or modifications to existing ones, and the LLM ensures the code is efficient, accurate, and well-documented with comments explaining each section. When updating code, it incorporates user feedback while preserving functionality and structure.
+        
+        Generate the code based on these documents and relevant examples: {doc}{example}
+        
+        Context:
+        
+        The LLM do not have information about the opened QGIS project, make sure to use the readEnvironment tool to get the information of the current opened project.
+        
+        Previous Conversation
+        
+        User's Request:
+        {previousRequest}
+        
+        LLM's Answer:
+        {previousResponse}
+        
+        New Input:
+        {input}
+
+        Outputs:
+        
+        PyQGIS script:
+        ```python
+        # Insert your generated python code here base on the user description.
+        ```
+        """
+
+        # get documentation
+        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=1)[0]
+        docStr = ""
+        for doc in retrievedDoc:
+            docStr += "\n\n" + doc
+
+        # get few-shot examples
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Script")[0]
+        exampleStr = ""
+        """
+        for example in retrievedExample:
+            exampleStr += "\n\n" + example
+        """
+        # get last interaction
+        latestInteractionRow = self.dataloader.selectLatestInteraction(self.conversationID,
+                                                                       self.latestInteractionID)
+        latestInteraction = pack(latestInteractionRow, "interaction")
+
+        # get the AI response
+        previousRequest, AIResponse = latestInteraction["requestText"], latestInteraction["responseText"]
+        show_variable_popup(previousRequest)
+        humanMessage = HumanMessage(template.format(input=userInput, previousRequest=previousRequest,
+                                                    previousResponse=AIResponse, doc=docStr, example=exampleStr))
+        show_variable_popup(humanMessage)
+        messageList = [humanMessage]
+
+        tools = [readEnvironment]
+        toolDict = {"readenvironment": readEnvironment}
+        llmWithTools = self.llm.bind_tools(tools)
+        llmMessage = llmWithTools.invoke(messageList)
+        messageList.append(llmMessage)
+
+        for toolcall in llmMessage.tool_calls:
+            selectedTool = toolDict[toolcall["name"].lower()]
+            toolOutput = selectedTool.invoke(toolcall["args"])
+            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+
+        contextText = "-------------\n".join([message.content for message in messageList])
+        # langchain inference
+        codeProducerChain = llmWithTools | self.outputParser
+        codeReturn = codeProducerChain.invoke(messageList)
+        responseTime = getCurrentTimeStamp()
+
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, "OpenAI::gpt-4::0::codeProducer",
+                          userInput, contextText, requestTime, "return",
+                          codeReturn, responseTime, "withCode", ""]
+        interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
+        self.latestInteractionID = interactionID
+
+        return codeReturn, interactionID
+
     def errorHandling(self, error):
-        show_variable_popup("processer error")
         self.errorSignal.emit(error)
 

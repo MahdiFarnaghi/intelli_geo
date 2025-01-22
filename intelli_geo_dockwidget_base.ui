@@ -175,8 +175,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>98</width>
-                <height>28</height>
+                <width>467</width>
+                <height>766</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -214,10 +214,10 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
-              <widget class="QLineEdit" name="txtSearchMessage"/>
+              <widget class="QLineEdit" name="txSearchMessage"/>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_7">
+              <widget class="QPushButton" name="pbSearchInteraction">
                <property name="text">
                 <string>Search</string>
                </property>

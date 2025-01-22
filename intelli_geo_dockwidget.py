@@ -57,11 +57,12 @@ from datetime import datetime
 from qgis.PyQt import QtGui, QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, QPoint
 
-from qgis.PyQt.QtCore import QEvent, Qt
+from qgis.PyQt.QtCore import QEvent, Qt, QModelIndex
 from qgis.PyQt.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QPushButton, QSizePolicy, QSpacerItem,
-                                 QScrollArea, QWidget, QPlainTextEdit, QTextEdit)
-from qgis.PyQt.QtGui import QFont
+                                 QScrollArea, QWidget, QPlainTextEdit, QTextEdit, QListView)
+from qgis.PyQt.QtGui import QFont, QTextCursor
 from .conversation import Conversation
+from .hoverComboBox import HoverComboBox
 from .utils import handleNoneConversation, pack, unpack, formatDescription, show_variable_popup, createMarkdown
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -74,6 +75,8 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     enterPressed = pyqtSignal(str)
     searchPressed = pyqtSignal(str)
     switchClearMode = pyqtSignal(str)
+    modelClicked = pyqtSignal(int)
+    searchInteractionPressed = pyqtSignal()
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -94,6 +97,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # create listener for plainTextEditor 'ptMessage'
         self.ptMessage.installEventFilter(self)
         self.ptSearchConversationCard.installEventFilter(self)
+        self.txSearchMessage.installEventFilter(self)
 
         # TODO: to be removed in version v0.0.3
         for index in reversed(range(self.twTabs.count())):
@@ -103,6 +107,15 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.rbtCode.setChecked(True)
 
         self.ptMessage.setFixedHeight(64)
+        self.itemCounter = 0
+        self.cbModel = HoverComboBox()
+        self.horizontalLayout_4.addWidget(self.cbModel)
+
+        self.cbModel.activated.connect(self.onModelClicked)
+
+        self.searchInteractionIndex = -1
+        self.searchInteractionPressed.connect(self.onSearchInteraction)
+        self.pbSearchInteraction.clicked.connect(self.onSearchInteraction)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -234,6 +247,8 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # TODO: separators between messages
         # TODO: on chat interface
         currentHtml = ""
+        self.itemCounter = 0
+        self.cbModel.clear()
         # get updated log
         interactionHistory = conversation.fetch()
         for interaction in interactionHistory:
@@ -278,12 +293,20 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 currentHtml += newMessage
 
             if messageDict["typeMessage"] == "return":
+                if messageDict["workflow"] in ["withModel", "withCode", "withToolbox"]:
+                    modelTag = f"Model_{self.itemCounter}"
+                    modelTagID = f"id=\"Model_{self.itemCounter}\""
+                    self.onNewModelGenerated(modelTag)
+                    self.itemCounter += 1
+                else:
+                    modelTagID = ""
                 newMessage = f"""
                                 <div style="
                                   margin: 0;
                                   padding: 0;
                                   line-height: 1;
-                                  color: #6A9C89;">
+                                  color: #6A9C89;"
+                                  {modelTagID}>
                                   IntelliGeo {messageDict["responseTime"]}
                                 </div>
                                 <div style="
@@ -298,6 +321,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                 </div>
                             """
                 currentHtml += newMessage
+
         # update txHistory
         self.txHistory.setHtml(currentHtml)
 
@@ -306,10 +330,6 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         # always show the bottom of streaming conversation
         self.txHistory.verticalScrollBar().setValue(self.txHistory.verticalScrollBar().maximum())
-
-        # frames = self.txHistory.page().mainFrame().childFrames()
-        # show_variable_popup(self.txHistory.page().mainFrame().toHtml())
-        # show_variable_popup(self.txHistory.page().mainFrame().scrollBarMaximum(Qt.Vertical))
 
     def disableAllButtons(self):
         """
@@ -357,12 +377,108 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.enterPressed.emit(self.ptMessage.toPlainText())
                     return True
 
-            elif QTObject is self.ptSearchConversationCard and self.ptSearchConversationCard.hasFocus():
+            if QTObject is self.ptSearchConversationCard and self.ptSearchConversationCard.hasFocus():
                 if event.key() == Qt.Key_Return:
                     self.searchPressed.emit(self.ptSearchConversationCard.toPlainText())
                     return True
-                elif self.pbSearchConversationCard.text() == "Clear":
+                elif self.pbSearchConversationCard.text() == "Cancel":
                     self.switchClearMode.emit(self.ptSearchConversationCard.toPlainText())
 
+            if QTObject is self.txSearchMessage and self.txSearchMessage.hasFocus():
+                if event.key() == Qt.Key_Return:
+                    self.searchInteractionPressed.emit()
+                    return True
+                elif self.pbSearchInteraction.text() == "Cancel":
+                    if event.key() == Qt.Key_Up:
+                        self.searchPrevInteraction()
+                    elif event.key() == Qt.Key_Down:
+                        self.searchInteractionPressed.emit()
+                    else:
+                        self.deactiivateSearchInteraction()
+
         return super().eventFilter(QTObject, event)
+
+    def onNewModelGenerated(self, newModeltag):
+        # Define a new action for the new item
+        def newHoverAction(newModelTagArg):
+            self.txHistory.scrollToAnchor(newModelTagArg)
+
+        # Add the new item and connect its hover action
+        self.cbModel.add_item_with_action(newModeltag, newHoverAction)
+
+    def onModelClicked(self, index):
+        self.modelClicked.emit(index)
+
+    def onSearchInteraction(self):
+        searchText = self.txSearchMessage.text()
+        fullInteraction = self.txHistory.toPlainText().lower()
+
+        self.searchInteractionIndex += 1
+        self.searchInteractionIndex = fullInteraction.find(searchText, self.searchInteractionIndex)
+
+        if self.searchInteractionIndex == -1:
+            return
+
+        cursor = self.txHistory.textCursor()
+
+        # Set the cursor position to the start of the found text
+        cursor.setPosition(self.searchInteractionIndex)
+
+        # Move the cursor to select the found text
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, len(searchText))
+
+        # Apply the modified cursor back to the text edit
+        self.txHistory.setTextCursor(cursor)
+
+        if self.pbSearchInteraction.text() == "Search":
+            self.pbSearchInteraction.clicked.disconnect(self.onSearchInteraction)
+            self.pbSearchInteraction.setText("Cancel")
+            self.pbSearchInteraction.clicked.connect(self.deactiivateSearchInteraction)
+
+    def searchPrevInteraction(self):
+        searchText = self.txSearchMessage.text()
+        fullInteraction = self.txHistory.toPlainText().lower()
+
+        # self.searchInteractionIndex += 1
+        self.searchInteractionIndex = fullInteraction[:self.searchInteractionIndex].rfind(searchText)
+
+        if self.searchInteractionIndex == -1:
+            return
+
+        cursor = self.txHistory.textCursor()
+
+        # Set the cursor position to the start of the found text
+        cursor.setPosition(self.searchInteractionIndex)
+
+        # Move the cursor to select the found text
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, len(searchText))
+
+        # Apply the modified cursor back to the text edit
+        self.txHistory.setTextCursor(cursor)
+
+        if self.pbSearchInteraction.text() == "Search":
+            self.pbSearchInteraction.clicked.disconnect(self.onSearchInteraction)
+            self.pbSearchInteraction.setText("Cancel")
+            self.pbSearchInteraction.clicked.connect(self.deactiivateSearchInteraction)
+
+    def deactiivateSearchInteraction(self):
+        if self.pbSearchInteraction.text() == "Cancel":
+            self.pbSearchInteraction.clicked.connect(self.deactiivateSearchInteraction)
+            self.pbSearchInteraction.setText("Search")
+            self.pbSearchInteraction.clicked.connect(self.onSearchInteraction)
+
+            self.searchInteractionIndex = -1
+
+            cursor = self.txHistory.textCursor()
+            cursor.clearSelection()
+            self.txHistory.setTextCursor(cursor)
+
+            self.txHistory.verticalScrollBar().setValue(self.txHistory.verticalScrollBar().maximum())
+
+
+
+
+
+
+
 

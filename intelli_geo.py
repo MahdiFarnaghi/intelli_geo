@@ -307,6 +307,8 @@ class IntelliGeo:
             slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
             self.dockwidget.displayConversationCard(self.dataloader, slotsFunctions)
 
+            self.dockwidget.modelClicked.connect(self.onOpenWorkflow)
+
     def onNewMessageSend(self):
         message = self.dockwidget.ptMessage.toPlainText()
         if message == "":
@@ -406,7 +408,6 @@ class IntelliGeo:
                 self.dockwidget.addConversationCard(metaInfo, slotsFunctions)
 
     def onConversationLoad(self, conversationID):
-        show_variable_popup("hello !!!!")
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID
         self.liveConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
@@ -570,8 +571,6 @@ class IntelliGeo:
             if currentFullLogMessage.find(self.consoleText) == 0:
                 newLogText = currentFullLogMessage[len(self.consoleText):]
                 self.consoleText = currentFullLogMessage
-                show_variable_popup(newLogText)
-                show_variable_popup(newLogText.count('\n'))
                 if len(newLogText) == 0:
                     self.consoleTracker.stop()
                     return
@@ -603,7 +602,6 @@ class IntelliGeo:
             return
 
         code = extractCode(response)
-        show_variable_popup(code)
         self.consoleText = self.activateConsole(code, False)
         self.startConsoleTracker()
 
@@ -628,8 +626,7 @@ class IntelliGeo:
     def activateToolboxEditor(self, code, run):
         return
         # @ Zehao Lu
-        # shit code
-        # remember to fix later
+        # to be fixed later
         for action in iface.mainWindow().findChildren(QAction):
             if action.text() == "Processing Toolbox":  # Match by the button text
                 action.trigger()
@@ -664,5 +661,11 @@ class IntelliGeo:
                                     "Untitled Script - Processing Script Editor")):
                                 editor = topLevelChildwidget.findChild(QTextEdit)
                                 editor.setPlainText("hello")
+
+    def onOpenWorkflow(self, index):
+        show_variable_popup("onOpenWorkflow: " + str(index))
+        code = self.liveConversation.codeList[index]
+        self.activateConsole(code, False)
+
 
 
