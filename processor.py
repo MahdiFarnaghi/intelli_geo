@@ -13,6 +13,7 @@ from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
 from langchain_community.vectorstores import FAISS
 from langchain_cohere import ChatCohere
 from langchain_openai import ChatOpenAI
+from langchain_deepseek import ChatDeepSeek
 
 from .utils import show_variable_popup, getVersion, getCurrentTimeStamp, pack
 from .tools import readEnvironment
@@ -37,6 +38,8 @@ class Processor(QObject):
             self.llm = ChatOpenAI(model=self.llmName, openai_api_key=apiKey, temperature=0)
         elif self.llmProvider == "Cohere":
             self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
+        elif self.llmProvider == "DeepSeek":
+            self.llm = ChatDeepSeek(model=self.llmName, api_key=apiKey, temperature=0)
 
         self.conversationID = conversationID
         self.retrivalDatabase = retrievalVectorbase
