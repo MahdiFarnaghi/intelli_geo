@@ -105,3 +105,29 @@ Copy your Cohere API key and input it when starting a new conversation in Intell
 ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
 
 Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
+
+### DeepSeek Guide
+
+#### Step 1: Sign Up
+
+Sign up for deepseek at [DeepSeek Signup](https://platform.deepseek.com/sign_up). You can register using your email address or an existing Google account.
+
+#### Step 2: Access the Dashboard
+
+Once logged in, go to the API Keys section to manage your API keys.
+
+#### Step 3: Create an API Key
+
+To generate an API key, go to `API Keys`, then click `Create New API key`, optionally name it, and click 'Create API key' to generate your unique API key. Make sure to store the key securely.
+
+![Screenshot from 2025-02-12 11-11-01(1)](https://github.com/user-attachments/assets/f9aacb8a-f6de-4b99-8ed9-69c48583128b)
+
+The Deepseek API key works for all models, so you don't need to create multiple keys.
+
+#### Step 4: Use the API Key in IntelliGeo
+
+Copy your DeepSeek API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo's backend.
+
+![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+
+Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
