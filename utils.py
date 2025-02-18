@@ -385,6 +385,29 @@ def createMarkdown(markdownText):
     return htmlText
 
 
+def countTokens(text: str, modelName: str) -> int:
+    encoding = tiktoken.encoding_for_model(modelName)
+
+    return len(encoding.encode(text))
+
+
+def trimText2TokenLimit(template, docPlaceholder, document, limit, modelName):
+    encoding = tiktoken.encoding_for_model(modelName)
+
+    tokens = encoding.encode(text)
+
+    templateWithoutDoc = template.format(docPlaceholder="")
+    tokens_used = count_tokens(template_without_doc)
+    max_model_tokens = 4  # or your model's max token limit
+    allowed_doc_tokens = max_model_tokens - tokens_used
+
+    if len(tokens) > limit:
+        # Take only the first 'limit' tokens and decode back to text.
+        tokens = tokens[:limit]
+        return encoding.decode(tokens)
+    return text
+
+
 def showErrorMessage(variable):
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:

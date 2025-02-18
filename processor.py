@@ -54,7 +54,8 @@ class Processor(QObject):
         Return "yes" or "no".
         """
         requestTime = getCurrentTimeStamp()
-        classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier", testing=True)
+        classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier")
+        show_variable_popup(classifierPromptRow)
         classifierPrompt = ChatPromptTemplate.from_template(classifierPromptRow["template"])
 
         show_variable_popup(classifierPrompt)
@@ -254,29 +255,11 @@ class Processor(QObject):
 
     def toolBoxProducer(self, userInput: str) -> tuple[str, str]:
         requestTime = getCurrentTimeStamp()
-        codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
-        template = """
-                 Instructions:
-                 
-                 This LLM is a QGIS plugin named IntelliGEO.
-                 This LLM is a Python expert with a deep understanding of PyQGIS. This LLM is specialized in generating PyQGIS code scripts based on user descriptions.
-                 The user will provide specific requirements for a GIS task they need to accomplish, and goal of this LLM is to generate PyQGIS code for a custom algorithm to be added to the QGIS Processing Toolbox. Ensure to generate code for QGIS toolbox instead of scripts.
-                 Generate the code base on these documents and relevant examples: {doc}{example}
-                 
-                 Inputs:
-                 
-                 {input}
-                 
-                 Outputs:
-                 
-                 PyQGIS script:
-                 ```python
-                 # Insert your generated python code here base on the user description.
-                 ```
-                 """
+        toolBoxProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="toolBoxProducer")
+        template = toolBoxProducerPromptRow["template"]
 
         # get documentation
-        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=2)[0]
+        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=1)[0]
         docStr = ""
         for doc in retrievedDoc:
             docStr += "\n\n" + doc
@@ -314,7 +297,7 @@ class Processor(QObject):
         # ["conversationID", "promptID",
         #  "requestText", "contextText", "requestTime", "typeMessage",
         #  "responseText", "responseTime", "workflow", "executionLog"]
-        interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
+        interactionRow = [self.conversationID, toolBoxProducerPromptRow["ID"],
                           userInput, contextText, requestTime, "return",
                           codeReturn, responseTime, "withCode", ""]
         interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
@@ -380,6 +363,13 @@ class Processor(QObject):
             userInput = latestInteraction["requestText"]  # get the user Input
             AIResponse = latestInteraction["responseText"]  # get the AI response
 
+            reflectPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="reflect")
+            template = reflectPromptRow["template"]
+
+            humanMessage = HumanMessage(template.format(userInput=userInput, AIResponse=AIResponse,
+                                                        executedCode=executedCode, logMessage=logMessage))
+            show_variable_popup(humanMessage)
+            messageList = [humanMessage]
             prompt = f"""
                      Context:
                      
@@ -409,13 +399,13 @@ class Processor(QObject):
             #                AIMessage(content=AIResponse),
             #                HumanMessage(content=errorMessage)]
             #
-            # contextText = "-------------".join([message.content for message in messageList])
+            contextText = "-------------".join([message.content for message in messageList])
 
             codeDebuggerChain = self.llm | self.outputParser
-            codeReturn = codeDebuggerChain.invoke(prompt)
+            codeReturn = codeDebuggerChain.invoke(messageList)
             responseTime = getCurrentTimeStamp()
             interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
-                              userInput, prompt, requestTime, "return",
+                              userInput, contextText, requestTime, "return",
                               codeReturn, responseTime, "withModel", ""]
 
             interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
@@ -441,38 +431,8 @@ class Processor(QObject):
 
     def codeRefine(self, userInput: str) -> tuple[str, str]:
         requestTime = getCurrentTimeStamp()
-        # codeRefinerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeRefiner")
-        # template = codeRefinerPromptRow["template"]
-
-        template = """
-        This LLM is a QGIS plugin named IntelliGEO.
-
-        This LLM, IntelliGEO, is a QGIS plugin specializing in PyQGIS. It generates or refines PyQGIS scripts based on user requirements or feedback. Users can request new scripts or modifications to existing ones, and the LLM ensures the code is efficient, accurate, and well-documented with comments explaining each section. When updating code, it incorporates user feedback while preserving functionality and structure.
-        
-        Generate the code based on these documents and relevant examples: {doc}{example}
-        
-        Context:
-        
-        The LLM do not have information about the opened QGIS project, make sure to use the readEnvironment tool to get the information of the current opened project.
-        
-        Previous Conversation
-        
-        User's Request:
-        {previousRequest}
-        
-        LLM's Answer:
-        {previousResponse}
-        
-        New Input:
-        {input}
-
-        Outputs:
-        
-        PyQGIS script:
-        ```python
-        # Insert your generated python code here base on the user description.
-        ```
-        """
+        codeRefinerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeRefiner")
+        template = codeRefinerPromptRow["template"]
 
         # get documentation
         retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=1)[0]
@@ -520,7 +480,7 @@ class Processor(QObject):
         # ["conversationID", "promptID",
         #  "requestText", "contextText", "requestTime", "typeMessage",
         #  "responseText", "responseTime", "workflow", "executionLog"]
-        interactionRow = [self.conversationID, "OpenAI::gpt-4::0::codeProducer",
+        interactionRow = [self.conversationID, codeRefinerPromptRow["ID"],
                           userInput, contextText, requestTime, "return",
                           codeReturn, responseTime, "withCode", ""]
         interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
