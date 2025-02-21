@@ -4,7 +4,8 @@ import os
 import json
 import requests
 import logging
-from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captchaPopup
+from .utils import (getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captchaPopup, getIntelligeoEnvVar,
+                    show_variable_popup)
 
 
 class Dataloader:
@@ -44,6 +45,7 @@ class Dataloader:
 
         # backend url
         self.backendURL = "https://owsgip.itc.utwente.nl/intelligeo/"
+        self.fromdev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
 
     def _checkExistence(self, tableName):
         """
@@ -93,18 +95,22 @@ class Dataloader:
         self.llmFullDict["Cohere"] = ["command-r-plus", "command-r", "command", "command-nightly",
                                       "command-light", "command-light-nightly"]
         self.llmFullDict["DeepSeek"] = ["deepseek-chat", "deepseek-reasoner"]
+        self.llmFullDict["Groq"] = ["mixtral-8x7b-32768", "qwen-2.5-32b", "deepseek-r1-distill-qwen-32b",
+                                    "deepseek-r1-distill-llama-70b-specdec", "llama-3.3-70b-versatile"]
         self.llmFullDict["default"] = ["default"]
 
         self.llmEndpointDict = dict()
         self.llmEndpointDict["OpenAI"] = "https://api.openai.com/v1/chat/completions"
         self.llmEndpointDict["Cohere"] = "https://api.cohere.com/v1/chat"
         self.llmEndpointDict["DeepSeek"] = "https://api.deepseek.com/v1/chat"
+        self.llmEndpointDict["Groq"] = "https://api.groq.com/openai/v1/chat/completions"
         self.llmEndpointDict["default"] = "default"
 
         self.apiKeyDict = dict()
         self.apiKeyDict["OpenAI"] = os.getenv("OPENAI_API_KEY", "")
         self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY", "")
         self.apiKeyDict["DeepSeek"] = os.getenv("DEEPSEEK_API_KEY", "")
+        self.apiKeyDict["Groq"] = os.getenv("GROQ_API_KEY", "")
         self.apiKeyDict["default"] = "default"
 
         # Create the table if it doesn't exist.
@@ -238,6 +244,8 @@ class Dataloader:
 
     def fetchPrompt(self, llmID, promptType, clientVersion: str = "0.0.3", testing: bool = False):
         # note if newer version of intelligeo is developed the backend prompt table should also be renewed.
+        # for easy-testing prompts, now all llms calling the same prompt stored under Cohere::command-r-plus
+        # if any further commit updated this to each llm should use unique prompt please change this method
         params = {
             'llmID': 'Cohere::command-r-plus',
             'promptType': promptType,
@@ -408,6 +416,9 @@ class Dataloader:
         self.connection.commit()
 
         interactionDict = pack(interaction, "interaction")
+        interactionDict["fromdev"] = self.fromdev
+        show_variable_popup(self.fromdev)
+        
         self.postData("interaction", interactionDict)
 
         return interactionIndex

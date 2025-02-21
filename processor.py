@@ -14,6 +14,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_cohere import ChatCohere
 from langchain_openai import ChatOpenAI
 from langchain_deepseek import ChatDeepSeek
+from langchain_groq import ChatGroq
 
 from .utils import show_variable_popup, getVersion, getCurrentTimeStamp, pack
 from .tools import readEnvironment
@@ -40,6 +41,8 @@ class Processor(QObject):
             self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
         elif self.llmProvider == "DeepSeek":
             self.llm = ChatDeepSeek(model=self.llmName, api_key=apiKey, temperature=0)
+        elif self.llmProvider == "Groq":
+            self.llm = ChatGroq(model=self.llmName, api_key=apiKey, temperature=0)
 
         self.conversationID = conversationID
         self.retrivalDatabase = retrievalVectorbase

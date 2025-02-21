@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from typing import Literal
 import uuid
 import re
+import os
 import requests
 import psutil
 
@@ -406,6 +407,26 @@ def trimText2TokenLimit(template, docPlaceholder, document, limit, modelName):
         tokens = tokens[:limit]
         return encoding.decode(tokens)
     return text
+
+
+def getIntelligeoEnvVar(nameVar):
+    # Get the user's home directory and construct the full file path
+    home_dir = os.path.expanduser("~")
+    file_path = os.path.join(home_dir, "Documents", "QGIS_IntelliGeo", "intelligeo_var.txt")
+
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        return ""
+
+    # Open and read the file safely
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            if "=" in line:  # Ensure the line contains an "="
+                key, value = line.strip().split("=", 1)  # Split only on the first "="
+                if key.strip() == nameVar:
+                    return value.strip().lower()  # Convert to lowercase
+    return ""
+
 
 
 def showErrorMessage(variable):

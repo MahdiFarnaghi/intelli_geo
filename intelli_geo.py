@@ -27,7 +27,7 @@ import os
 import asyncio
 
 try:
-    import langchain_cohere, langchain_openai, langchain
+    import langchain_cohere, langchain_openai, langchain, langchain_deepseek, langchain_groq
     import requests, psutil
     from bs4 import BeautifulSoup
 except:
