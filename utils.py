@@ -1,5 +1,5 @@
 """
-`utils.py` contains tool functions that is useful but not n
+`utils.py` contains tool functions that is useful
 
 Created: May 2024
 Last modified by: Zehao Lu @com3dian
@@ -7,7 +7,6 @@ Last modified by: Zehao Lu @com3dian
 
 from datetime import datetime
 from functools import wraps
-from bs4 import BeautifulSoup
 from typing import Literal
 import uuid
 import re
@@ -184,6 +183,9 @@ def nestedDict2list(fullDict: dict[list]) -> list:
 
 
 def extractCode(response: str) -> str:
+    """
+    extract code from llm response
+    """
     pattern = r'```python(.*?)```'
     match = re.search(pattern, response, re.DOTALL)
     if match:
@@ -426,7 +428,6 @@ def getIntelligeoEnvVar(nameVar):
                 if key.strip() == nameVar:
                     return value.strip().lower()  # Convert to lowercase
     return ""
-
 
 
 def showErrorMessage(variable):

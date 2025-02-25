@@ -156,7 +156,8 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         conversationCard = QGroupBox()
         cardLayout = QVBoxLayout()
 
-        # "ID", "llmID", "title", "description", "created", "modified", "messageCount", "workflowCount", "userID"
+        # "ID", "llmID", "title", "description", "created",
+        # "modified", "messageCount", "workflowCount", "userID"
         (conversationID,
          llmID,
          title,
@@ -254,40 +255,24 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for interaction in interactionHistory:
             messageDict = pack(interaction, "interaction")
             if messageDict["typeMessage"] == "input":
-                # newMessage = f"""<div class="message message-user">
-                #     <div class="message-header">
-                #         <span class="user" "style="color: blue;">User</span>
-                #         <span class="timestamp">{messageDict["requestTime"]}</span>
-                #     </div>
-                #     <div class="message-content" style="color: #E5E3D4; background-color: #85A98F">
-                #         {mistune.create_markdown()(messageDict["requestText"])}
-                #     </div>
-                # </div>
-                # <!-- New messages will be inserted here -->
-                #             """
-                # currentHtml = currentHtml.replace(
-                #     '<!-- New messages will be inserted here -->',
-                #     newMessage
-                # )
                 newMessage = f"""
                                 <div style="
                                   margin: 0;
                                   padding: 0;
                                   line-height: 1;
-                                  color: #89A8B2;
-                                  background-color: #E9EFEC;">
+                                  text-align: right;
+                                  color: #6baad1;
+                                  ">
                                   User {messageDict["requestTime"]}
                                 </div>
                                 <div style="
                                   margin: 0;
                                   padding: 0;
                                   line-height: 1;
-                                  color: #1C325B;
-                                  background-color: #E9EFEC;">
+                                  text-align: right;
+                                  color: #181C14;
+                                  ">
                                   {messageDict["requestText"]}
-                                </div>
-                                <div>
-                                  <br>
                                 </div>
                             """
                 currentHtml += newMessage
@@ -305,7 +290,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                   margin: 0;
                                   padding: 0;
                                   line-height: 1;
-                                  color: #6A9C89;"
+                                  color: #FD8A8A;"
                                   {modelTagID}>
                                   IntelliGeo {messageDict["responseTime"]}
                                 </div>
@@ -313,7 +298,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                   margin: 0;
                                   padding: 0;
                                   line-height: 1;
-                                  color: #16423C;">
+                                  color: #181C14;">
                                   {createMarkdown(messageDict["responseText"])}
                                 </div>
                                 <div>

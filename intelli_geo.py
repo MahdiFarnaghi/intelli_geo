@@ -25,17 +25,15 @@ import subprocess
 import sys
 import os
 import asyncio
+from .packageManager import PackageManager
 
-try:
-    import langchain_cohere, langchain_openai, langchain, langchain_deepseek, langchain_groq
-    import requests, psutil
-    from bs4 import BeautifulSoup
-except:
-    # Path to your requirements.txt file
-    scriptDir = os.path.dirname(os.path.abspath(__file__))
-    requirementsPath = os.path.join(scriptDir, 'requirements.txt')
-    # Run the pip install command
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirementsPath])
+requiredModules = [
+    'langchain_cohere', 'langchain_openai', 'langchain',
+    'langchain_deepseek', 'langchain_groq', 'requests',
+    'psutil', 'bs4'
+]
+packageManager = PackageManager(requiredModules)
+packageManager.checkDependencies()
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, QTimer, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard, QKeyEvent
