@@ -3,7 +3,7 @@ import sys
 import subprocess
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication
-
+from datetime import datetime
 
 class PackageManager:
     def __init__(self, dependencies):
@@ -62,42 +62,60 @@ class PackageManager:
         """
         Attempt to install missing dependencies using pip.
         """
+        scriptDir = os.path.dirname(os.path.abspath(__file__))
+        requirementsPath = os.path.join(scriptDir, 'requirements.txt')
         try:
-            # Determine the path to the QGIS Python interpreter
-            qgisPython = sys.executable
+            from pip._internal import main as pip_main
+        except ImportError:
+            from pip import main as pip_main  # Fallback for older versions
 
-            # Install each missing dependency
-            scriptDir = os.path.dirname(os.path.abspath(__file__))
-            requirementsPath = os.path.join(scriptDir, 'requirements.txt')
-            output = subprocess.check_output(
-                [qgisPython, "-m", "pip", "install", "-r", requirementsPath],
-                stderr=subprocess.STDOUT
-            )
+        try:
+            pip_main(['install', '-r', requirementsPath])
+            missingDependencies = [dep for dep in self.dependencies if not self._isModuleInstalled(dep)]
+            if not missingDependencies:
+                return
 
-            QMessageBox.information(
-                None,
-                'Installation Successful',
-                'All required modules have been installed successfully. Please restart QGIS to apply changes.'
-            )
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             self._logError(e)
-            reply = QMessageBox.question(
-                None,
-                'Installation Failed',
-                'Failed to install the required modules. Would you like to attempt a forced installation? '
-                'If you choose "No," you can manually install the dependencies by running `pip install -r'
-                'requirements.txt` in the console located in the plugin folder. To locate the plugin folder, navigate'
-                'within QGIS to "Settings" > "User Profile" > "Open Active Profile Folder," then open the "IntelliGeo"'
-                'folder.'
-                ,
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
-            if reply == QMessageBox.Yes:
-                self._forceInstallDependencies()
-            else:
-                # No action needed if the user selects No
-                pass
+            os.system(f"python -m pip install -r {requirementsPath}")
+            missingDependencies = [dep for dep in self.dependencies if not self._isModuleInstalled(dep)]
+            if not missingDependencies:
+                return
+
+            try:
+                # Determine the path to the QGIS Python interpreter
+                qgisPython = sys.executable
+
+                # Install each missing dependency
+                output = subprocess.check_output(
+                    [qgisPython, "-m", "pip", "install", "-r", requirementsPath],
+                    stderr=subprocess.STDOUT
+                )
+
+                QMessageBox.information(
+                    None,
+                    'Installation Successful',
+                    'All required modules have been installed successfully. Please restart QGIS to apply changes.'
+                )
+            except subprocess.CalledProcessError as e:
+                self._logError(e)
+                reply = QMessageBox.question(
+                    None,
+                    'Installation Failed',
+                    'Failed to install the required modules. Would you like to attempt a forced installation? '
+                    'If you choose "No," you can manually install the dependencies by running `pip install -r'
+                    'requirements.txt` in the console located in the plugin folder. To locate the plugin folder, navigate'
+                    'within QGIS to "Settings" > "User Profile" > "Open Active Profile Folder," then open the "IntelliGeo"'
+                    'folder.'
+                    ,
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.No
+                )
+                if reply == QMessageBox.Yes:
+                    self._forceInstallDependencies()
+                else:
+                    # No action needed if the user selects No
+                    pass
 
     def _forceInstallDependencies(self):
         """
@@ -138,7 +156,30 @@ class PackageManager:
         errorLogDir = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
         os.makedirs(errorLogDir, exist_ok=True)
         errorLogPath = os.path.join(errorLogDir, "error_log.txt")
-        with open(errorLogPath, "w", encoding="utf-8") as f:
-            f.write(f"Command failed with exit code: {error.returncode}\n")
-            f.write("=== Output and Error ===\n")
-            f.write(error.output.decode("utf-8", errors="replace"))
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(errorLogPath, "a", encoding="utf-8") as f:
+            f.write(f"\n[{timestamp}]\n")
+            f.write(f"Error Type: {type(error).__name__}\n")
+
+            # Handle subprocess.CalledProcessError specifically
+            if hasattr(error, 'returncode'):
+                f.write(f"Command failed with exit code: {error.returncode}\n")
+
+            # Log error message
+            f.write(f"Error Message: {str(error)}\n")
+
+            # Handle output if available
+            if hasattr(error, 'output'):
+                f.write("=== Output and Error ===\n")
+                if isinstance(error.output, bytes):
+                    f.write(error.output.decode("utf-8", errors="replace"))
+                else:
+                    f.write(str(error.output))
+
+            # Include traceback for more context
+            import traceback
+            f.write("\n=== Traceback ===\n")
+            f.write(traceback.format_exc())
+
+            f.write("\n" + "-" * 50 + "\n")  # Add separator between entries

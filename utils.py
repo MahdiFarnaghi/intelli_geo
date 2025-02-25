@@ -431,6 +431,39 @@ def getIntelligeoEnvVar(nameVar):
 
 
 def showErrorMessage(variable):
+    fromDev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
+    if fromDev:
+        errorLogDir = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
+        os.makedirs(errorLogDir, exist_ok=True)
+        errorLogPath = os.path.join(errorLogDir, "error_log.txt")
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(errorLogPath, "a", encoding="utf-8") as f:
+            f.write(f"\n[{timestamp}]\n")
+            f.write(f"Error Type: {type(error).__name__}\n")
+
+            # Handle subprocess.CalledProcessError specifically
+            if hasattr(error, 'returncode'):
+                f.write(f"Command failed with exit code: {error.returncode}\n")
+
+            # Log error message
+            f.write(f"Error Message: {str(error)}\n")
+
+            # Handle output if available
+            if hasattr(error, 'output'):
+                f.write("=== Output and Error ===\n")
+                if isinstance(error.output, bytes):
+                    f.write(error.output.decode("utf-8", errors="replace"))
+                else:
+                    f.write(str(error.output))
+
+            # Include traceback for more context
+            import traceback
+            f.write("\n=== Traceback ===\n")
+            f.write(traceback.format_exc())
+
+            f.write("\n" + "-" * 50 + "\n")  # Add separator between entries
+
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists
@@ -481,6 +514,10 @@ def showErrorMessage(variable):
 
 
 def show_variable_popup(variable):
+    fromDev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
+    if not fromDev:
+        return
+
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists
