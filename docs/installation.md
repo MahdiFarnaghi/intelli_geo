@@ -1,7 +1,7 @@
 
 # Installation and API Keys
 
-To be able to use IntelliGeo, you need to first install it in your QGIS software and then obtain an API key to use large language models. Section 1 of this page explains how you can install the library and section 2 walk you through obtaining API keys for large language models from OpenAI and Cohere and registering them in QGIS.  
+To be able to use IntelliGeo, you need to first install it in your QGIS software and then obtain an API key to use large language models. Section 1 of this page explains how you can install the library and section 2 walk you through obtaining API keys for large language models from OpenAI, Cohere and Groq and registering them in QGIS.  
 
 
 ## 1. Installation
@@ -106,6 +106,33 @@ Copy your Cohere API key and input it when starting a new conversation in Intell
 
 Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
 
+### Groq Guide
+
+#### Step 1: Sign Up
+
+Sign up for Groq at [Groq Signup](https://console.groq.com/login). You can register using your email address or an existing Google or GitHub account.
+
+#### Step 2: Access the Dashboard
+
+Once logged in, go to the API Keys section to manage your API keys.
+
+#### Step 3: Create an API Key
+
+To generate an API key, go to `API Keys`, then click `Create API key`, optionally name it, and click 'Submit' to generate your unique API key. Make sure to store the key securely.
+
+![image](https://github.com/user-attachments/assets/72310dd6-396d-48c7-81c6-6c6188e9bb24)
+
+The Groq API key works for all models, so you don’t need to create multiple keys.
+
+#### Step 4: Use the API Key in IntelliGeo
+
+Copy your Groq API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo’s backend.
+
+![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+
+Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
+
+<!-- 
 ### DeepSeek Guide
 
 #### Step 1: Sign Up
@@ -131,3 +158,4 @@ Copy your DeepSeek API key and input it when starting a new conversation in Inte
 ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
 
 Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
+-->
