@@ -132,7 +132,7 @@ Copy your Groq API key and input it when starting a new conversation in IntelliG
 
 Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
 
-<!-- 
+
 ### DeepSeek Guide
 
 #### Step 1: Sign Up
@@ -158,4 +158,3 @@ Copy your DeepSeek API key and input it when starting a new conversation in Inte
 ![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
 
 Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
--->
