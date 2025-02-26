@@ -282,7 +282,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if messageDict["typeMessage"] == "return":
                 if messageDict["workflow"] in ["withModel", "withCode", "withToolbox"]:
                     modelTag = f"Model_{self.itemCounter}"
-                    modelTagID = f"id=\"Model_{self.itemCounter}\""
+                    modelTagID = f"id=\"Workflow_{self.itemCounter}\""
                     self.onNewModelGenerated(modelTag)
                     self.itemCounter += 1
                 else:
