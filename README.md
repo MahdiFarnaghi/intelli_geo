@@ -14,7 +14,7 @@
 
 IntelliGeo is a [QGIS](https://www.qgis.org/) plugin that facilitates interaction with Large Language Models in QGIS environment.
 
-The plugin is in development phase. We have recently released version 0.1.0: [IntelliGeo on QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/intelli_geo/version/0.0.3/feedback/)
+The plugin is in development phase. We have recently released version 0.1.0: [IntelliGeo on QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/intelli_geo/)
 
 ## The Repository
 
