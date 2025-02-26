@@ -45,7 +45,7 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.llmFullList = nestedDict2list(llmFullDict)
         for llmIDItem in self.llmFullList:
-            if llmIDItem in ["default::default", "DeepSeek::deepseek-chat", "DeepSeek::deepseek-reasoner",
+            if llmIDItem in ["default::default",
                              "OpenAI::o1"]:
                 continue
             self.cbLLM.addItem(llmIDItem)

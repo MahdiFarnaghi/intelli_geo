@@ -417,7 +417,6 @@ class Dataloader:
 
         interactionDict = pack(interaction, "interaction")
         interactionDict["fromdev"] = self.fromdev
-        show_variable_popup(self.fromdev)
         
         self.postData("interaction", interactionDict)
 

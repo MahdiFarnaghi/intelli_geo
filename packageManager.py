@@ -121,32 +121,52 @@ class PackageManager:
         """
         Attempt to force install missing dependencies using pip.
         """
+        scriptDir = os.path.dirname(os.path.abspath(__file__))
+        requirementsPath = os.path.join(scriptDir, 'requirements.txt')
+
         try:
-            # Determine the path to the QGIS Python interpreter
-            qgisPython = sys.executable
+            from pip._internal import main as pip_main
+        except ImportError:
+            from pip import main as pip_main  # Fallback for older versions
 
-            # Install each missing dependency
-            scriptDir = os.path.dirname(os.path.abspath(__file__))
-            requirementsPath = os.path.join(scriptDir, 'requirements.txt')
-            output = subprocess.check_output(
-                [qgisPython, "-m", "pip", "install", "--no-deps", "--force-reinstall",
-                 "--use-deprecated=legacy-resolver", "-r", requirementsPath],
-                stderr=subprocess.STDOUT
-            )
+        try:
+            pip_main(['install', '-r', requirementsPath])
+            missingDependencies = [dep for dep in self.dependencies if not self._isModuleInstalled(dep)]
+            if not missingDependencies:
+                return
 
-            QMessageBox.information(
-                None,
-                'Installation Successful',
-                'All required modules have been installed successfully. Please restart QGIS to apply changes.'
-            )
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             self._logError(e)
-            QMessageBox.critical(
-                None,
-                'Installation Failed',
-                'Failed to install the required modules. Please install them manually or consult the error log'
-                'for details.'
-            )
+            os.system(f"python -m pip install --no-deps --force-reinstall --use-deprecated=legacy-resolver "
+                      f"-r {requirementsPath}")
+            missingDependencies = [dep for dep in self.dependencies if not self._isModuleInstalled(dep)]
+            if not missingDependencies:
+                return
+
+            try:
+                # Determine the path to the QGIS Python interpreter
+                qgisPython = sys.executable
+
+                # Install each missing dependency
+                output = subprocess.check_output(
+                    [qgisPython, "-m", "pip", "install", "--no-deps", "--force-reinstall",
+                     "--use-deprecated=legacy-resolver", "-r", requirementsPath],
+                    stderr=subprocess.STDOUT
+                )
+
+                QMessageBox.information(
+                    None,
+                    'Installation Successful',
+                    'All required modules have been installed successfully. Please restart QGIS to apply changes.'
+                )
+            except subprocess.CalledProcessError as e:
+                self._logError(e)
+                QMessageBox.critical(
+                    None,
+                    'Installation Failed',
+                    'Failed to install the required modules. Please install them manually or consult the error log'
+                    'for details.'
+                )
 
     def _logError(self, error):
         """

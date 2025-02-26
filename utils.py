@@ -372,6 +372,13 @@ def captchaPopup(captcha_dict):
     return None
 
 
+def setFontColor(bgColor):
+    luminance = (0.299 * bgColor.red() + 0.587 * bgColor.green() + 0.114 * bgColor.blue()) / 255
+    fontColor = "#F1F0E9" if luminance < 0.5 else "#181C14"
+
+    return fontColor
+    
+
 def createMarkdown(markdownText):
     # Regular expression to match Markdown code blocks
     codeBlockPattern = r"```(\w+)\n(.*?)```"
@@ -430,7 +437,7 @@ def getIntelligeoEnvVar(nameVar):
     return ""
 
 
-def showErrorMessage(variable):
+def showErrorMessage(error):
     fromDev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
     if fromDev:
         errorLogDir = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
@@ -472,7 +479,7 @@ def showErrorMessage(variable):
     frame = inspect.currentframe().f_back
     variableName = None
     for name, val in frame.f_locals.items():
-        if val is variable:
+        if val is error:
             variableName = name
             break
 
@@ -492,7 +499,7 @@ def showErrorMessage(variable):
     contentLayout = QVBoxLayout(contentWidget)
 
     # Add content to the layout
-    message = f'Variable Name: {variableName}\nString Value: {variable}'
+    message = f'Variable Name: {variableName}\nString Value: {error}'
     label = QLabel(message)
     contentLayout.addWidget(label)
 

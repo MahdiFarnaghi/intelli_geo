@@ -60,10 +60,11 @@ from qgis.PyQt.QtCore import pyqtSignal, QPoint
 from qgis.PyQt.QtCore import QEvent, Qt, QModelIndex
 from qgis.PyQt.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QPushButton, QSizePolicy, QSpacerItem,
                                  QScrollArea, QWidget, QPlainTextEdit, QTextEdit, QListView)
-from qgis.PyQt.QtGui import QFont, QTextCursor
+from qgis.PyQt.QtGui import QFont, QTextCursor, QPalette
 from .conversation import Conversation
 from .hoverComboBox import HoverComboBox
-from .utils import handleNoneConversation, pack, unpack, formatDescription, show_variable_popup, createMarkdown
+from .utils import (handleNoneConversation, pack, unpack, formatDescription, show_variable_popup, createMarkdown,
+                    setFontColor)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'intelli_geo_dockwidget_base.ui'))
@@ -252,6 +253,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.cbModel.clear()
         # get updated log
         interactionHistory = conversation.fetch()
+        fontColor = setFontColor(self.txHistory.palette().color(QPalette.Base))
         for interaction in interactionHistory:
             messageDict = pack(interaction, "interaction")
             if messageDict["typeMessage"] == "input":
@@ -270,7 +272,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                   padding: 0;
                                   line-height: 1;
                                   text-align: right;
-                                  color: #181C14;
+                                  color: {fontColor};
                                   ">
                                   {messageDict["requestText"]}
                                 </div>
@@ -298,7 +300,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                   margin: 0;
                                   padding: 0;
                                   line-height: 1;
-                                  color: #181C14;">
+                                  color: {fontColor};">
                                   {createMarkdown(messageDict["responseText"])}
                                 </div>
                                 <div>

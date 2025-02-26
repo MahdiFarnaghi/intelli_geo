@@ -41,6 +41,7 @@ class Processor(QObject):
             self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
         elif self.llmProvider == "DeepSeek":
             self.llm = ChatDeepSeek(model=self.llmName, api_key=apiKey, temperature=0)
+
         elif self.llmProvider == "Groq":
             self.llm = ChatGroq(model=self.llmName, api_key=apiKey, temperature=0)
 
@@ -60,8 +61,6 @@ class Processor(QObject):
         classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier")
         show_variable_popup(classifierPromptRow)
         classifierPrompt = ChatPromptTemplate.from_template(classifierPromptRow["template"])
-
-        show_variable_popup(classifierPrompt)
 
         classifierChain = classifierPrompt | self.llm | self.outputParser
         decision = classifierChain.invoke({"input": userInput})
@@ -133,11 +132,14 @@ class Processor(QObject):
         messageList = [humanMessage]
 
         tools = [readEnvironment]
-        llmWithTools = self.llm.bind_tools(tools)
+        if self.llmName not in ["deepseek-reasoner"]:
+            llmWithTools = self.llm.bind_tools(tools)
+        else:
+            llmWithTools = self.llm
         llmMessage = llmWithTools.invoke(messageList)
         messageList.append(llmMessage)
 
-        if len(llmMessage.tool_calls) == 0:
+        if len(llmMessage.tool_calls) == 0 or self.llmName in ["deepseek-reasoner"]:
             contextText = ""
             chatReturn = self.outputParser.invoke(llmMessage)
 
@@ -230,14 +232,18 @@ class Processor(QObject):
 
         tools = [readEnvironment]
         toolDict = {"readenvironment": readEnvironment}
-        llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messageList)
-        messageList.append(llmMessage)
+        if self.llmName not in ["deepseek-reasoner"]:
+            llmWithTools = self.llm.bind_tools(tools)
+            llmMessage = llmWithTools.invoke(messageList)
+            messageList.append(llmMessage)
+        else:
+            llmWithTools = self.llm
 
-        for toolcall in llmMessage.tool_calls:
-            selectedTool = toolDict[toolcall["name"].lower()]
-            toolOutput = selectedTool.invoke(toolcall["args"])
-            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+        if self.llmName not in ["deepseek-reasoner"]:
+            for toolcall in llmMessage.tool_calls:
+                selectedTool = toolDict[toolcall["name"].lower()]
+                toolOutput = selectedTool.invoke(toolcall["args"])
+                messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------\n".join([message.content for message in messageList])
         # langchain inference
@@ -281,14 +287,18 @@ class Processor(QObject):
 
         tools = [readEnvironment]
         toolDict = {"readenvironment": readEnvironment}
-        llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messageList)
-        messageList.append(llmMessage)
+        if self.llmName not in ["deepseek-reasoner"]:
+            llmWithTools = self.llm.bind_tools(tools)
+            llmMessage = llmWithTools.invoke(messageList)
+            messageList.append(llmMessage)
+        else:
+            llmWithTools = self.llm
 
-        for toolcall in llmMessage.tool_calls:
-            selectedTool = toolDict[toolcall["name"].lower()]
-            toolOutput = selectedTool.invoke(toolcall["args"])
-            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+        if self.llmName not in ["deepseek-reasoner"]:
+            for toolcall in llmMessage.tool_calls:
+                selectedTool = toolDict[toolcall["name"].lower()]
+                toolOutput = selectedTool.invoke(toolcall["args"])
+                messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------".join([message.content for message in messageList])
 
