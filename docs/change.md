@@ -1,5 +1,14 @@
 # Changelog
 
+## IntelliGeo v0.1.0 Fourth & Stable Release
+
+### New Features
+
+- **Memory Support**: IntelliGeo now includes short-term memory for the LLM agent, allowing you to update and modify previously generated workflows.
+- **Workflow Slection**: Multiple interactions are generated, and selecting a workflow triggers its execution.
+- **Better Dependecy management**: Dependencies are now installed automatically.
+
+
 ## IntelliGeo v0.0.3 - Third Release
 
 ### New Features
