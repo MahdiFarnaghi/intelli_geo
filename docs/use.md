@@ -1,64 +1,118 @@
-# How to Use
 
-If you haven’t installed the plugin yet, please refer to the [installation guide](https://www.intelligeo.org/installation/) first.
+# IntelliGeo Quick Start
 
-If you already have the plugin and its dependencies installed, the next step is to obtain an API key to use large language models. The tutorial below provides guidance on obtaining API keys for OpenAI and Cohere. If you already have an API key set in your environment variables, you can start using IntelliGeo right away. To get started quickly, check out our [tutorial video](https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e).
+Welcome to the **IntelliGeo Quick Start Guide**!
 
+This guide provides a range of examples and common use cases to help you effectively utilize the IntelliGeo plugin for geospatial tasks in QGIS. Whether you're a beginner or an advanced user, this document offers clear and concise examples to get you started and deepen your knowledge.
 
-## LLM API Key
+---
 
-To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API. Currently, we support both [OpenAI](https://openai.com/) and [Cohere](https://cohere.com/). Based on our experience, OpenAI models perform better but require a paid plan. Cohere, while offering free access to their API, delivers slightly lower performance compared to OpenAI.
+## Getting Started
 
+Before exploring the examples, ensure the following prerequisites are met:
 
-### OpenAI Guide
+- **QGIS Installed**: *Download and install the latest version of QGIS from [QGIS.org](https://www.qgis.org).*  
+- **Plugin Installation**: *Install IntelliGeo from the QGIS Plugin Repository or a custom source.*  
+- **API Key Ready**: Ensure you have an active API key for OpenAI or Cohere.  
+- **Sample Data**: Some examples use preloaded sample datasets.
 
-#### Step 1: Sign Up
+For a detailed guide on installation and obtaining API keys, visit the [Installation and API Keys page](https://www.intelligeo.org/installation/).
 
-Register for ChatGPT at [OpenAI Signup](https://platform.openai.com/signup?launch). You can sign up using an email address or an existing Google, Microsoft, or Apple account.
+Once IntelliGeo is installed, the plugin's toolbar or menu should appear in your QGIS interface. You’re now ready to dive into the examples!
 
-#### Step 2: Open the Dashboard
+---
 
-Once registered, navigate to the OpenAI dashboard at [OpenAI Dashboard](https://platform.openai.com/api-keys) to access your API keys.
+## Quick Start Video
 
-#### Step 3: Generate an API Key
+Watch our [Quick Start Video](https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e).
 
-To create a new API key, go to the `API Keys` section, click on `+ Create new secret key`, and optionally name it in the pop-up. Once you click 'Create secret key', a unique alphanumeric API key will be generated. Be sure to store this key securely.
+<iframe width="560" height="315" src="https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e"></iframe>
 
-![Screenshot from 2024-10-18 16-51-01](https://github.com/user-attachments/assets/eda6d221-3168-4741-b14d-a0f0e6a4a8f3)
+---
 
-This API key works universally for all OpenAI models; you don’t need separate keys for each model.
+## Example Use Cases
 
-#### Step 4: Use the API Key in IntelliGeo
+### Use Case 1: Generating Attribute Lists from a Vector Layer
 
-Copy your API key and input it when starting a new conversation within IntelliGeo. The key will be saved only in your local database; the IntelliGeo backend does not store or access your API key.
+Generate a model to list the attributes from a vector layer in the workspace by selecting the layer by name.
 
-![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+**Prompt**:  
+*Generate a model to list the attributes from a vector layer in the workspace. Select the layer by name.*
 
-### Cohere Guide
+**Note**: Replace the placeholder with your layer's name.
 
-#### Step 1: Sign Up
+![Example Screenshot](https://github.com/user-attachments/assets/735a097d-605b-4b7e-a9f4-49ae3a040c3e)
 
-Sign up for Cohere at [Cohere Signup](https://dashboard.cohere.com/welcome/register). You can register using your email address or an existing Google or GitHub account.
+---
 
-#### Step 2: Access the Dashboard
+### Use Case 2: Producing Attribute Descriptions for a Vector Layer
 
-Once logged in, go to the API Keys section to manage your API keys.
+Generate a model that produces attribute descriptions for a vector layer, including attribute names, data types, counts of NULL values, and unique values.
 
-#### Step 3: Create an API Key
+**Prompt**:  
+*Generate a model to describe the attributes of a vector layer. Include names, data types, NULL value counts, and unique value counts. Select the layer by name.*
 
-To generate an API key, go to `API Keys`, then click `+ New Trial key`, optionally name it, and click 'Create secret key' to generate your unique API key. Make sure to store the key securely.
+**Note**: Replace the placeholder with your layer's name.
 
-![Screenshot from 2024-10-18 17-15-56](https://github.com/user-attachments/assets/90e0970b-9fff-4927-98ca-ff6bfb294ec8)
+![Example Screenshot](https://github.com/user-attachments/assets/bd0a69ff-c009-44c7-b085-28c30e1610ba)
 
-The Cohere API key works for all models, so you don’t need to create multiple keys.
+---
 
-#### Step 4: Use the API Key in IntelliGeo
+### Use Case 3: Producing Statistics for Polygon Areas
 
-Copy your Cohere API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo’s backend.
+Generate a model that calculates area statistics for polygons in a loaded layer. The output includes minimum, maximum, average, standard deviation, and total feature count.
 
-![image](https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704)
+**Prompt**:  
+*Produce area statistics for polygons in the selected layer, including minimum, maximum, mean, standard deviation, and total features.*
 
-Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. 
+**Note**: Replace the placeholder with your layer's name.
 
-Check out our video to get started:
-[Tutorial video](https://github.com/user-attachments/assets/0c85f177-c175-41a1-a96c-fff775ccdf1e)
+![Example Screenshot](https://github.com/user-attachments/assets/ec65ef6b-106b-4ac7-a550-abed189ddd3a)
+
+---
+
+## Advanced Examples
+
+### Use Case 1: Calculating Buffers Around Features
+
+Generate a buffer area of 5000 meters with 40 segments around features in a vector layer.
+
+**Prompt**:  
+*Create a buffer area of 5000 meters and 40 segments around features in the selected layer.*
+
+**Note**: Replace the placeholder with your layer's name.
+
+![Example Screenshot](https://github.com/user-attachments/assets/d4927870-2057-4588-bc2d-9465a89e4450)
+
+---
+
+### Use Case 2: Generating Random Points
+
+Create a model that generates 1000 random points over the current map extent in EPSG:28992.
+
+**Prompt**:  
+*Generate 1000 random points over the current map extent using EPSG:28992.*
+
+![Example Screenshot](https://github.com/user-attachments/assets/8d972a92-73b5-4a25-9a2a-459e57eec87d)
+
+---
+
+### Use Case 3: Generating Random Lines
+
+Create a model that generates 1000 random lines, each 5000 meters long, over the current map extent in EPSG:28992.
+
+**Prompt**:  
+*Generate 1000 random lines, each 5000 meters long, using EPSG:28992.*
+
+![Example Screenshot](https://github.com/user-attachments/assets/d421b88a-00bc-403d-9870-4f205d556f17)
+
+---
+
+## Troubleshooting and Tips
+
+A common issue when using the plugin is "hallucinated imports," where scripts reference non-existent imports or modules in your QGIS or Python environment. To avoid this:
+
+- Verify all imported modules exist in your Python installation.  
+- Ensure compatibility with the QGIS environment by testing custom scripts thoroughly.
+
+--- 

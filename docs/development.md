@@ -101,15 +101,7 @@ If you want to contribute to the IntelliGeo project but are not part of the team
 
 10. Optionally, delete the old branch after merging.
 
-
-## Tips for development for plugin
-
-I found that reading environmental variable in plugin source code won't work. a work around way is that you can create a txt file named intelligeo_var.txt in your `~Document/QGIS_IntelliGeo/` folder, to store the encironmental variables and read those variables using `utils.getIntelligeoEnvVar` function. If you want to make sure all interactions from the team will be marked as `fromdev = True` in backend database, put the following line in the intelligeo_var.txt file.
-
-`intelliGeo_fromdev = true`
-
-The other important thing is debuging for the pluging is not easy, if you want to show a variable's value, use `utils.show_variable_popup`.
-
+## Packaging & Release
 
 ## Documentation
 
