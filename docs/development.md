@@ -103,6 +103,29 @@ If you want to contribute to the IntelliGeo project but are not part of the team
 
 ## Packaging & Release
 
+The recommended way to package the plugin is by using [pb_tool](https://g-sherman.github.io/plugin_build_tool/). You can find its documentation at the provided link. Before releasing, you need a ZIP file containing the packaged plugin code.
+
+1. Ensure that all necessary files are listed in the pbtool.config file under the [files] section. This includes: `python_files` for Python source code, `main_dialog` and `compiled_ui_files` for UI files. If you have updated any icons and need to compile them, run:
+
+  ```
+  pb_tool compile
+  ```
+2. Next, create the ZIP package by running:
+  ```
+  pb_tool zip
+  ```
+  The generated ZIP file will be located in the zip_build folder.
+
+3. To release you should go to the [plugin hub](https://plugins.qgis.org), logged in with Mahdi's account, click on `Add Verion` and upload the zip file, remember to add proper changlog.
+
+## Tips for development for plugin
+
+I found that reading environmental variable in plugin source code won't work. a work around way is that you can create a txt file named intelligeo_var.txt in your `~Document/QGIS_IntelliGeo/` folder, to store the encironmental variables and read those variables using `utils.getIntelligeoEnvVar` function. If you want to make sure all interactions from the team will be marked as `fromdev = True` in backend database, put the following line in the intelligeo_var.txt file.
+
+`intelliGeo_fromdev = true`
+
+The other important thing is debuging for the pluging is not easy, if you want to show a variable's value, use `utils.show_variable_popup`.
+
 ## Documentation
 
 The project's documentation is managed using **MkDocs**. Documentation is generated from the `.md` files in the `docs` folder, with settings configured in `mkdocs.yml` at the root of the repository.
