@@ -4,7 +4,8 @@ import os
 import json
 import requests
 import logging
-from .utils import getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captchaPopup
+from .utils import (getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captchaPopup, getIntelligeoEnvVar,
+                    show_variable_popup)
 
 
 class Dataloader:
@@ -44,6 +45,7 @@ class Dataloader:
 
         # backend url
         self.backendURL = "https://owsgip.itc.utwente.nl/intelligeo/"
+        self.fromdev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
 
     def _checkExistence(self, tableName):
         """
@@ -89,43 +91,54 @@ class Dataloader:
         """
         # Full dict of llm names and providers. Will be used in `.getLLMInfo()`
         self.llmFullDict = dict()
-        self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo"]
+        self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo", "o1"]
         self.llmFullDict["Cohere"] = ["command-r-plus", "command-r", "command", "command-nightly",
                                       "command-light", "command-light-nightly"]
+        self.llmFullDict["DeepSeek"] = ["deepseek-chat", "deepseek-reasoner"]
+        self.llmFullDict["Groq"] = ["mixtral-8x7b-32768", "qwen-2.5-32b", "deepseek-r1-distill-qwen-32b",
+                                    "deepseek-r1-distill-llama-70b-specdec", "llama-3.3-70b-versatile"]
         self.llmFullDict["default"] = ["default"]
 
         self.llmEndpointDict = dict()
         self.llmEndpointDict["OpenAI"] = "https://api.openai.com/v1/chat/completions"
-        self.llmEndpointDict["Cohere"] = " https://api.cohere.com/v1/chat"
+        self.llmEndpointDict["Cohere"] = "https://api.cohere.com/v1/chat"
+        self.llmEndpointDict["DeepSeek"] = "https://api.deepseek.com/v1/chat"
+        self.llmEndpointDict["Groq"] = "https://api.groq.com/openai/v1/chat/completions"
         self.llmEndpointDict["default"] = "default"
 
         self.apiKeyDict = dict()
         self.apiKeyDict["OpenAI"] = os.getenv("OPENAI_API_KEY", "")
         self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY", "")
+        self.apiKeyDict["DeepSeek"] = os.getenv("DEEPSEEK_API_KEY", "")
+        self.apiKeyDict["Groq"] = os.getenv("GROQ_API_KEY", "")
         self.apiKeyDict["default"] = "default"
 
-        if not self._checkExistence(self.llmTableName):
-            columns = ["ID TEXT NOT NULL PRIMARY KEY",
-                       "name TEXT NOT NULL",
-                       "endpoint TEXT",
-                       "apiKey TEXT"]
+        # Create the table if it doesn't exist.
+        columns = [
+            "ID TEXT NOT NULL PRIMARY KEY",
+            "name TEXT NOT NULL",
+            "endpoint TEXT",
+            "apiKey TEXT"
+        ]
+        creationSQL = f"CREATE TABLE IF NOT EXISTS {self.llmTableName} ({', '.join(columns)})"
+        self.cursor.execute(creationSQL)
 
-            creationSQL = f"CREATE TABLE IF NOT EXISTS {self.llmTableName} ({', '.join(columns)})"
-            self.cursor.execute(creationSQL)
+        # Prepare the rows to be inserted.
+        rowToInsert = []
+        for llmProvider, llmNameList in self.llmFullDict.items():
+            for llmName in llmNameList:
+                llmID = f"{llmProvider}::{llmName}"
+                endpoint = self.llmEndpointDict[llmProvider]
+                apiKey = self.apiKeyDict[llmProvider]
+                rowToInsert.append([llmID, llmName, endpoint, apiKey])
 
-            rowToInsert = []
-            for llmProvider, llmNameList in self.llmFullDict.items():
-                for llmName in llmNameList:
-                    llmID = f"{llmProvider}::{llmName}"
-                    endpoint = self.llmEndpointDict[llmProvider]
-                    apiKey = self.apiKeyDict[llmProvider]
-                    rowToInsert.append([llmID, llmName, endpoint, apiKey])
+        # Use INSERT OR IGNORE so that rows with duplicate IDs are skipped.
+        self.cursor.executemany(f"""
+            INSERT OR IGNORE INTO {self.llmTableName} (ID, name, endpoint, apiKey)
+            VALUES (?, ?, ?, ?)
+        """, rowToInsert)
 
-            self.cursor.executemany(f"""
-                INSERT INTO {self.llmTableName} (ID, name, endpoint, apiKey)
-                VALUES (?, ?, ?, ?)
-                """, rowToInsert)
-            self.connection.commit()
+        self.connection.commit()
 
     def _createPromptTable(self) -> None:
         """
@@ -229,16 +242,16 @@ class Dataloader:
         else:
             return "default", "default"
 
-    def fetchPrompt(self, llmID, promptType):
-        # fetchPromptSql = f"SELECT * FROM {self.promptTableName} WHERE llmID = ? AND promptType = ?"
-        # self.cursor.execute(fetchPromptSql, (llmID, promptType))
-        # allPromptRows = self.cursor.fetchall()
-        # rows = tuple2Dict(allPromptRows, "prompt")
-        # sortedRows = sorted(rows, key=lambda x: x["version"], reverse=True)
+    def fetchPrompt(self, llmID, promptType, clientVersion: str = "0.0.3", testing: bool = False):
+        # note if newer version of intelligeo is developed the backend prompt table should also be renewed.
+        # for easy-testing prompts, now all llms calling the same prompt stored under Cohere::command-r-plus
+        # if any further commit updated this to each llm should use unique prompt please change this method
         params = {
             'llmID': 'Cohere::command-r-plus',
-            'promptType': promptType
+            'promptType': promptType,
+            'client_version': clientVersion
         }
+
         endpoint = f"{self.backendURL}/prompt_by/"
         # Send the GET request
         response = requests.get(endpoint, params=params)
@@ -254,6 +267,11 @@ class Dataloader:
         conversationInfoList = unpack(conversationInfoDict, "conversation")
         self.cursor.execute(insertSQL, conversationInfoList)
         self.connection.commit()
+
+        # TODO: remove after v0.0.4
+        if conversationInfoDict["llmID"] in ["DeepSeek::deepseek-chat", "DeepSeek::deepseek-reasoner"]:
+            conversationInfoDict["llmID"] = "Cohere::command-r"
+
 
         self.postData("conversation", conversationInfoDict)
 
@@ -398,6 +416,8 @@ class Dataloader:
         self.connection.commit()
 
         interactionDict = pack(interaction, "interaction")
+        interactionDict["fromdev"] = self.fromdev
+        
         self.postData("interaction", interactionDict)
 
         return interactionIndex

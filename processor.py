@@ -13,6 +13,8 @@ from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
 from langchain_community.vectorstores import FAISS
 from langchain_cohere import ChatCohere
 from langchain_openai import ChatOpenAI
+from langchain_deepseek import ChatDeepSeek
+from langchain_groq import ChatGroq
 
 from .utils import show_variable_popup, getVersion, getCurrentTimeStamp, pack
 from .tools import readEnvironment
@@ -23,6 +25,7 @@ from .dataloader import Dataloader
 class Processor(QObject):
     responseReady = pyqtSignal(str, str, str, str)
     reflectionReady = pyqtSignal(str, str, str, str)
+    errorSignal = pyqtSignal(str)
 
     def __init__(self, llmID, conversationID, retrievalVectorbase, dataloader):
         super().__init__()
@@ -36,6 +39,11 @@ class Processor(QObject):
             self.llm = ChatOpenAI(model=self.llmName, openai_api_key=apiKey, temperature=0)
         elif self.llmProvider == "Cohere":
             self.llm = ChatCohere(model=self.llmName, cohere_api_key=apiKey, temperature=0)
+        elif self.llmProvider == "DeepSeek":
+            self.llm = ChatDeepSeek(model=self.llmName, api_key=apiKey, temperature=0)
+
+        elif self.llmProvider == "Groq":
+            self.llm = ChatGroq(model=self.llmName, api_key=apiKey, temperature=0)
 
         self.conversationID = conversationID
         self.retrivalDatabase = retrievalVectorbase
@@ -44,33 +52,6 @@ class Processor(QObject):
 
         self.threadpool = QThreadPool()  # Create a thread pool
 
-    # def loadPrompt(self, promptPath):
-    #     """
-    #     Load pre-defined prompt
-    #     """
-    #     with open(promptPath, 'r') as file:
-    #         promptDict = json.load(file)
-    #     # resource = QResource(self.promptPath)
-    #     # data = resource.data()
-    #     # if not resource.isValid():
-    #     #     show_variable_popup(resource)
-    #     # show_variable_popup(data)
-    #     #
-    #     # jsonStr = data.data().decode('utf-8')
-    #     #
-    #     # promptDict = json.loads(jsonStr)
-    #
-    #     return promptDict
-
-    # def _promptMaker(self, promptDict):
-    #     template = ''
-    #     for key, value in promptDict.items():
-    #         template += key + "\n\n" + value + "\n\n"
-    #
-    #     promptTemplate = ChatPromptTemplate.from_template(template)
-    #
-    #     return promptTemplate
-
     def classifier(self, userInput: str) -> str:
         """
         Base on the given `userInput`, decide if it is asking about producing workflow (model, code).
@@ -78,6 +59,7 @@ class Processor(QObject):
         """
         requestTime = getCurrentTimeStamp()
         classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier")
+        show_variable_popup(classifierPromptRow)
         classifierPrompt = ChatPromptTemplate.from_template(classifierPromptRow["template"])
 
         classifierChain = classifierPrompt | self.llm | self.outputParser
@@ -96,11 +78,35 @@ class Processor(QObject):
 
     def reactionRouter(self, userInput, responseType):
         decision = self.classifier(userInput)
+        show_variable_popup(decision)
 
-        if "no" in decision.lower():
-            generalChatResponse = self.generalChat(userInput)
+        if decision.lower() in ["no", "yes, yes", "yes, no"]:
+            if decision.lower() == "no":
+                generalChatResponse = self.generalChat(userInput)
 
-            return generalChatResponse, "empty"
+                return generalChatResponse, "empty"
+
+            elif decision.lower() == "yes, no":
+                if responseType == "Visual mode":
+                    modelProducerResponse = self.modelProducer(userInput)
+                    return modelProducerResponse, "withModel"
+                elif responseType == "Code":
+                    codeProducerResponse, interactionID = self.codeProducer(userInput)
+                    return codeProducerResponse, "withCode"
+                else:
+                    codeProducerResponse, interactionID = self.toolBoxProducer(userInput)
+                    return codeProducerResponse, "withToolbox"
+
+            else:
+                if responseType == "Visual mode":
+                    modelProducerResponse = self.modelRefine(userInput)
+                    return modelProducerResponse, "withModel"
+                elif responseType == "Code":
+                    codeProducerResponse, interactionID = self.codeRefine(userInput)
+                    return codeProducerResponse, "withCode"
+                else:
+                    codeProducerResponse, interactionID = self.toolBoxRefine(userInput)
+                    return codeProducerResponse, "withToolbox"
 
         elif "yes" in decision.lower():
             if responseType == "Visual mode":
@@ -121,15 +127,19 @@ class Processor(QObject):
 
         generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="generalChat")
         template = generalChatPromptRow["template"]
+        show_variable_popup(template)
         humanMessage = HumanMessage(template.format(input=userInput))
         messageList = [humanMessage]
 
         tools = [readEnvironment]
-        llmWithTools = self.llm.bind_tools(tools)
+        if self.llmName not in ["deepseek-reasoner"]:
+            llmWithTools = self.llm.bind_tools(tools)
+        else:
+            llmWithTools = self.llm
         llmMessage = llmWithTools.invoke(messageList)
         messageList.append(llmMessage)
 
-        if len(llmMessage.tool_calls) == 0:
+        if len(llmMessage.tool_calls) == 0 or self.llmName in ["deepseek-reasoner"]:
             contextText = ""
             chatReturn = self.outputParser.invoke(llmMessage)
 
@@ -144,6 +154,7 @@ class Processor(QObject):
             # langchain inference
             chatChain = llmWithTools | self.outputParser
             chatReturn = chatChain.invoke(messageList)
+        show_variable_popup(chatReturn)
         responseTime = getCurrentTimeStamp()
 
         # ["conversationID", "promptID",
@@ -221,17 +232,20 @@ class Processor(QObject):
 
         tools = [readEnvironment]
         toolDict = {"readenvironment": readEnvironment}
-        llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messageList)
-        messageList.append(llmMessage)
+        if self.llmName not in ["deepseek-reasoner"]:
+            llmWithTools = self.llm.bind_tools(tools)
+            llmMessage = llmWithTools.invoke(messageList)
+            messageList.append(llmMessage)
+        else:
+            llmWithTools = self.llm
 
-        for toolcall in llmMessage.tool_calls:
-            selectedTool = toolDict[toolcall["name"].lower()]
-            toolOutput = selectedTool.invoke(toolcall["args"])
-            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+        if self.llmName not in ["deepseek-reasoner"]:
+            for toolcall in llmMessage.tool_calls:
+                selectedTool = toolDict[toolcall["name"].lower()]
+                toolOutput = selectedTool.invoke(toolcall["args"])
+                messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------\n".join([message.content for message in messageList])
-        show_variable_popup(contextText)
         # langchain inference
         codeProducerChain = llmWithTools | self.outputParser
         codeReturn = codeProducerChain.invoke(messageList)
@@ -250,29 +264,11 @@ class Processor(QObject):
 
     def toolBoxProducer(self, userInput: str) -> tuple[str, str]:
         requestTime = getCurrentTimeStamp()
-        codeProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeProducer")
-        template = """
-                 Instructions:
-                 
-                 This LLM is a QGIS plugin named IntelliGEO.
-                 This LLM is a Python expert with a deep understanding of PyQGIS. This LLM is specialized in generating PyQGIS code scripts based on user descriptions.
-                 The user will provide specific requirements for a GIS task they need to accomplish, and goal of this LLM is to generate PyQGIS code for a custom algorithm to be added to the QGIS Processing Toolbox. Ensure to generate code for QGIS toolbox instead of scripts.
-                 Generate the code base on these documents and relevant examples: {doc}{example}
-                 
-                 Inputs:
-                 
-                 {input}
-                 
-                 Outputs:
-                 
-                 PyQGIS script:
-                 ```python
-                 # Insert your generated python code here base on the user description.
-                 ```
-                 """
+        toolBoxProducerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="toolBoxProducer")
+        template = toolBoxProducerPromptRow["template"]
 
         # get documentation
-        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=2)[0]
+        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=1)[0]
         docStr = ""
         for doc in retrievedDoc:
             docStr += "\n\n" + doc
@@ -291,17 +287,21 @@ class Processor(QObject):
 
         tools = [readEnvironment]
         toolDict = {"readenvironment": readEnvironment}
-        llmWithTools = self.llm.bind_tools(tools)
-        llmMessage = llmWithTools.invoke(messageList)
-        messageList.append(llmMessage)
+        if self.llmName not in ["deepseek-reasoner"]:
+            llmWithTools = self.llm.bind_tools(tools)
+            llmMessage = llmWithTools.invoke(messageList)
+            messageList.append(llmMessage)
+        else:
+            llmWithTools = self.llm
 
-        for toolcall in llmMessage.tool_calls:
-            selectedTool = toolDict[toolcall["name"].lower()]
-            toolOutput = selectedTool.invoke(toolcall["args"])
-            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+        if self.llmName not in ["deepseek-reasoner"]:
+            for toolcall in llmMessage.tool_calls:
+                selectedTool = toolDict[toolcall["name"].lower()]
+                toolOutput = selectedTool.invoke(toolcall["args"])
+                messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
 
         contextText = "-------------".join([message.content for message in messageList])
-        show_variable_popup(contextText)
+
         # langchain inference
         codeProducerChain = llmWithTools | self.outputParser
         codeReturn = codeProducerChain.invoke(messageList)
@@ -310,7 +310,7 @@ class Processor(QObject):
         # ["conversationID", "promptID",
         #  "requestText", "contextText", "requestTime", "typeMessage",
         #  "responseText", "responseTime", "workflow", "executionLog"]
-        interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
+        interactionRow = [self.conversationID, toolBoxProducerPromptRow["ID"],
                           userInput, contextText, requestTime, "return",
                           codeReturn, responseTime, "withCode", ""]
         interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
@@ -332,6 +332,7 @@ class Processor(QObject):
         worker.signals.finished.connect(
             lambda response, workflow: self.handleResponse(userInput, responseType, response, workflow)
         )
+        worker.signals.error.connect(self.errorHandling)
         self.threadpool.start(worker)  # Start the worker in the thread pool
 
     def handleResponse(self, userInput, responseType, response, workflow):
@@ -354,7 +355,7 @@ class Processor(QObject):
                                                           response,
                                                           workflow)
         )
-        worker.signals.error.connect(self.errorHandling())
+        worker.signals.error.connect(self.errorHandling)
         self.threadpool.start(worker)
 
     def handleReflect(self, logMessage, responseType, response, workflow):
@@ -375,6 +376,13 @@ class Processor(QObject):
             userInput = latestInteraction["requestText"]  # get the user Input
             AIResponse = latestInteraction["responseText"]  # get the AI response
 
+            reflectPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="reflect")
+            template = reflectPromptRow["template"]
+
+            humanMessage = HumanMessage(template.format(userInput=userInput, AIResponse=AIResponse,
+                                                        executedCode=executedCode, logMessage=logMessage))
+            show_variable_popup(humanMessage)
+            messageList = [humanMessage]
             prompt = f"""
                      Context:
                      
@@ -404,14 +412,13 @@ class Processor(QObject):
             #                AIMessage(content=AIResponse),
             #                HumanMessage(content=errorMessage)]
             #
-            # contextText = "-------------".join([message.content for message in messageList])
+            contextText = "-------------".join([message.content for message in messageList])
 
             codeDebuggerChain = self.llm | self.outputParser
-            codeReturn = codeDebuggerChain.invoke(prompt)
-            show_variable_popup("reflection finished")
+            codeReturn = codeDebuggerChain.invoke(messageList)
             responseTime = getCurrentTimeStamp()
             interactionRow = [self.conversationID, codeProducerPromptRow["ID"],
-                              userInput, prompt, requestTime, "return",
+                              userInput, contextText, requestTime, "return",
                               codeReturn, responseTime, "withModel", ""]
 
             interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
@@ -432,5 +439,68 @@ class Processor(QObject):
                 error_message = f"An error occurred at reflection:\n{str(e)}"
                 error_file.write(error_message)
 
-    def errorHandling(self):
-        pass
+    def modelRefine(self, userInput: str):
+        return ""
+
+    def codeRefine(self, userInput: str) -> tuple[str, str]:
+        requestTime = getCurrentTimeStamp()
+        codeRefinerPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="codeRefiner")
+        template = codeRefinerPromptRow["template"]
+
+        # get documentation
+        retrievedDoc = self.retrivalDatabase.retrieveDocument(userInput, topK=1)[0]
+        docStr = ""
+        for doc in retrievedDoc:
+            docStr += "\n\n" + doc
+
+        # get few-shot examples
+        retrievedExample = self.retrivalDatabase.retrieveExample(userInput, topK=2, exampleType="Script")[0]
+        exampleStr = ""
+        """
+        for example in retrievedExample:
+            exampleStr += "\n\n" + example
+        """
+        # get last interaction
+        latestInteractionRow = self.dataloader.selectLatestInteraction(self.conversationID,
+                                                                       self.latestInteractionID)
+        latestInteraction = pack(latestInteractionRow, "interaction")
+
+        # get the AI response
+        previousRequest, AIResponse = latestInteraction["requestText"], latestInteraction["responseText"]
+        show_variable_popup(previousRequest)
+        humanMessage = HumanMessage(template.format(input=userInput, previousRequest=previousRequest,
+                                                    previousResponse=AIResponse, doc=docStr, example=exampleStr))
+        show_variable_popup(humanMessage)
+        messageList = [humanMessage]
+
+        tools = [readEnvironment]
+        toolDict = {"readenvironment": readEnvironment}
+        llmWithTools = self.llm.bind_tools(tools)
+        llmMessage = llmWithTools.invoke(messageList)
+        messageList.append(llmMessage)
+
+        for toolcall in llmMessage.tool_calls:
+            selectedTool = toolDict[toolcall["name"].lower()]
+            toolOutput = selectedTool.invoke(toolcall["args"])
+            messageList.append(ToolMessage(toolOutput, tool_call_id=toolcall["id"]))
+
+        contextText = "-------------\n".join([message.content for message in messageList])
+        # langchain inference
+        codeProducerChain = llmWithTools | self.outputParser
+        codeReturn = codeProducerChain.invoke(messageList)
+        responseTime = getCurrentTimeStamp()
+
+        # ["conversationID", "promptID",
+        #  "requestText", "contextText", "requestTime", "typeMessage",
+        #  "responseText", "responseTime", "workflow", "executionLog"]
+        interactionRow = [self.conversationID, codeRefinerPromptRow["ID"],
+                          userInput, contextText, requestTime, "return",
+                          codeReturn, responseTime, "withCode", ""]
+        interactionID = self.dataloader.insertInteraction(interactionRow, self.conversationID)
+        self.latestInteractionID = interactionID
+
+        return codeReturn, interactionID
+
+    def errorHandling(self, error):
+        self.errorSignal.emit(error)
+

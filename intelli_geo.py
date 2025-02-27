@@ -25,17 +25,15 @@ import subprocess
 import sys
 import os
 import asyncio
+from .packageManager import PackageManager
 
-try:
-    import langchain_cohere, langchain_openai, langchain
-    import requests, psutil
-    from bs4 import BeautifulSoup
-except:
-    # Path to your requirements.txt file
-    scriptDir = os.path.dirname(os.path.abspath(__file__))
-    requirementsPath = os.path.join(scriptDir, 'requirements.txt')
-    # Run the pip install command
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirementsPath])
+requiredModules = [
+    'langchain_cohere', 'langchain_openai', 'langchain',
+    'langchain_deepseek', 'langchain_groq', 'requests',
+    'psutil', 'bs4'
+]
+packageManager = PackageManager(requiredModules)
+packageManager.checkDependencies()
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, QTimer, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard, QKeyEvent
@@ -50,7 +48,6 @@ from .resources import *
 from .intelli_geo_dockwidget import IntelliGeoDockWidget
 import os.path
 import re
-from qasync import QEventLoop
 
 # https://github.com/qgis/QGIS/tree/master/python/console
 # import 'console' folder in QGIS python package
@@ -64,7 +61,8 @@ from .digNewEditConversation import NewEditConversationDialog
 # Import plugin utilities
 from .dataloader import Dataloader
 from .conversation import Conversation
-from .utils import generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion
+from .utils import (generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion,
+                    showErrorMessage)
 from .retrievalVectorbase import RetrievalVectorbase
 from .debugDialog import DebugDialog
 
@@ -307,6 +305,8 @@ class IntelliGeo:
             slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
             self.dockwidget.displayConversationCard(self.dataloader, slotsFunctions)
 
+            self.dockwidget.modelClicked.connect(self.onOpenWorkflow)
+
     def onNewMessageSend(self):
         message = self.dockwidget.ptMessage.toPlainText()
         if message == "":
@@ -329,6 +329,7 @@ class IntelliGeo:
 
         if self.liveConversation is not None:
             self.liveConversation.llmResponse.connect(self.onNewResponseReceived)
+            self.liveConversation.llmInterrupted.connect(self.onNewResponseNotReceived)
             self.liveConversation.updateUserPrompt(message, responseType)
             self.dockwidget.disableAllButtons()
             self.dockwidget.disableAllTextEdit()
@@ -338,6 +339,7 @@ class IntelliGeo:
             self.dockwidget.enableAllButtons()
             self.dockwidget.enableAllTextEdit()
             self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
+            self.liveConversation.llmInterrupted.disconnect(self.onNewResponseNotReceived)
             # Python Console Interface: Load python code from response
             if workflow == "withCode":
                 code = extractCode(response)
@@ -362,6 +364,15 @@ class IntelliGeo:
 
             # Dataloader: Update meta-information
             self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
+
+    def onNewResponseNotReceived(self, errorMessage):
+        self.dockwidget.enableAllButtons()
+        self.dockwidget.enableAllTextEdit()
+        self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
+        self.liveConversation.llmInterrupted.disconnect(self.onNewResponseNotReceived)
+
+        # TODO: popup window
+        showErrorMessage(errorMessage)
 
     def onConversationNewed(self):
         if self.editdialog is None or not self.editdialog.isVisible():
@@ -395,7 +406,6 @@ class IntelliGeo:
                 self.dockwidget.addConversationCard(metaInfo, slotsFunctions)
 
     def onConversationLoad(self, conversationID):
-        show_variable_popup("hello !!!!")
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID
         self.liveConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
@@ -559,8 +569,6 @@ class IntelliGeo:
             if currentFullLogMessage.find(self.consoleText) == 0:
                 newLogText = currentFullLogMessage[len(self.consoleText):]
                 self.consoleText = currentFullLogMessage
-                show_variable_popup(newLogText)
-                show_variable_popup(newLogText.count('\n'))
                 if len(newLogText) == 0:
                     self.consoleTracker.stop()
                     return
@@ -592,7 +600,6 @@ class IntelliGeo:
             return
 
         code = extractCode(response)
-        show_variable_popup(code)
         self.consoleText = self.activateConsole(code, False)
         self.startConsoleTracker()
 
@@ -617,8 +624,7 @@ class IntelliGeo:
     def activateToolboxEditor(self, code, run):
         return
         # @ Zehao Lu
-        # shit code
-        # remember to fix later
+        # to be fixed later
         for action in iface.mainWindow().findChildren(QAction):
             if action.text() == "Processing Toolbox":  # Match by the button text
                 action.trigger()
@@ -653,5 +659,11 @@ class IntelliGeo:
                                     "Untitled Script - Processing Script Editor")):
                                 editor = topLevelChildwidget.findChild(QTextEdit)
                                 editor.setPlainText("hello")
+
+    def onOpenWorkflow(self, index):
+        show_variable_popup("onOpenWorkflow: " + str(index))
+        code = self.liveConversation.codeList[index]
+        self.activateConsole(code, False)
+
 
 

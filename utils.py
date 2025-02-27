@@ -1,5 +1,5 @@
 """
-`utils.py` contains tool functions that is useful but not n
+`utils.py` contains tool functions that is useful
 
 Created: May 2024
 Last modified by: Zehao Lu @com3dian
@@ -7,10 +7,10 @@ Last modified by: Zehao Lu @com3dian
 
 from datetime import datetime
 from functools import wraps
-from bs4 import BeautifulSoup
 from typing import Literal
 import uuid
 import re
+import os
 import requests
 import psutil
 
@@ -183,6 +183,9 @@ def nestedDict2list(fullDict: dict[list]) -> list:
 
 
 def extractCode(response: str) -> str:
+    """
+    extract code from llm response
+    """
     pattern = r'```python(.*?)```'
     match = re.search(pattern, response, re.DOTALL)
     if match:
@@ -369,6 +372,13 @@ def captchaPopup(captcha_dict):
     return None
 
 
+def setFontColor(bgColor):
+    luminance = (0.299 * bgColor.red() + 0.587 * bgColor.green() + 0.114 * bgColor.blue()) / 255
+    fontColor = "#F1F0E9" if luminance < 0.5 else "#181C14"
+
+    return fontColor
+    
+
 def createMarkdown(markdownText):
     # Regular expression to match Markdown code blocks
     codeBlockPattern = r"```(\w+)\n(.*?)```"
@@ -385,8 +395,136 @@ def createMarkdown(markdownText):
     return htmlText
 
 
+def countTokens(text: str, modelName: str) -> int:
+    encoding = tiktoken.encoding_for_model(modelName)
+
+    return len(encoding.encode(text))
+
+
+def trimText2TokenLimit(template, docPlaceholder, document, limit, modelName):
+    encoding = tiktoken.encoding_for_model(modelName)
+
+    tokens = encoding.encode(text)
+
+    templateWithoutDoc = template.format(docPlaceholder="")
+    tokens_used = count_tokens(template_without_doc)
+    max_model_tokens = 4  # or your model's max token limit
+    allowed_doc_tokens = max_model_tokens - tokens_used
+
+    if len(tokens) > limit:
+        # Take only the first 'limit' tokens and decode back to text.
+        tokens = tokens[:limit]
+        return encoding.decode(tokens)
+    return text
+
+
+def getIntelligeoEnvVar(nameVar):
+    # Get the user's home directory and construct the full file path
+    home_dir = os.path.expanduser("~")
+    file_path = os.path.join(home_dir, "Documents", "QGIS_IntelliGeo", "intelligeo_var.txt")
+
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        return ""
+
+    # Open and read the file safely
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            if "=" in line:  # Ensure the line contains an "="
+                key, value = line.strip().split("=", 1)  # Split only on the first "="
+                if key.strip() == nameVar:
+                    return value.strip().lower()  # Convert to lowercase
+    return ""
+
+
+def showErrorMessage(error):
+    fromDev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
+    if fromDev:
+        errorLogDir = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
+        os.makedirs(errorLogDir, exist_ok=True)
+        errorLogPath = os.path.join(errorLogDir, "error_log.txt")
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(errorLogPath, "a", encoding="utf-8") as f:
+            f.write(f"\n[{timestamp}]\n")
+            f.write(f"Error Type: {type(error).__name__}\n")
+
+            # Handle subprocess.CalledProcessError specifically
+            if hasattr(error, 'returncode'):
+                f.write(f"Command failed with exit code: {error.returncode}\n")
+
+            # Log error message
+            f.write(f"Error Message: {str(error)}\n")
+
+            # Handle output if available
+            if hasattr(error, 'output'):
+                f.write("=== Output and Error ===\n")
+                if isinstance(error.output, bytes):
+                    f.write(error.output.decode("utf-8", errors="replace"))
+                else:
+                    f.write(str(error.output))
+
+            # Include traceback for more context
+            import traceback
+            f.write("\n=== Traceback ===\n")
+            f.write(traceback.format_exc())
+
+            f.write("\n" + "-" * 50 + "\n")  # Add separator between entries
+
+    app = QApplication.instance()  # Get the existing QApplication instance
+    if not app:
+        app = QApplication([])  # Create a new instance if no instance exists
+
+    # Get the name of the variable from the caller's local variables
+    frame = inspect.currentframe().f_back
+    variableName = None
+    for name, val in frame.f_locals.items():
+        if val is error:
+            variableName = name
+            break
+
+    if variableName is None:
+        variableName = 'Unknown'
+
+    # Create the dialog
+    dialog = QDialog()
+    dialog.setWindowTitle('String and Variable Name')
+
+    # Create the scroll area
+    scrollArea = QScrollArea()
+    scrollArea.setWidgetResizable(True)
+
+    # Create a widget to hold the contents
+    contentWidget = QWidget()
+    contentLayout = QVBoxLayout(contentWidget)
+
+    # Add content to the layout
+    message = f'Variable Name: {variableName}\nString Value: {error}'
+    label = QLabel(message)
+    contentLayout.addWidget(label)
+
+    # Set the content widget to the scroll area
+    scrollArea.setWidget(contentWidget)
+
+    # Create the main layout and add the scroll area to it
+    mainLayout = QVBoxLayout(dialog)
+    mainLayout.addWidget(scrollArea)
+
+    # Set the dialog layout
+    dialog.setLayout(mainLayout)
+
+    # Show the dialog
+    dialog.exec_()
+
+    if not QApplication.instance():
+        app.exec_()  # Start the application loop if not already running
+
+
 def show_variable_popup(variable):
-    return
+    fromDev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
+    if not fromDev:
+        return
+
     app = QApplication.instance()  # Get the existing QApplication instance
     if not app:
         app = QApplication([])  # Create a new instance if no instance exists

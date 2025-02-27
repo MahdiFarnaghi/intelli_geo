@@ -45,7 +45,8 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.llmFullList = nestedDict2list(llmFullDict)
         for llmIDItem in self.llmFullList:
-            if llmIDItem == "default::default":
+            if llmIDItem in ["default::default",
+                             "OpenAI::o1"]:
                 continue
             self.cbLLM.addItem(llmIDItem)
 
@@ -60,13 +61,20 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
             self.cbLLM.setEnabled(False)
 
         currentIndex = self.cbLLM.currentIndex()
-        endpoint, apiKey = self.configfullList[currentIndex][-2:]
-        self.leAPIEndpoint.setText(endpoint)
-        self.leAPIEndpoint.setReadOnly(True)
+        currentLLMID = self.cbLLM.itemText(currentIndex)
+        show_variable_popup(self.configfullList)
+        for llmInfo in self.configfullList:
+            if currentLLMID == llmInfo[0]:
+                endpoint, apiKey = llmInfo[-2:]
 
-        # API key input lineEdit
-        self.leAPIKey.setText(apiKey)
-        self.leAPIKey.setEchoMode(QLineEdit.Password)
+                # endpoint, apiKey = self.configfullList[currentIndex][-2:]
+                self.leAPIEndpoint.setText(endpoint)
+                self.leAPIEndpoint.setReadOnly(True)
+
+                # API key input lineEdit
+                self.leAPIKey.setText(apiKey)
+                self.leAPIKey.setEchoMode(QLineEdit.Password)
+                break
 
         self.pbOkay.clicked.connect(self.handleOkay)
         self.pbCancel.clicked.connect(self.close)
@@ -97,9 +105,18 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
         self.accept()  # Close the dialog
 
     def onIndexChanged(self, index):
-        endpoint, apiKey = self.configfullList[index][-2:]
-        self.leAPIEndpoint.setText(endpoint)
-        self.leAPIKey.setText(apiKey)
+        currentLLMID = self.cbLLM.itemText(index)
+        for llmInfo in self.configfullList:
+            if currentLLMID == llmInfo[0]:
+                endpoint, apiKey = llmInfo[-2:]
+
+                self.leAPIEndpoint.setText(endpoint)
+                self.leAPIEndpoint.setReadOnly(True)
+
+                # API key input lineEdit
+                self.leAPIKey.setText(apiKey)
+                self.leAPIKey.setEchoMode(QLineEdit.Password)
+                break
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress and obj is self.ptName:
