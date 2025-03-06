@@ -10,7 +10,7 @@
 
 [IntelliGeo](https://plugins.qgis.org/plugins/intelli_geo/) is an open source [QGIS](https://www.qgis.org/) plugin designed to bring the power of Large Language Models (LLMs) to the QGIS platform, making geospatial analysis more intuitive and efficient.
 
-The plugin is in development phase. We just released version `0.0.3`: [IntelliGeo on QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/intelli_geo/#plugin-about). To see the version history check our [change log](https://www.intelligeo.org/change/).
+The plugin is in development phase. We just released version `0.1.0`: [IntelliGeo on QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/intelli_geo/#plugin-about). To see the version history check our [change log](https://www.intelligeo.org/change/).
 
 ## Use of LLMs
 
