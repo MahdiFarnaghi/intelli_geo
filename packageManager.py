@@ -16,7 +16,7 @@ class PackageManager:
 
         if self.extpluginDir not in sys.path:
             sys.path.append(self.extpluginDir)
-
+        print(f"extpluginDir: {self.extpluginDir}")
         self.dependencies = dependencies
         self.missingDependencies = []
 
@@ -25,6 +25,7 @@ class PackageManager:
         Check for missing dependencies and prompt the user to install them.
         """
         self.missingDependencies = [dep for dep in self.dependencies if not self._isModuleInstalled(dep)]
+        print("Missing dependencies:", self.missingDependencies)
         if self.missingDependencies:
             self._promptInstallation()
 
