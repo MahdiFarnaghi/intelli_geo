@@ -11,6 +11,12 @@ class PackageManager:
         Initialize with a list of required dependencies.
         :param dependencies: List of module names as strings.
         """
+        self.scriptDir = os.path.dirname(os.path.abspath(__file__))
+        self.extpluginDir = os.path.join(self.scriptDir, 'extlibs')
+
+        if self.extpluginDir not in sys.path:
+            sys.path.append(self.extpluginDir)
+
         self.dependencies = dependencies
         self.missingDependencies = []
 
@@ -62,15 +68,16 @@ class PackageManager:
         """
         Attempt to install missing dependencies using pip.
         """
-        scriptDir = os.path.dirname(os.path.abspath(__file__))
-        requirementsPath = os.path.join(scriptDir, 'requirements.txt')
+
+        requirementsPath = os.path.join(self.scriptDir, 'requirements.txt')
         try:
             from pip._internal import main as pip_main
         except ImportError:
             from pip import main as pip_main  # Fallback for older versions
 
         try:
-            pip_main(['install', '-r', requirementsPath])
+            # pip_main(['install', '-r', requirementsPath])
+            pip_main(['install', '--target', self.extpluginDir, '-r', requirementsPath])
             missingDependencies = [dep for dep in self.dependencies if not self._isModuleInstalled(dep)]
             if not missingDependencies:
                 return
