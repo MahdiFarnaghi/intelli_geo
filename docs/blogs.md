@@ -1,5 +1,21 @@
 # Blog Posts
 
+## **IntelliGeo** at ICT Open 2025
+
+IntelliGeo project was presented at NWO ICT.OPEN2025 which was held in Jaarbeurs Utrecht, 15 and 16 April 2025. The title of the poster by [Gustavo]() and [Mahdi]() was **"Fine-Tuning LLMs for Spatial Analysis and Modeling – An Initial Step"**. 
+
+**The abstract of the poster:**
+
+Geospatial Information Science (GIScience) is a multidisciplinary field focused on developing methods for managing and analyzing geographic data, which are essential for understanding the spatial and temporal dynamics of natural and human-made processes. These analyses often require the creation of complex models within Geographic Information Systems (GIS). However, building such models typically demands specialized, modeling-specific knowledge, making them accessible primarily to GIS professionals. To address this barrier, we leverage the emerging capabilities of Large Language Models (LLMs) to democratize GIS modeling. As part of this effort, we developed and deployed IntelliGeo, a QGIS plugin that functions as an AI-powered modeling assistant. Since no current LLM is fine-tuned for spatial analysis and modeling, IntelliGeo enhances the capabilities of general-purpose LLMs through two mechanisms: Retrieval-Augmented Generation (RAG) to supply GIS-specific information to LLMs, and Few-Shot Learning to provide examples of prompts for generating geodata processing models along with their expected outputs. By iteratively capturing and refining user inputs, IntelliGeo not only simplifies modeling efforts but also contributes to building a dataset for fine-tuning LLMs for spatial analysis and modeling. In this poster, we describe the implementation of IntelliGeo, with special emphasis on the RAG and Few-Shot mechanisms.
+
+The poster presented at the conference:
+
+<img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/ICT.Open IntelliGeo Poster.png" alt="ICT.Open 2025 - IntelliGeo Poster" width="600">
+
+
+**Keywords:** LLM, GIS, Fine-tuning, QGIS plugin, RAG, Few-Shot
+
+
 ## Workshop at [QGIS User Conference 2024](https://uc2024_qgis_sk_) in Bratislava
 
 In a [workshop](https://talks.osgeo.org/qgis-uc2024/talk/DNHKHQ/) at QGIS User Conference 2024, the **IntelliGeo** plugin was presented to the QGIS user community. We had a full room of interested people actively participating in the workshop. The workshop was started with an introduction to the IntelliGeo plugin and it's relation with AI/LLMs. Then the participants installed IntelliGeo, participated in a hands-on activity where they use the plugin to perform different GIS tasks. Finally, we had a very constructive feedback round where we collected amazing suggestion and collaboration opportunities. 
