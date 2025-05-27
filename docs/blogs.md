@@ -10,7 +10,7 @@ Geospatial Information Science (GIScience) is a multidisciplinary field focused 
 
 The poster presented at the conference:
 
-<img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/ICT.Open IntelliGeo Poster.png" alt="ICT.Open 2025 - IntelliGeo Poster" width="600">
+<img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/ICT_Open_IntelliGeo_Poster.png" alt="ICT.Open 2025 - IntelliGeo Poster" width="600">
 
 
 **Keywords:** LLM, GIS, Fine-tuning, QGIS plugin, RAG, Few-Shot
