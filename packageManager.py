@@ -91,26 +91,6 @@ class PackageManager:
         except ImportError:
             from pip import main as pip_main  # Fallback for older versions
 
-        # Installing dependencies to the default Python environment
-        try:
-            log_manager.log_debug(
-                f"Trying to install dependencies from requirements.txt to the default Python environment using pip_main. Path: {requirementsPath}"
-            )
-
-            pip_main(["install", "-r", requirementsPath])
-            missingDependencies = [
-                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
-            ]
-            if not missingDependencies:
-                log_manager.log_debug(
-                    f"All dependencies installed successfully in the default environment after running pip_main with {requirementsPath}."
-                )
-                return
-        except Exception as e:
-            log_manager.log_debug(
-                f"Exception occurred while installing dependencies to the default Python environment with pip_main. Error: {e}"
-            )
-            self._logError(e)
 
         # Installing dependencies to the extpluginDir
         try:
@@ -137,6 +117,27 @@ class PackageManager:
             )
             self._logError(e)
 
+        # Installing dependencies to the default Python environment
+        try:
+            log_manager.log_debug(
+                f"Trying to install dependencies from requirements.txt to the default Python environment using pip_main. Path: {requirementsPath}"
+            )
+
+            pip_main(["install", "-r", requirementsPath])
+            missingDependencies = [
+                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
+            ]
+            if not missingDependencies:
+                log_manager.log_debug(
+                    f"All dependencies installed successfully in the default environment after running pip_main with {requirementsPath}."
+                )
+                return
+        except Exception as e:
+            log_manager.log_debug(
+                f"Exception occurred while installing dependencies to the default Python environment with pip_main. Error: {e}"
+            )
+            self._logError(e)
+            
         # Attempt to install using the system pip command
         try:
             log_manager.log_debug(
