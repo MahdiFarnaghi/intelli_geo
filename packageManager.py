@@ -5,6 +5,7 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication
 from datetime import datetime
 from . import log_manager
+from . import utils
 
 
 class PackageManager:
@@ -18,14 +19,17 @@ class PackageManager:
 
         self.scriptDir = os.path.dirname(os.path.abspath(__file__))
         self.extpluginDir = os.path.join(self.scriptDir, "extlibs")
-        self.qgisPython = sys.executable.replace("/QGIS", "/bin/python3")
-        
+        self.qgisPython = utils.get_qgis_python_path()
+
         log_manager.log_debug(
-            f"QGIS Python executable: {self.qgisPython}\n scriptDir: {self.scriptDir}\n extpluginDir: {self.extpluginDir}"
+            f"QGIS Python executable: {self.qgisPython}\nscriptDir: {self.scriptDir}\nextpluginDir: {self.extpluginDir}"
         )
 
         if self.extpluginDir not in sys.path:
-            sys.path.append(self.extpluginDir)
+            sys.path.insert(0, self.extpluginDir)
+            log_manager.log_debug(
+                f"Added extpluginDir to sys.path: {self.extpluginDir}"
+            )
 
         print(f"extpluginDir: {self.extpluginDir}")
         self.dependencies = dependencies
@@ -86,65 +90,125 @@ class PackageManager:
 
     def _installDependencies(self):
         """
-        Attempt to install missing dependencies using pip.
+        Attempt to install missing dependencies using subprocess and pip.
+        Uses platform-aware logic and prioritizes installing to extpluginDir.
         """
-        log_manager.log_debug(
-            "Starting _installDependencies() to install missing dependencies."
-        )
 
-        requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
-        
-        try:
-            import pip
-            try:
-                from pip._internal import main as pip_main
-            except ImportError:
-                from pip import main as pip_main  # Fallback for older versions
-        except ImportError:
-            log_manager.log_debug("pip module not found. Attempting to bootstrap pip using ensurepip.")
-            # Try to bootstrap pip using ensurepip (if available)
-            try:
-                import ensurepip
-                ensurepip.bootstrap()
-                import pip
-                try:
-                    from pip._internal import main as pip_main
-                except ImportError:
-                    from pip import main as pip_main
-                QMessageBox.information(
-                    None,
-                    "pip Installed",
-                    "The 'pip' module was not found but has now been installed. Retrying dependency installation."
-                )
-            except Exception as e:
-                QMessageBox.critical(
-                    None,
-                    "pip Not Found",
-                    "The 'pip' module is not installed and could not be installed automatically. "
-                    "Please install pip manually and try again. "
-                    "For linux and macOS, you can use the following commands:\n"
-                    "`curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py`\n"
-                    f"`{self.qgisPython} /tmp/get-pip.py`\n"
-                    "You can also try upgrading pip with the command:\n"
-                    f"`{self.qgisPython} -m pip install --upgrade pip`\n"
-                    
-                )
-                log_manager.log_debug(f"pip module not found and ensurepip failed: {e}")
+        if not self._isPipAvailable():
+            log_manager.log_debug("pip is not available, attempting to install it.")
+            self._attemptInstallPip()
+            if not self._isPipAvailable():
                 return
 
-        # Installing dependencies to the extpluginDir
-        try:
-            if not os.path.exists(self.extpluginDir):  # Check if the directory exists
-                os.makedirs(self.extpluginDir, exist_ok=True)
-                log_manager.log_debug(f"Created extpluginDir: {self.extpluginDir}")
+        log_manager.log_debug("Starting _installDependencies() to install missing dependencies.")
+        requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
 
-            log_manager.log_debug(
-                f"Trying to install dependencies from requirements.txt to extpluginDir using pip_main with --target. Path: {requirementsPath}, Target: {self.extpluginDir}"
+        if not os.path.exists(requirementsPath):
+            log_manager.log_debug("requirements.txt not found.")
+            QMessageBox.critical(None, "Missing File", "Could not find requirements.txt.")
+            return
+
+        install_commands = [
+            {
+                "description": "Install to extpluginDir using QGIS Python",
+                "cmd": [
+                    self.qgisPython,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--upgrade",
+                    "--target",
+                    self.extpluginDir,
+                    "-r",
+                    requirementsPath,
+                ],
+            },
+            {
+                "description": "Fallback: Install to default QGIS Python environment",
+                "cmd": [
+                    self.qgisPython,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--upgrade",
+                    "-r",
+                    requirementsPath,
+                ],
+            },
+        ]
+
+        for attempt in install_commands:
+            try:
+                log_manager.log_debug(f"Attempting: {attempt['description']}")
+                subprocess.check_call(attempt["cmd"])
+                log_manager.log_debug(f"{attempt['description']} succeeded.")
+
+                missingDependencies = [
+                    dep for dep in self.dependencies if not self._isModuleInstalled(dep)
+                ]
+                if not missingDependencies:
+                    QMessageBox.information(
+                        None,
+                        "Installation Successful",
+                        "All required modules have been installed successfully.",
+                    )
+                    return
+                else:
+                    log_manager.log_debug(
+                        f"Still missing dependencies after {attempt['description']}: {missingDependencies}"
+                    )
+            except subprocess.CalledProcessError as e:
+                log_manager.log_debug(f"{attempt['description']} failed. Error: {e}")
+                self._logError(e)
+            except Exception as e:
+                log_manager.log_debug(f"Unexpected error during {attempt['description']}: {e}")
+                self._logError(e)
+
+        QMessageBox.critical(
+            None,
+            "Installation Failed",
+            "Failed to install the required modules. Please install them manually using the following command:\n\n"
+            f"{self.qgisPython} -m pip install --target {self.extpluginDir} -r {requirementsPath}\n\n"
+            "Make sure you have network access and sufficient permissions.",
+        )
+
+    def _forceInstallDependencies(self):
+        """
+        Attempt to force install missing dependencies using pip.
+        This uses subprocess and respects extpluginDir targeting.
+        """
+        requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
+
+        if not os.path.exists(requirementsPath):
+            log_manager.log_debug("requirements.txt not found.")
+            QMessageBox.critical(
+                None, "Missing File", "Could not find requirements.txt."
             )
+            return
 
-            pip_main(["install", "--target", self.extpluginDir, "-r", requirementsPath])
+        if not os.path.exists(self.extpluginDir):
+            os.makedirs(self.extpluginDir, exist_ok=True)
+            log_manager.log_debug(f"Created extpluginDir: {self.extpluginDir}")
 
-            # Ensure extpluginDir is in sys.path after installation
+        try:
+            log_manager.log_debug("Attempting forced installation using QGIS Python.")
+            subprocess.check_call(
+                [
+                    self.qgisPython,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--no-deps",
+                    "--force-reinstall",
+                    "--use-deprecated=legacy-resolver",
+                    "--target",
+                    self.extpluginDir,
+                    "-r",
+                    requirementsPath,
+                ]
+            )
+            log_manager.log_debug("Force install succeeded.")
+
             if self.extpluginDir not in sys.path:
                 sys.path.insert(0, self.extpluginDir)
                 log_manager.log_debug(
@@ -155,164 +219,25 @@ class PackageManager:
                 dep for dep in self.dependencies if not self._isModuleInstalled(dep)
             ]
             if not missingDependencies:
-                log_manager.log_debug(
-                    f"All dependencies installed successfully in extpluginDir after running pip_main with --target {self.extpluginDir}."
-                )
-                return
-        except Exception as e:
-            log_manager.log_debug(
-                f"Exception occurred while installing dependencies to extpluginDir with pip_main. Error: {e}"
-            )
-            self._logError(e)
-
-        # Installing dependencies to the default Python environment
-        try:
-            log_manager.log_debug(
-                f"Trying to install dependencies from requirements.txt to the default Python environment using pip_main. Path: {requirementsPath}"
-            )
-
-            pip_main(["install", "-r", requirementsPath])
-            missingDependencies = [
-                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
-            ]
-            if not missingDependencies:
-                log_manager.log_debug(
-                    f"All dependencies installed successfully in the default environment after running pip_main with {requirementsPath}."
-                )
-                return
-        except Exception as e:
-            log_manager.log_debug(
-                f"Exception occurred while installing dependencies to the default Python environment with pip_main. Error: {e}"
-            )
-            self._logError(e)
-
-        # Attempt to install using the system pip command
-        try:
-            log_manager.log_debug(
-                f"Trying to install dependencies using system pip via os.system('python -m pip install -r {requirementsPath}')"
-            )
-            os.system(f"python -m pip install -r {requirementsPath}")
-            missingDependencies = [
-                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
-            ]
-            if not missingDependencies:
-                log_manager.log_debug(
-                    "All dependencies installed successfully using system pip command."
-                )
-                return
-        except Exception as e:
-            log_manager.log_debug(
-                f"Exception occurred while installing dependencies using system pip command. Error: {e}"
-            )
-            self._logError(e)
-
-        # Attempt to install using the QGIS Python interpreter
-        try:
-            # Determine the path to the QGIS Python interpreter
-            
-            log_manager.log_debug(
-                f"Trying to install dependencies using QGIS Python interpreter at {self.qgisPython} with subprocess.check_output."
-            )
-
-            # Install each missing dependency
-            output = subprocess.check_output(
-                [self.qgisPython, "-m", "pip", "install", "-r", requirementsPath],
-                stderr=subprocess.STDOUT,
-            )
-
-            log_manager.log_debug(
-                "All dependencies installed successfully using QGIS Python interpreter."
-            )
-
-            QMessageBox.information(
-                None,
-                "Installation Successful",
-                "All required modules have been installed successfully. Please restart QGIS to apply changes.",
-            )
-        except subprocess.CalledProcessError as e:
-            log_manager.log_debug(
-                f"subprocess.CalledProcessError occurred while installing dependencies using the QGIS Python interpreter: {e}"
-            )
-            self._logError(e)
-            reply = QMessageBox.question(
-                None,
-                "Installation Failed",
-                "Failed to install the required modules. Would you like to attempt a forced installation? "
-                'If you choose "No," you can manually install the dependencies by running `pip install -r'
-                "requirements.txt` in the console located in the plugin folder. To locate the plugin folder, navigate"
-                'within QGIS to "Settings" > "User Profile" > "Open Active Profile Folder," then open the "IntelliGeo"'
-                "folder.",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
-            )
-            if reply == QMessageBox.Yes:
-                self._forceInstallDependencies()
-            else:
-                # No action needed if the user selects No
-                pass
-
-    def _forceInstallDependencies(self):
-        """
-        Attempt to force install missing dependencies using pip.
-        """
-        scriptDir = os.path.dirname(os.path.abspath(__file__))
-        requirementsPath = os.path.join(scriptDir, "requirements.txt")
-
-        try:
-            from pip._internal import main as pip_main
-        except ImportError:
-            from pip import main as pip_main  # Fallback for older versions
-
-        try:
-            pip_main(["install", "-r", requirementsPath])
-            missingDependencies = [
-                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
-            ]
-            if not missingDependencies:
-                return
-
-        except Exception as e:
-            self._logError(e)
-            os.system(
-                f"python -m pip install --no-deps --force-reinstall --use-deprecated=legacy-resolver "
-                f"-r {requirementsPath}"
-            )
-            missingDependencies = [
-                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
-            ]
-            if not missingDependencies:
-                return
-
-            try:
-                # Install each missing dependency
-                output = subprocess.check_output(
-                    [
-                        self.qgisPython,
-                        "-m",
-                        "pip",
-                        "install",
-                        "--no-deps",
-                        "--force-reinstall",
-                        "--use-deprecated=legacy-resolver",
-                        "-r",
-                        requirementsPath,
-                    ],
-                    stderr=subprocess.STDOUT,
-                )
-
                 QMessageBox.information(
                     None,
                     "Installation Successful",
                     "All required modules have been installed successfully. Please restart QGIS to apply changes.",
                 )
-            except subprocess.CalledProcessError as e:
-                self._logError(e)
-                QMessageBox.critical(
-                    None,
-                    "Installation Failed",
-                    "Failed to install the required modules. Please install them manually or consult the error log"
-                    "for details.",
-                )
+                return
+
+        except subprocess.CalledProcessError as e:
+            log_manager.log_debug(f"Force install failed with CalledProcessError: {e}")
+            self._logError(e)
+        except Exception as e:
+            log_manager.log_debug(f"Force install failed with unexpected error: {e}")
+            self._logError(e)
+
+        QMessageBox.critical(
+            None,
+            "Force Installation Failed",
+            "Failed to force install the required modules. Please install them manually or consult the error log for details.",
+        )
 
     def _logError(self, error):
         """
@@ -350,3 +275,99 @@ class PackageManager:
             f.write(traceback.format_exc())
 
             f.write("\n" + "-" * 50 + "\n")  # Add separator between entries
+
+    def _isPipAvailable(self):
+        """
+        Check whether pip is available in the current Python environment.
+        :return: True if pip is importable, False otherwise.
+        """
+        try:
+            import pip
+
+            return True
+        except ImportError:
+            return False
+
+    def _attemptInstallPip(self):
+        """
+        Attempt to install pip for the QGIS Python interpreter.
+        Handles macOS, Windows, and Linux platforms with appropriate guidance.
+        """
+        import platform
+        import shutil
+
+        log_manager.log_debug("Attempting to install pip for QGIS Python.")
+
+        system = platform.system()
+
+        if system == "Darwin":
+            QMessageBox.information(
+                None,
+                "Manual pip Installation Required (macOS)",
+                "Automatic pip installation is not supported on macOS due to QGIS's protected Python environment.\n\n"
+                "Please run the following commands in Terminal:\n\n"
+                "curl https://bootstrap.pypa.io/get-pip.py -o ~/Downloads/get-pip.py\n"
+                f"{self.qgisPython} ~/Downloads/get-pip.py\n\n"
+                "Then restart QGIS.",
+            )
+            return
+
+        get_pip_url = "https://bootstrap.pypa.io/get-pip.py"
+        get_pip_path = os.path.join(self.scriptDir, "get-pip.py")
+
+        try:
+            import urllib.request
+            urllib.request.urlretrieve(get_pip_url, get_pip_path)
+            log_manager.log_debug(f"Downloaded get-pip.py to {get_pip_path}")
+        except Exception as e:
+            log_manager.log_debug(f"Failed to download get-pip.py: {e}")
+            self._logError(e)
+            QMessageBox.critical(
+                None,
+                "Download Failed",
+                "Could not download get-pip.py. Please check your network connection and try again.",
+            )
+            return
+
+        cmd = [self.qgisPython, get_pip_path]
+        try:
+            subprocess.check_call(cmd)
+            log_manager.log_debug("pip installed successfully.")
+            QMessageBox.information(
+                None,
+                "pip Installed",
+                "pip has been successfully installed in the QGIS Python environment.",
+            )
+        except subprocess.CalledProcessError as e:
+            log_manager.log_debug(f"pip installation failed with CalledProcessError: {e}")
+            self._logError(e)
+
+            if system == "Linux":
+                suggestion = (
+                    "Automated pip installation failed. On Ubuntu/Debian systems, you can install pip manually using:\n\n"
+                    "sudo apt install python3-pip\n\n"
+                    f"Then run:\n{self.qgisPython} -m pip install --target path/to/extlibs -r requirements.txt"
+                )
+            else:
+                suggestion = f"Automated pip installation failed. Try running:\n\n{self.qgisPython} {get_pip_path}"
+
+            QMessageBox.critical(
+                None,
+                "Installation Failed",
+                suggestion,
+            )
+        except Exception as e:
+            log_manager.log_debug(f"Unexpected error during pip installation: {e}")
+            self._logError(e)
+            QMessageBox.critical(
+                None,
+                "Installation Failed",
+                "An unexpected error occurred while attempting to install pip.",
+            )
+        finally:
+            try:
+                if os.path.exists(get_pip_path):
+                    os.remove(get_pip_path)
+                    log_manager.log_debug(f"Cleaned up get-pip.py from {get_pip_path}")
+            except Exception as cleanup_error:
+                log_manager.log_debug(f"Failed to remove get-pip.py: {cleanup_error}")

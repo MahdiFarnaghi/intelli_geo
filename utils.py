@@ -15,9 +15,47 @@ import requests
 import psutil
 
 from qgis.core import Qgis
-from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QDialog, QScrollArea, QVBoxLayout,
-                             QWidget, QMessageBox, QPushButton, QLineEdit)
+from PyQt5.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QDialog,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+    QMessageBox,
+    QPushButton,
+    QLineEdit,
+)
 import inspect
+import sys
+import os
+import platform
+
+
+def get_qgis_python_path():
+    """
+    Return the path to the Python interpreter used by QGIS.
+    Handles macOS, Windows, and Linux.
+    """
+    python_path = sys.executable
+
+    system = platform.system()
+
+    if system == "Darwin" and python_path.endswith("QGIS"):
+        python_path = os.path.join(os.path.dirname(python_path), "bin", "python3")
+
+    elif system == "Windows" and "QGIS" in python_path:
+        # Windows typical structure: C:\Program Files\QGIS <version>\bin\python.exe
+        # Usually correct already, but logic can be extended
+        pass  # optional handling if needed
+
+    elif system == "Linux" and "qgis" in python_path.lower():
+        possible_path = os.path.join(os.path.dirname(python_path), "bin", "python3")
+        if os.path.exists(possible_path):
+            python_path = possible_path
+
+    return python_path
 
 
 def generateUniqueID():
@@ -57,11 +95,12 @@ def handleNoneConversation(func):
 
 
 def formatDescription(description):
-    return description + '\n'
+    return description + "\n"
 
 
-def unpack(rowDict: dict,
-           table: Literal["conversation", "interaction", "prompt"]) -> list:
+def unpack(
+    rowDict: dict, table: Literal["conversation", "interaction", "prompt"]
+) -> list:
     """
     Unpacks a dictionary containing row data into a list of values based on the specified table type.
 
@@ -110,12 +149,31 @@ def unpack(rowDict: dict,
     # make pycharm happy
     colnameList = []
     if table == "conversation":
-        colnameList = ["ID", "llmID", "title", "description",
-                       "created", "modified", "messageCount", "workflowCount",
-                       "userID"]
+        colnameList = [
+            "ID",
+            "llmID",
+            "title",
+            "description",
+            "created",
+            "modified",
+            "messageCount",
+            "workflowCount",
+            "userID",
+        ]
     elif table == "interaction":
-        colnameList = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime", "typeMessage",
-                       "responseText", "responseTime", "workflow", "executionLog"]
+        colnameList = [
+            "ID",
+            "conversationID",
+            "promptID",
+            "requestText",
+            "contextText",
+            "requestTime",
+            "typeMessage",
+            "responseText",
+            "responseTime",
+            "workflow",
+            "executionLog",
+        ]
     elif table == "prompt":
         colnameList = ["ID", "llmID", "version", "template", "promptType"]
 
@@ -129,8 +187,9 @@ def unpack(rowDict: dict,
     return rowList
 
 
-def pack(rowTuple: tuple,
-         table: Literal["conversation", "interaction", "prompt"]) -> dict:
+def pack(
+    rowTuple: tuple, table: Literal["conversation", "interaction", "prompt"]
+) -> dict:
     """
     Converts a tuple of row data into a dictionary with column names as keys.
     Raise valueError: If the table type is not "conversation", "interaction" or "prompt".
@@ -142,13 +201,31 @@ def pack(rowTuple: tuple,
     colnameList = []
 
     if table == "conversation":
-        colnameList = ["ID", "llmID", "title", "description",
-                       "created", "modified", "messageCount", "workflowCount",
-                       "userID"]
+        colnameList = [
+            "ID",
+            "llmID",
+            "title",
+            "description",
+            "created",
+            "modified",
+            "messageCount",
+            "workflowCount",
+            "userID",
+        ]
     elif table == "interaction":
-        colnameList = ["ID", "conversationID", "promptID",
-                       "requestText", "contextText", "requestTime", "typeMessage",
-                       "responseText", "responseTime", "workflow", "executionLog"]
+        colnameList = [
+            "ID",
+            "conversationID",
+            "promptID",
+            "requestText",
+            "contextText",
+            "requestTime",
+            "typeMessage",
+            "responseText",
+            "responseTime",
+            "workflow",
+            "executionLog",
+        ]
     elif table == "prompt":
         colnameList = ["ID", "llmID", "version", "template", "promptType"]
 
@@ -161,11 +238,12 @@ def pack(rowTuple: tuple,
 
 def getVersion():
     fullVersion = Qgis.QGIS_VERSION
-    return ".".join(fullVersion.split('.')[:2])
+    return ".".join(fullVersion.split(".")[:2])
 
 
-def tuple2Dict(allRowList: list[tuple],
-               table: Literal["conversation", "interaction", "prompt"]) -> list[dict]:
+def tuple2Dict(
+    allRowList: list[tuple], table: Literal["conversation", "interaction", "prompt"]
+) -> list[dict]:
     result = []
     for rowTuple in allRowList:
         result.append(pack(rowTuple, table))
@@ -186,7 +264,7 @@ def extractCode(response: str) -> str:
     """
     extract code from llm response
     """
-    pattern = r'```python(.*?)```'
+    pattern = r"```python(.*?)```"
     match = re.search(pattern, response, re.DOTALL)
     if match:
         return match.group(1).strip()
@@ -195,13 +273,13 @@ def extractCode(response: str) -> str:
 
 
 def extractXml(response: str) -> str:
-    pattern = r'```xml(.*?)```'
+    pattern = r"```xml(.*?)```"
     match = re.search(pattern, response, re.DOTALL)
     if match:
         return match.group(1).strip()
     else:
-        startMarker = '```xml'
-        endMarker = '>'
+        startMarker = "```xml"
+        endMarker = ">"
         substring = None
 
         startIndex = response.rfind(startMarker)
@@ -209,7 +287,7 @@ def extractXml(response: str) -> str:
             startIndex += len(startMarker)
             endIndex = response.rfind(endMarker, startIndex)
             if endIndex != -1:
-                substring = response[startIndex:(endIndex + len(endMarker))]
+                substring = response[startIndex : (endIndex + len(endMarker))]
 
         if substring:
             return substring
@@ -240,16 +318,17 @@ def readURL(url: str):
     """
     response = requests.get(url)
     if response.status_code != 200:
-        raise Exception(f"Failed to retrieve the webpage. Status code: {response.status_code}")
+        raise Exception(
+            f"Failed to retrieve the webpage. Status code: {response.status_code}"
+        )
 
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, "html.parser")
     pageText = soup.get_text()
 
     return pageText
 
 
-def splitAtPattern(inputStr: str,
-                   pattern: str = r'13.*?\n'):
+def splitAtPattern(inputStr: str, pattern: str = r"13.*?\n"):
     # Find all matches of the pattern in the input string
     matches = re.finditer(pattern, inputStr)
 
@@ -275,7 +354,7 @@ def splitAtPattern(inputStr: str,
 
 def cleanLatin1String(inputString: str):
     # Encode to latin-1 and decode to handle non-latin-1 characters
-    return inputString.encode('latin-1', 'replace').decode('latin-1')
+    return inputString.encode("latin-1", "replace").decode("latin-1")
 
 
 def getSystemInfo():
@@ -287,15 +366,18 @@ def getSystemInfo():
     interfaces = psutil.net_if_addrs()
 
     # Filter only Ethernet interfaces (assuming Ethernet uses AF_LINK)
-    ethInterfaces = [iface for iface, addrs in interfaces.items() if
-                     any(addr.family == psutil.AF_LINK for addr in addrs)]
+    ethInterfaces = [
+        iface
+        for iface, addrs in interfaces.items()
+        if any(addr.family == psutil.AF_LINK for addr in addrs)
+    ]
 
     qgisVersion = getVersion()
 
     systemInfo = {
         "macID": cleanLatin1String(macAddresses[0]) if macAddresses else "N/A",
-        "ethInterfaces": cleanLatin1String(', '.join(ethInterfaces)),
-        "qgisVersion": qgisVersion
+        "ethInterfaces": cleanLatin1String(", ".join(ethInterfaces)),
+        "qgisVersion": qgisVersion,
     }
 
     return systemInfo
@@ -309,7 +391,9 @@ def captchaPopup(captcha_dict):
     :param captcha_dict: Dictionary containing the captcha question and values.
     :return: The user's answer if confirmed, None if canceled, and nothing if no button is clicked.
     """
-    app = QApplication.instance() or QApplication([])  # Create a QApplication if it doesn't exist
+    app = QApplication.instance() or QApplication(
+        []
+    )  # Create a QApplication if it doesn't exist
 
     # Create a QDialog as the main window
     dialog = QDialog()
@@ -319,7 +403,7 @@ def captchaPopup(captcha_dict):
     layout = QVBoxLayout()
 
     # Create and add the label with the question
-    question_label = QLabel(captcha_dict.get('question', ''))
+    question_label = QLabel(captcha_dict.get("question", ""))
     layout.addWidget(question_label)
 
     # Create and add the QLineEdit for user input
@@ -373,11 +457,13 @@ def captchaPopup(captcha_dict):
 
 
 def setFontColor(bgColor):
-    luminance = (0.299 * bgColor.red() + 0.587 * bgColor.green() + 0.114 * bgColor.blue()) / 255
+    luminance = (
+        0.299 * bgColor.red() + 0.587 * bgColor.green() + 0.114 * bgColor.blue()
+    ) / 255
     fontColor = "#F1F0E9" if luminance < 0.5 else "#181C14"
 
     return fontColor
-    
+
 
 def createMarkdown(markdownText):
     # Regular expression to match Markdown code blocks
@@ -421,7 +507,9 @@ def trimText2TokenLimit(template, docPlaceholder, document, limit, modelName):
 def getIntelligeoEnvVar(nameVar):
     # Get the user's home directory and construct the full file path
     home_dir = os.path.expanduser("~")
-    file_path = os.path.join(home_dir, "Documents", "QGIS_IntelliGeo", "intelligeo_var.txt")
+    file_path = os.path.join(
+        home_dir, "Documents", "QGIS_IntelliGeo", "intelligeo_var.txt"
+    )
 
     # Check if the file exists
     if not os.path.exists(file_path):
@@ -450,14 +538,14 @@ def showErrorMessage(error):
             f.write(f"Error Type: {type(error).__name__}\n")
 
             # Handle subprocess.CalledProcessError specifically
-            if hasattr(error, 'returncode'):
+            if hasattr(error, "returncode"):
                 f.write(f"Command failed with exit code: {error.returncode}\n")
 
             # Log error message
             f.write(f"Error Message: {str(error)}\n")
 
             # Handle output if available
-            if hasattr(error, 'output'):
+            if hasattr(error, "output"):
                 f.write("=== Output and Error ===\n")
                 if isinstance(error.output, bytes):
                     f.write(error.output.decode("utf-8", errors="replace"))
@@ -466,6 +554,7 @@ def showErrorMessage(error):
 
             # Include traceback for more context
             import traceback
+
             f.write("\n=== Traceback ===\n")
             f.write(traceback.format_exc())
 
@@ -484,11 +573,11 @@ def showErrorMessage(error):
             break
 
     if variableName is None:
-        variableName = 'Unknown'
+        variableName = "Unknown"
 
     # Create the dialog
     dialog = QDialog()
-    dialog.setWindowTitle('String and Variable Name')
+    dialog.setWindowTitle("String and Variable Name")
 
     # Create the scroll area
     scrollArea = QScrollArea()
@@ -499,7 +588,7 @@ def showErrorMessage(error):
     contentLayout = QVBoxLayout(contentWidget)
 
     # Add content to the layout
-    message = f'Variable Name: {variableName}\nString Value: {error}'
+    message = f"Variable Name: {variableName}\nString Value: {error}"
     label = QLabel(message)
     contentLayout.addWidget(label)
 
@@ -538,11 +627,11 @@ def show_variable_popup(variable):
             break
 
     if variable_name is None:
-        variable_name = 'Unknown'
+        variable_name = "Unknown"
 
     # Create the dialog
     dialog = QDialog()
-    dialog.setWindowTitle('String and Variable Name')
+    dialog.setWindowTitle("String and Variable Name")
 
     # Create the scroll area
     scroll_area = QScrollArea()
@@ -553,7 +642,7 @@ def show_variable_popup(variable):
     content_layout = QVBoxLayout(content_widget)
 
     # Add content to the layout
-    message = f'Variable Name: {variable_name}\nString Value: {variable}'
+    message = f"Variable Name: {variable_name}\nString Value: {variable}"
     label = QLabel(message)
     content_layout.addWidget(label)
 
