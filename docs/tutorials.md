@@ -4,7 +4,7 @@
 
 This tutorial was prepared as part of the workshop "AI-powered model building in QGIS," held at the [QGIS UC25](https://talks.osgeo.org/qgis-uc2025/talk/H3SKPN/).
 
-Requirements for this tutorial: 
+Requirements for this tutorial:  
 - QGIS >= 3.0.0  
 - IntelliGeo plugin >= 0.1.0  
 - [Sample project]()  
@@ -17,7 +17,7 @@ The sample project includes data from two data sources: [Movebank](https://www.m
 
 ### Creating a new conversation
 
-**Figure 1** illustrates the process to create a new conversation: 
+**Figure 1** illustrates the process to create a new conversation:  
 1. click in the new conversation icon  
 2. Provide a name  
 3. Provide a description  
@@ -47,6 +47,53 @@ In this section, you will interact with **IntelliGeo** to request general inform
 
 ### Processing with a single data layer
 
+No.: 6  
+
+Prompt: Create a script to calculate the number of data points for each bat in the layer in the workspace "bats_data."  
+
+Expected output: Script to calculate the number of points for each bat.  
+
+Example output:
+
+Sure, here is a PyQGIS script that calculates the number of data points for each bat in the "bats_data" layer.  
+  
+```python
+# Import necessary modules
+from qgis.core import QgsProject
+
+# Get the project instance
+project = QgsProject.instance()
+
+# Get the "bats_data" layer
+layer = project.mapLayersByName('bats_data')[0]
+
+# Check if the layer is valid
+if not layer.isValid():
+    print("Layer failed to load!")
+else:
+    # Create a dictionary to store the count of data points for each bat
+    bat_counts = {}
+
+    # Iterate over each feature (data point) in the layer
+    for feature in layer.getFeatures():
+        # Get the bat name from the feature's attributes
+        bat_name = feature['bat_name']
+
+        # If the bat name is already in the dictionary, increment the count
+        if bat_name in bat_counts:
+            bat_counts[bat_name] += 1
+        # If the bat name is not in the dictionary, add it with a count of 1
+        else:
+            bat_counts[bat_name] = 1
+
+    # Print the count of data points for each bat
+    for bat, count in bat_counts.items():
+        print(f"Bat {bat} has {count} data points.")
+```  
+  
+This script first gets the "bats_data" layer from the current QGIS project. It then iterates over each feature (data point) in the layer, getting the bat name from the feature's attributes. The script keeps a count of the number of data points for each bat in a dictionary. Finally, it prints out the count of data points for each bat.  
+  
+---  
 
 
 ### Processing with two data layers
