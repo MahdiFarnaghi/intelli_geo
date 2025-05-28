@@ -95,25 +95,31 @@ class PackageManager:
         # Installing dependencies to the extpluginDir
         try:
             if not os.path.exists(self.extpluginDir):  # Check if the directory exists
-                os.makedirs(self.extpluginDir, exist_ok=True)
-                log_manager.log_debug(f"Created extpluginDir: {self.extpluginDir}")
+            os.makedirs(self.extpluginDir, exist_ok=True)
+            log_manager.log_debug(f"Created extpluginDir: {self.extpluginDir}")
 
             log_manager.log_debug(
-                f"Trying to install dependencies from requirements.txt to extpluginDir using pip_main with --target. Path: {requirementsPath}, Target: {self.extpluginDir}"
+            f"Trying to install dependencies from requirements.txt to extpluginDir using pip_main with --target. Path: {requirementsPath}, Target: {self.extpluginDir}"
             )
 
             pip_main(["install", "--target", self.extpluginDir, "-r", requirementsPath])
+
+            # Ensure extpluginDir is in sys.path after installation
+            if self.extpluginDir not in sys.path:
+            sys.path.insert(0, self.extpluginDir)
+            log_manager.log_debug(f"Added extpluginDir to sys.path: {self.extpluginDir}")
+
             missingDependencies = [
-                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
+            dep for dep in self.dependencies if not self._isModuleInstalled(dep)
             ]
             if not missingDependencies:
-                log_manager.log_debug(
-                    f"All dependencies installed successfully in extpluginDir after running pip_main with --target {self.extpluginDir}."
-                )
-                return
+            log_manager.log_debug(
+                f"All dependencies installed successfully in extpluginDir after running pip_main with --target {self.extpluginDir}."
+            )
+            return
         except Exception as e:
             log_manager.log_debug(
-                f"Exception occurred while installing dependencies to extpluginDir with pip_main. Error: {e}"
+            f"Exception occurred while installing dependencies to extpluginDir with pip_main. Error: {e}"
             )
             self._logError(e)
 
@@ -137,7 +143,7 @@ class PackageManager:
                 f"Exception occurred while installing dependencies to the default Python environment with pip_main. Error: {e}"
             )
             self._logError(e)
-            
+
         # Attempt to install using the system pip command
         try:
             log_manager.log_debug(
