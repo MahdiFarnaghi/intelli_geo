@@ -19,7 +19,6 @@ class PackageManager:
         self.scriptDir = os.path.dirname(os.path.abspath(__file__))
         self.extpluginDir = os.path.join(self.scriptDir, "extlibs")
 
-
         if self.extpluginDir not in sys.path:
             sys.path.append(self.extpluginDir)
 
@@ -31,7 +30,11 @@ class PackageManager:
         """
         Check for missing dependencies and prompt the user to install them.
         """
-        log_manager.log_debug("Checking dependencies with checkDependencies(): {}".format(self.dependencies))
+        log_manager.log_debug(
+            "Checking dependencies with checkDependencies(): {}".format(
+                self.dependencies
+            )
+        )
 
         self.missingDependencies = [
             dep for dep in self.dependencies if not self._isModuleInstalled(dep)
@@ -80,7 +83,7 @@ class PackageManager:
         """
         Attempt to install missing dependencies using pip.
         """
-        log_manager.log_debug("Installing dependencies with _installDependencies()")
+        log_manager.log_debug("Starting _installDependencies() to install missing dependencies.")
 
         requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
         try:
@@ -88,66 +91,117 @@ class PackageManager:
         except ImportError:
             from pip import main as pip_main  # Fallback for older versions
 
-        # TODO : First, it needs to try to install the dependencies in the default Python environment. If not, then it should go through the following approach
+        # Installing dependencies to the default Python environment
         try:
-            # pip_main(['install', '-r', requirementsPath])
-            if not os.path.exists(self.extpluginDir):  # Ensure the extpluginDir exists
+            log_manager.log_debug(
+                f"Trying to install dependencies from requirements.txt to the default Python environment using pip_main. Path: {requirementsPath}"
+            )
+
+            pip_main(["install", "-r", requirementsPath])
+            missingDependencies = [
+                dep for dep in self.dependencies if not self._isModuleInstalled(dep)
+            ]
+            if not missingDependencies:
+                log_manager.log_debug(
+                    f"All dependencies installed successfully in the default environment after running pip_main with {requirementsPath}."
+                )
+                return
+        except Exception as e:
+            log_manager.log_debug(
+                f"Exception occurred while installing dependencies to the default Python environment with pip_main. Error: {e}"
+            )
+            self._logError(e)
+
+        # Installing dependencies to the extpluginDir
+        try:
+            if not os.path.exists(self.extpluginDir):  # Check if the directory exists
                 os.makedirs(self.extpluginDir, exist_ok=True)
                 log_manager.log_debug(f"Created extpluginDir: {self.extpluginDir}")
-            
-            log_manager.log_debug(f"Installing dependencies from {requirementsPath} to {self.extpluginDir}")
-    
+
+            log_manager.log_debug(
+                f"Trying to install dependencies from requirements.txt to extpluginDir using pip_main with --target. Path: {requirementsPath}, Target: {self.extpluginDir}"
+            )
+
             pip_main(["install", "--target", self.extpluginDir, "-r", requirementsPath])
             missingDependencies = [
                 dep for dep in self.dependencies if not self._isModuleInstalled(dep)
             ]
             if not missingDependencies:
-                log_manager.log_debug(f"No missing dependencies after installing {requirementsPath} to {self.extpluginDir}")
+                log_manager.log_debug(
+                    f"All dependencies installed successfully in extpluginDir after running pip_main with --target {self.extpluginDir}."
+                )
                 return
-
         except Exception as e:
-            log_manager.log_debug(f"Error installing dependencies from {requirementsPath}: {e}")
+            log_manager.log_debug(
+                f"Exception occurred while installing dependencies to extpluginDir with pip_main. Error: {e}"
+            )
             self._logError(e)
+
+        # Attempt to install using the system pip command
+        try:
+            log_manager.log_debug(
+                f"Trying to install dependencies using system pip via os.system('python -m pip install -r {requirementsPath}')"
+            )
             os.system(f"python -m pip install -r {requirementsPath}")
             missingDependencies = [
                 dep for dep in self.dependencies if not self._isModuleInstalled(dep)
             ]
             if not missingDependencies:
+                log_manager.log_debug(
+                    "All dependencies installed successfully using system pip command."
+                )
                 return
+        except Exception as e:
+            log_manager.log_debug(
+                f"Exception occurred while installing dependencies using system pip command. Error: {e}"
+            )
+            self._logError(e)
 
-            try:
-                # Determine the path to the QGIS Python interpreter
-                qgisPython = sys.executable
+        # Attempt to install using the QGIS Python interpreter
+        try:
+            # Determine the path to the QGIS Python interpreter
+            qgisPython = sys.executable
 
-                # Install each missing dependency
-                output = subprocess.check_output(
-                    [qgisPython, "-m", "pip", "install", "-r", requirementsPath],
-                    stderr=subprocess.STDOUT,
-                )
+            log_manager.log_debug(
+                f"Trying to install dependencies using QGIS Python interpreter at {qgisPython} with subprocess.check_output."
+            )
 
-                QMessageBox.information(
-                    None,
-                    "Installation Successful",
-                    "All required modules have been installed successfully. Please restart QGIS to apply changes.",
-                )
-            except subprocess.CalledProcessError as e:
-                self._logError(e)
-                reply = QMessageBox.question(
-                    None,
-                    "Installation Failed",
-                    "Failed to install the required modules. Would you like to attempt a forced installation? "
-                    'If you choose "No," you can manually install the dependencies by running `pip install -r'
-                    "requirements.txt` in the console located in the plugin folder. To locate the plugin folder, navigate"
-                    'within QGIS to "Settings" > "User Profile" > "Open Active Profile Folder," then open the "IntelliGeo"'
-                    "folder.",
-                    QMessageBox.Yes | QMessageBox.No,
-                    QMessageBox.No,
-                )
-                if reply == QMessageBox.Yes:
-                    self._forceInstallDependencies()
-                else:
-                    # No action needed if the user selects No
-                    pass
+            # Install each missing dependency
+            output = subprocess.check_output(
+                [qgisPython, "-m", "pip", "install", "-r", requirementsPath],
+                stderr=subprocess.STDOUT,
+            )
+
+            log_manager.log_debug(
+                "All dependencies installed successfully using QGIS Python interpreter."
+            )
+
+            QMessageBox.information(
+                None,
+                "Installation Successful",
+                "All required modules have been installed successfully. Please restart QGIS to apply changes.",
+            )
+        except subprocess.CalledProcessError as e:
+            log_manager.log_debug(
+                f"subprocess.CalledProcessError occurred while installing dependencies using the QGIS Python interpreter: {e}"
+            )
+            self._logError(e)
+            reply = QMessageBox.question(
+                None,
+                "Installation Failed",
+                "Failed to install the required modules. Would you like to attempt a forced installation? "
+                'If you choose "No," you can manually install the dependencies by running `pip install -r'
+                "requirements.txt` in the console located in the plugin folder. To locate the plugin folder, navigate"
+                'within QGIS to "Settings" > "User Profile" > "Open Active Profile Folder," then open the "IntelliGeo"'
+                "folder.",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            if reply == QMessageBox.Yes:
+                self._forceInstallDependencies()
+            else:
+                # No action needed if the user selects No
+                pass
 
     def _forceInstallDependencies(self):
         """
