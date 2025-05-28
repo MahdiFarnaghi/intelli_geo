@@ -18,6 +18,11 @@ class PackageManager:
 
         self.scriptDir = os.path.dirname(os.path.abspath(__file__))
         self.extpluginDir = os.path.join(self.scriptDir, "extlibs")
+        self.qgisPython = sys.executable
+        
+        log_manager.log_debug(
+            f"QGIS Python executable: {self.qgisPython}\n scriptDir: {self.scriptDir}\n extpluginDir: {self.extpluginDir}"
+        )
 
         if self.extpluginDir not in sys.path:
             sys.path.append(self.extpluginDir)
@@ -116,7 +121,11 @@ class PackageManager:
                     None,
                     "pip Not Found",
                     "The 'pip' module is not installed and could not be installed automatically. "
-                    "Please install pip manually and try again."
+                    "Please install pip manually. For linux and macOS, you can use the command:\n"
+                    f"`{self.qgisPython.replace("/QGIS", "/bin/python3")} -m ensurepip --upgrade`.\n"
+                    "You can also try upgrading pip with the command:\n"
+                    f"`{self.qgisPython.replace("/QGIS", "/bin/python3")} -m pip install --upgrade pip`.\n"
+                    
                 )
                 log_manager.log_debug(f"pip module not found and ensurepip failed: {e}")
                 return
@@ -198,15 +207,14 @@ class PackageManager:
         # Attempt to install using the QGIS Python interpreter
         try:
             # Determine the path to the QGIS Python interpreter
-            qgisPython = sys.executable
-
+            
             log_manager.log_debug(
-                f"Trying to install dependencies using QGIS Python interpreter at {qgisPython} with subprocess.check_output."
+                f"Trying to install dependencies using QGIS Python interpreter at {self.qgisPython} with subprocess.check_output."
             )
 
             # Install each missing dependency
             output = subprocess.check_output(
-                [qgisPython, "-m", "pip", "install", "-r", requirementsPath],
+                [self.qgisPython, "-m", "pip", "install", "-r", requirementsPath],
                 stderr=subprocess.STDOUT,
             )
 
@@ -274,13 +282,10 @@ class PackageManager:
                 return
 
             try:
-                # Determine the path to the QGIS Python interpreter
-                qgisPython = sys.executable
-
                 # Install each missing dependency
                 output = subprocess.check_output(
                     [
-                        qgisPython,
+                        self.qgisPython,
                         "-m",
                         "pip",
                         "install",
