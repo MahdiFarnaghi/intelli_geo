@@ -34,11 +34,11 @@ debug_logger.debug("=== New Logging Session Started ===")
 
 def log_debug(message):
     if config.DEBUG_MODE:
-        debug_logger.debug(f"{'-'*60}\n{message}")
+        debug_logger.debug(f"\n{message}\n{'-'*60}")
         
 def log_error(message, exc=None):
     if exc:
         trace = traceback.format_exc()
-        error_logger.error(f"{message}\n{trace}")
+        error_logger.error(f"{message}\n{trace}\n{'-'*60}")
     else:
         error_logger.error(message)
