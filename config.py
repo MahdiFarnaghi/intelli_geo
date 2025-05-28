@@ -1,9 +1,17 @@
 import os
-from dotenv import load_dotenv
 
-plugin_dir = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(plugin_dir, ".env")
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
+def load_env_file(path=None):
+    """Load environment variables from a .env file."""
+    if path is None:
+        path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(path):
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    key, value = line.split("=", 1)
+                    os.environ[key.strip()] = value.strip()
+
+load_env_file()
 
 DEBUG_MODE = os.environ.get("INTELLIGEO_DEBUG", "False") == "True"

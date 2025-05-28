@@ -88,10 +88,38 @@ class PackageManager:
         )
 
         requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
+        
         try:
-            from pip._internal import main as pip_main
+            import pip
+            try:
+                from pip._internal import main as pip_main
+            except ImportError:
+                from pip import main as pip_main  # Fallback for older versions
         except ImportError:
-            from pip import main as pip_main  # Fallback for older versions
+            log_manager.log_debug("pip module not found. Attempting to bootstrap pip using ensurepip.")
+            # Try to bootstrap pip using ensurepip (if available)
+            try:
+                import ensurepip
+                ensurepip.bootstrap()
+                import pip
+                try:
+                    from pip._internal import main as pip_main
+                except ImportError:
+                    from pip import main as pip_main
+                QMessageBox.information(
+                    None,
+                    "pip Installed",
+                    "The 'pip' module was not found but has now been installed. Retrying dependency installation."
+                )
+            except Exception as e:
+                QMessageBox.critical(
+                    None,
+                    "pip Not Found",
+                    "The 'pip' module is not installed and could not be installed automatically. "
+                    "Please install pip manually and try again."
+                )
+                log_manager.log_debug(f"pip module not found and ensurepip failed: {e}")
+                return
 
         # Installing dependencies to the extpluginDir
         try:
