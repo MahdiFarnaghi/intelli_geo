@@ -34,7 +34,7 @@ debug_logger.debug("=== New Logging Session Started ===")
 
 def log_debug(message):
     if config.DEBUG_MODE:
-        debug_logger.debug(f"-"*60 + f"{message}")
+        debug_logger.debug(f"{'-'*60}\n{message}")
         
 def log_error(message, exc=None):
     if exc:
