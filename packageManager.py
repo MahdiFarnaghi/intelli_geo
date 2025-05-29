@@ -42,16 +42,18 @@ class PackageManager:
         Handles macOS, Windows, and Linux.
         """
         python_path = sys.executable
-
         system = platform.system()
 
         if system == "Darwin" and python_path.endswith("QGIS"):
             python_path = os.path.join(os.path.dirname(python_path), "bin", "python3")
 
-        elif system == "Windows" and "QGIS" in python_path:
-            # Windows typical structure: C:\Program Files\QGIS <version>\bin\python.exe
-            # Usually correct already, but logic can be extended
-            pass  # optional handling if needed
+        elif system == "Windows":
+            # Typically: C:\Program Files\QGIS <version>\bin\qgis-bin.exe
+            # We want:   C:\Program Files\QGIS <version>\bin\python.exe
+            qgis_bin_dir = os.path.dirname(python_path)
+            candidate = os.path.join(qgis_bin_dir, "python.exe")
+            if os.path.exists(candidate):
+                python_path = candidate
 
         elif system == "Linux" and "qgis" in python_path.lower():
             possible_path = os.path.join(os.path.dirname(python_path), "bin", "python3")
@@ -165,8 +167,14 @@ class PackageManager:
         for attempt in install_commands:
             try:
                 log_manager.log_debug(f"Attempting: {attempt['description']}")
-                subprocess.check_call(attempt["cmd"])
-                log_manager.log_debug(f"{attempt['description']} succeeded.")
+                result = subprocess.run(
+                    attempt["cmd"],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                log_manager.log_debug(f"{attempt['description']} stdout:\n{result.stdout}")
+                log_manager.log_debug(f"{attempt['description']} stderr:\n{result.stderr}")
 
                 missingDependencies = [
                     dep for dep in self.dependencies if not self._isModuleInstalled(dep)
@@ -183,7 +191,8 @@ class PackageManager:
                         f"Still missing dependencies after {attempt['description']}: {missingDependencies}"
                     )
             except subprocess.CalledProcessError as e:
-                log_manager.log_debug(f"{attempt['description']} failed. Error: {e}")
+                stderr = getattr(e, "stderr", None)
+                log_manager.log_debug(f"{attempt['description']} failed: {stderr}")
                 self._logError(e)
             except Exception as e:
                 log_manager.log_debug(f"Unexpected error during {attempt['description']}: {e}")

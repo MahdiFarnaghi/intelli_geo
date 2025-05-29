@@ -19,21 +19,28 @@
 
 5. **Compile the interface using `pb_tool`:**
     - Install `pb_tool` using pip:
+
         ```
         pip install pb-tool
         ```
+
     - Install `pyqt5ac` using pip:
+
         ```
         pip install pyqt5ac
         ```
+
     - On Linux, due to a [known issue](https://github.com/qgis/QGIS/issues/48368#issuecomment-1293898268), installing Qt via pip may cause incompatibility with QT5. The solution is to install the following packages:
+
         ```
         sudo apt-get install python3-pyqt5
         sudo apt-get install qtcreator pyqt5-dev-tools
         sudo apt-get install qttools5-dev-tools
         ```
+
     - Verify if `pb_tool.exe` is located in the Python environment’s scripts folder.
     - Navigate to the `intelli_geo` module folder in the terminal and run:
+
         ```
         pbt compile
         ```
@@ -63,12 +70,14 @@ If you want to contribute to the IntelliGeo project but are not part of the team
 ## Contributing to the Project - Team Members
 
 1. **Pull the latest version of the `main` branch:**
+
     ```
     git checkout main
     git pull origin main
     ```
 
 2. **Create a new branch:**
+
     ```
     git checkout -b <new_branch_name>
     ```
@@ -76,16 +85,19 @@ If you want to contribute to the IntelliGeo project but are not part of the team
 3. **Make your changes.**
 
 4. **Stage your changes:**
+
     ```
     git add .
     ```
 
 5. **Commit your changes:**
+
     ```
     git commit -m "Detailed message about the changes"
     ```
 
 6. **Push the branch for review:**
+
     ```
     git push origin <new_branch_name>
     ```
@@ -107,14 +119,17 @@ The recommended way to package the plugin is by using [pb_tool](https://g-sherma
 
 1. Ensure that all necessary files are listed in the pbtool.config file under the [files] section. This includes: `python_files` for Python source code, `main_dialog` and `compiled_ui_files` for UI files. If you have updated any icons and need to compile them, run:
 
-  ```
-  pb_tool compile
-  ```
+    ```
+    pb_tool compile
+    ```
+
 2. Next, create the ZIP package by running:
-  ```
-  pb_tool zip
-  ```
-  The generated ZIP file will be located in the zip_build folder.
+
+    ```
+    pb_tool zip
+    ```
+  
+    The generated ZIP file will be located in the zip_build folder.
 
 3. To release you should go to the [plugin hub](https://plugins.qgis.org), logged in with Mahdi's account, click on `Add Verion` and upload the zip file, remember to add proper changlog.
 
@@ -135,11 +150,13 @@ The project's documentation is managed using **MkDocs**. Documentation is genera
 To test the documentation locally, follow these steps:
 
 1. Install the required packages by running:
+
    ```
    pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin
    ```
 
 2. Navigate to the `IntelliGeo` folder, then start the local server with:
+
    ```
    mkdocs serve
    ```

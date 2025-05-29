@@ -43,7 +43,7 @@ requiredModules = [
     "langchain_groq",
     "requests",
     "psutil",
-    "bs4",
+    #"bs4",
 ]
 packageManager = PackageManager(requiredModules)
 packageManager.checkDependencies()

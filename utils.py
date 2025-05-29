@@ -270,37 +270,37 @@ def extractXml(response: str) -> str:
             return ""
 
 
-def readURL(url: str):
-    """
-    Fetches and returns the text content of a webpage from a given URL.
+# def readURL(url: str):
+#     """
+#     Fetches and returns the text content of a webpage from a given URL.
 
-    This function sends a GET request to the provided URL and checks for a successful response.
-    If the status code is not 200 (OK), it raises an exception. Otherwise, it parses the webpage's
-    content and extracts all the text, removing HTML tags.
+#     This function sends a GET request to the provided URL and checks for a successful response.
+#     If the status code is not 200 (OK), it raises an exception. Otherwise, it parses the webpage's
+#     content and extracts all the text, removing HTML tags.
 
-    Args:
-        url (str): The URL of the webpage to retrieve.
+#     Args:
+#         url (str): The URL of the webpage to retrieve.
 
-    Returns:
-        str: The plain text content of the webpage.
+#     Returns:
+#         str: The plain text content of the webpage.
 
-    Raises:
-        Exception: If the webpage cannot be retrieved (i.e., response status code is not 200).
+#     Raises:
+#         Exception: If the webpage cannot be retrieved (i.e., response status code is not 200).
 
-    Example:
-        >>> page_text = readURL("https://example.com")
-        # page_text will contain the text content of the webpage.
-    """
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise Exception(
-            f"Failed to retrieve the webpage. Status code: {response.status_code}"
-        )
+#     Example:
+#         >>> page_text = readURL("https://example.com")
+#         # page_text will contain the text content of the webpage.
+#     """
+#     response = requests.get(url)
+#     if response.status_code != 200:
+#         raise Exception(
+#             f"Failed to retrieve the webpage. Status code: {response.status_code}"
+#         )
 
-    soup = BeautifulSoup(response.content, "html.parser")
-    pageText = soup.get_text()
+#     soup = BeautifulSoup(response.content, "html.parser")
+#     pageText = soup.get_text()
 
-    return pageText
+#     return pageText
 
 
 def splitAtPattern(inputStr: str, pattern: str = r"13.*?\n"):
