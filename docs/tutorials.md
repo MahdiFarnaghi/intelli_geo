@@ -47,6 +47,8 @@ In this section, you will interact with **IntelliGeo** to request general inform
 
 ### Processing with a single data layer
 
+In this section, you will generate scripts to process a single data layer.  
+
 **No.:** 6  
 
 **Prompt:** Create a script to calculate the number of data points for each bat in the layer in the workspace "bats_data."  
@@ -93,8 +95,31 @@ else:
   
 This script first gets the "bats_data" layer from the current QGIS project. It then iterates over each feature (data point) in the layer, getting the bat name from the feature's attributes. The script keeps a count of the number of data points for each bat in a dictionary. Finally, it prints out the count of data points for each bat.  
   
+**Example execution:**
+```python
+Bat Bat4_3D6001852B980 has 1466 data points.
+Bat Bat5_3D6001852B98C has 1397 data points.
+Bat Bat1_3D6001852B958 has 1265 data points.
+Bat Bat6_3D6001852B98E has 1435 data points.
+Bat Bat3_3D6001852B978 has 1568 data points.
+Bat Bat2_3D6001852B95D has 219 data points.
+Bat Bat8_3D6001852B9A7 has 900 data points.
+Bat Bat7_3D6001852B9A3 has 1623 data points.
+```
+
 ---  
 
+**No.:** 7  
+
+**Prompt:**   
+
+**Expected output:**   
+
+**Example output:**
+
+**Example execution:**  
+
+---  
 
 ### Processing with two data layers
 
