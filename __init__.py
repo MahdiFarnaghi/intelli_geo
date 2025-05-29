@@ -23,6 +23,18 @@
  This script initializes the plugin, making it known to QGIS.
 """
 
+import os
+import sys
+
+scriptDir = os.path.dirname(os.path.abspath(__file__))
+extpluginDir = os.path.join(scriptDir, "extlibs")
+
+if not os.path.exists(extpluginDir):
+    os.makedirs(extpluginDir, exist_ok=True)
+
+if extpluginDir not in sys.path:
+    sys.path.insert(0, extpluginDir)
+
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
@@ -34,4 +46,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
 
     from .intelli_geo import IntelliGeo
+
     return IntelliGeo(iface)

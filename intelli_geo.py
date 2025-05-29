@@ -21,24 +21,54 @@
  *                                                                         *
  ***************************************************************************/
 """
+from . import log_manager
+
+log_manager.log_debug(
+    "IntelliGeo plugin is starting... Debug mode is "
+)
+
+
 import subprocess
 import sys
 import os
 import asyncio
 from .packageManager import PackageManager
 
+
 requiredModules = [
-    'langchain_cohere', 'langchain_openai', 'langchain',
-    'langchain_deepseek', 'langchain_groq', 'requests',
-    'psutil', 'bs4'
+    "langchain_cohere",
+    "langchain_openai",
+    "langchain",
+    "langchain_deepseek",
+    "langchain_groq",
+    "requests",
+    "psutil",
+    #"bs4",
 ]
 packageManager = PackageManager(requiredModules)
 packageManager.checkDependencies()
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, QTimer, pyqtSignal
+from qgis.PyQt.QtCore import (
+    QSettings,
+    QTranslator,
+    QCoreApplication,
+    Qt,
+    QThread,
+    QTimer,
+    pyqtSignal,
+)
 from qgis.PyQt.QtGui import QIcon, QTextCursor, QClipboard, QKeyEvent
-from qgis.PyQt.QtWidgets import (QAction, QDialog, QPushButton, QWidget, QPlainTextEdit, QDockWidget, QApplication,
-                                 QToolButton, QMenu)
+from qgis.PyQt.QtWidgets import (
+    QAction,
+    QDialog,
+    QPushButton,
+    QWidget,
+    QPlainTextEdit,
+    QDockWidget,
+    QApplication,
+    QToolButton,
+    QMenu,
+)
 from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
@@ -52,6 +82,7 @@ import re
 # https://github.com/qgis/QGIS/tree/master/python/console
 # import 'console' folder in QGIS python package
 import console
+
 # import 'processing' folder in QGIS pytho package
 from processing.modeler.ModelerDialog import ModelerDialog
 
@@ -61,8 +92,15 @@ from .digNewEditConversation import NewEditConversationDialog
 # Import plugin utilities
 from .dataloader import Dataloader
 from .conversation import Conversation
-from .utils import (generateUniqueID, getCurrentTimeStamp, pack, show_variable_popup, extractCode, getVersion,
-                    showErrorMessage)
+from .utils import (
+    generateUniqueID,
+    getCurrentTimeStamp,
+    pack,
+    show_variable_popup,
+    extractCode,
+    getVersion,
+    showErrorMessage,
+)
 from .retrievalVectorbase import RetrievalVectorbase
 from .debugDialog import DebugDialog
 
@@ -87,11 +125,10 @@ class IntelliGeo:
         self.plugin_dir = os.path.dirname(__file__)
 
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = QSettings().value("locale/userLocale")[0:2]
         locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'IntelliGeo_{}.qm'.format(locale))
+            self.plugin_dir, "i18n", "IntelliGeo_{}.qm".format(locale)
+        )
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -100,12 +137,12 @@ class IntelliGeo:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&IntelliGeo')
+        self.menu = self.tr("&IntelliGeo")
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'IntelliGeo')
-        self.toolbar.setObjectName(u'IntelliGeo')
+        self.toolbar = self.iface.addToolBar("IntelliGeo")
+        self.toolbar.setObjectName("IntelliGeo")
 
-        #print "** INITIALIZING IntelliGeo"
+        # print "** INITIALIZING IntelliGeo"
 
         self.pluginIsActive = False
         self.dockwidget = None
@@ -136,19 +173,20 @@ class IntelliGeo:
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('IntelliGeo', message)
+        return QCoreApplication.translate("IntelliGeo", message)
 
     def add_action(
-            self,
-            icon_path,
-            text,
-            callback,
-            enabled_flag=True,
-            add_to_menu=True,
-            add_to_toolbar=True,
-            status_tip=None,
-            whats_this=None,
-            parent=None):
+        self,
+        icon_path,
+        text,
+        callback,
+        enabled_flag=True,
+        add_to_menu=True,
+        add_to_toolbar=True,
+        status_tip=None,
+        whats_this=None,
+        parent=None,
+    ):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -203,9 +241,7 @@ class IntelliGeo:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            self.iface.addPluginToMenu(self.menu, action)
 
         self.actions.append(action)
 
@@ -214,19 +250,20 @@ class IntelliGeo:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/intelli_geo/icon.png'
+        icon_path = ":/plugins/intelli_geo/icon.png"
         self.add_action(
             icon_path,
-            text=self.tr(u'Open IntelliGeo'),
+            text=self.tr("Open IntelliGeo"),
             callback=self.run,
-            parent=self.iface.mainWindow())
+            parent=self.iface.mainWindow(),
+        )
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
-        #print "** CLOSING IntelliGeo"
+        # print "** CLOSING IntelliGeo"
 
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
@@ -243,17 +280,15 @@ class IntelliGeo:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        #print "** UNLOAD IntelliGeo"
+        # print "** UNLOAD IntelliGeo"
 
         for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&IntelliGeo'),
-                action)
+            self.iface.removePluginMenu(self.tr("&IntelliGeo"), action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def run(self):
         """Run method that loads and starts the plugin"""
@@ -296,13 +331,19 @@ class IntelliGeo:
             self.dockwidget.pbNew.clicked.connect(self.onConversationNewed)
 
             # connect push button 'pbSearchConversationCard' to onSearchConversationCard action
-            self.dockwidget.pbSearchConversationCard.clicked.connect(self.onSearchConversationCard)
+            self.dockwidget.pbSearchConversationCard.clicked.connect(
+                self.onSearchConversationCard
+            )
             self.dockwidget.searchPressed.connect(self.onSearchConversationCard)
 
             self.dockwidget.switchClearMode.connect(self.switchClearMode)
 
             # a bit functional?
-            slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
+            slotsFunctions = [
+                self.onConversationLoad,
+                self.onConversationDeleted,
+                self.onConversationEdited,
+            ]
             self.dockwidget.displayConversationCard(self.dataloader, slotsFunctions)
 
             self.dockwidget.modelClicked.connect(self.onOpenWorkflow)
@@ -339,7 +380,9 @@ class IntelliGeo:
             self.dockwidget.enableAllButtons()
             self.dockwidget.enableAllTextEdit()
             self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
-            self.liveConversation.llmInterrupted.disconnect(self.onNewResponseNotReceived)
+            self.liveConversation.llmInterrupted.disconnect(
+                self.onNewResponseNotReceived
+            )
             # Python Console Interface: Load python code from response
             if workflow == "withCode":
                 code = extractCode(response)
@@ -359,8 +402,14 @@ class IntelliGeo:
             self.dockwidget.updateGeneralInfo(self.liveConversation)
 
             # Dock Interface: Update conversation cards
-            slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
-            self.dockwidget.updateConversationCard(self.liveConversation.metaInfo, slotsFunctions)
+            slotsFunctions = [
+                self.onConversationLoad,
+                self.onConversationDeleted,
+                self.onConversationEdited,
+            ]
+            self.dockwidget.updateConversationCard(
+                self.liveConversation.metaInfo, slotsFunctions
+            )
 
             # Dataloader: Update meta-information
             self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
@@ -376,47 +425,76 @@ class IntelliGeo:
 
     def onConversationNewed(self):
         if self.editdialog is None or not self.editdialog.isVisible():
-            self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict, self.dataloader.fetchAllConfig())
+            self.editdialog = NewEditConversationDialog(
+                self.dataloader.llmFullDict, self.dataloader.fetchAllConfig()
+            )
             self.editdialog.show()
             if self.editdialog.exec_() == QDialog.Accepted:
                 # The dialog was accepted, handle the data if needed
-                title, description, llmID, endpoint, apiKey = self.editdialog.onUpdateMetadata()
+                title, description, llmID, endpoint, apiKey = (
+                    self.editdialog.onUpdateMetadata()
+                )
                 created = getCurrentTimeStamp()
                 modified = created
                 sessionID, _ = self.dataloader.loadCredential()
                 self.liveConversationID = f"{sessionID}_" + generateUniqueID()
 
-                metaInfo = pack((self.liveConversationID, llmID, title, description,
-                                 created, modified, 0, 0, f"{sessionID}"),
-                                "conversation")
+                metaInfo = pack(
+                    (
+                        self.liveConversationID,
+                        llmID,
+                        title,
+                        description,
+                        created,
+                        modified,
+                        0,
+                        0,
+                        f"{sessionID}",
+                    ),
+                    "conversation",
+                )
 
                 # Dataloader: Create corresponding table in database & update apikey
                 self.dataloader.createConversation(metaInfo)
                 self.dataloader.updateAPIKey(apiKey, llmID)
 
                 # Conversation: Update live conversation to new conversation
-                self.liveConversation = Conversation(self.liveConversationID, self.dataloader, self.retrievalVectorbase)
+                self.liveConversation = Conversation(
+                    self.liveConversationID, self.dataloader, self.retrievalVectorbase
+                )
 
                 # update dock widget
                 self.dockwidget.twTabs.setCurrentWidget(self.dockwidget.tbMessages)
                 self.dockwidget.updateConversation(self.liveConversation)
                 self.dockwidget.updateGeneralInfo(self.liveConversation)
 
-                slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
+                slotsFunctions = [
+                    self.onConversationLoad,
+                    self.onConversationDeleted,
+                    self.onConversationEdited,
+                ]
                 self.dockwidget.addConversationCard(metaInfo, slotsFunctions)
 
     def onConversationLoad(self, conversationID):
         # Conversation: Load or create conversation
         self.liveConversationID = conversationID
-        self.liveConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
+        self.liveConversation = Conversation(
+            conversationID, self.dataloader, self.retrievalVectorbase
+        )
         self.liveConversation.lastEdit = getCurrentTimeStamp()
 
         # Dataloader: Sync meta-information to database
         self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
 
         # Dock Interface: Change the order of the Conversation Cards
-        slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
-        self.dockwidget.updateConversationCard(self.liveConversation.metaInfo, slotsFunctions)
+        slotsFunctions = [
+            self.onConversationLoad,
+            self.onConversationDeleted,
+            self.onConversationEdited,
+        ]
+        self.dockwidget.updateConversationCard(
+            self.liveConversation.metaInfo, slotsFunctions
+        )
         # Dock Interface: Switch to dock 'Conversations' & refresh the content
         self.dockwidget.twTabs.setCurrentWidget(self.dockwidget.tbMessages)
         self.dockwidget.updateConversation(self.liveConversation)
@@ -452,17 +530,27 @@ class IntelliGeo:
 
         # New/Edit Dialog Interface: If no dialog, create one
         if self.editdialog is None or not self.editdialog.isVisible():
-            editConversation = Conversation(conversationID, self.dataloader, self.retrievalVectorbase)
-            self.editdialog = NewEditConversationDialog(self.dataloader.llmFullDict,
-                                                        self.dataloader.fetchAllConfig(),
-                                                        editConversation.title,
-                                                        editConversation.description,
-                                                        editConversation.llmID)
+            editConversation = Conversation(
+                conversationID, self.dataloader, self.retrievalVectorbase
+            )
+            self.editdialog = NewEditConversationDialog(
+                self.dataloader.llmFullDict,
+                self.dataloader.fetchAllConfig(),
+                editConversation.title,
+                editConversation.description,
+                editConversation.llmID,
+            )
             self.editdialog.show()
 
             if self.editdialog.exec_() == QDialog.Accepted:
                 # Conversation: Dialog was accepted, update conversation meta-information
-                editConversation.title, editConversation.description, llmID, _, apiKey = self.editdialog.onUpdateMetadata()
+                (
+                    editConversation.title,
+                    editConversation.description,
+                    llmID,
+                    _,
+                    apiKey,
+                ) = self.editdialog.onUpdateMetadata()
                 editConversation.lastEdit = getCurrentTimeStamp()
 
                 # the information don't have to be about liveConversation
@@ -478,8 +566,14 @@ class IntelliGeo:
                     self.dockwidget.updateGeneralInfo(self.liveConversation)
 
                 # Dock Interface: Update corresponding conversation card
-                slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
-                self.dockwidget.updateConversationCard(editConversation.metaInfo, slotsFunctions)
+                slotsFunctions = [
+                    self.onConversationLoad,
+                    self.onConversationDeleted,
+                    self.onConversationEdited,
+                ]
+                self.dockwidget.updateConversationCard(
+                    editConversation.metaInfo, slotsFunctions
+                )
 
     def onSearchConversationCard(self):
         searchText = self.dockwidget.ptSearchConversationCard.toPlainText()
@@ -488,35 +582,57 @@ class IntelliGeo:
 
         # Generate the filter function for search keyword
         def searchFilter(metaInfo, keyword=searchText):
-            titleLower, descriptionLower = metaInfo['title'].lower(), metaInfo['description'].lower()
+            titleLower, descriptionLower = (
+                metaInfo["title"].lower(),
+                metaInfo["description"].lower(),
+            )
             keywordLower = keyword.lower()
-            if titleLower.find(keywordLower) != -1 or descriptionLower.find(keywordLower) != -1:
+            if (
+                titleLower.find(keywordLower) != -1
+                or descriptionLower.find(keywordLower) != -1
+            ):
                 return True
             else:
                 return False
 
         # Generate the highlight rule for content in conversation cards
         def highlight(fullText, keyword=searchText):
-            pattern = re.compile(f'({re.escape(keyword)})', re.IGNORECASE)
+            pattern = re.compile(f"({re.escape(keyword)})", re.IGNORECASE)
             # Set the HTML formatted text to the label
-            highlightedText = pattern.sub(r'<span style="background-color: yellow">\1</span>', fullText)
+            highlightedText = pattern.sub(
+                r'<span style="background-color: yellow">\1</span>', fullText
+            )
             return highlightedText
 
         # Dock Interface: Pass slots functions to buttons in conversation cards to display
-        slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
-        self.dockwidget.displayConversationCard(self.dataloader, slotsFunctions, searchFilter, highlight)
+        slotsFunctions = [
+            self.onConversationLoad,
+            self.onConversationDeleted,
+            self.onConversationEdited,
+        ]
+        self.dockwidget.displayConversationCard(
+            self.dataloader, slotsFunctions, searchFilter, highlight
+        )
 
         # Dock Interface: Turn 'Search' button into 'Clear button'
-        self.dockwidget.pbSearchConversationCard.clicked.disconnect(self.onSearchConversationCard)
+        self.dockwidget.pbSearchConversationCard.clicked.disconnect(
+            self.onSearchConversationCard
+        )
         self.dockwidget.searchPressed.disconnect(self.onSearchConversationCard)
 
         self.dockwidget.pbSearchConversationCard.setText("Cancel")
         self.dockwidget.pbSearchConversationCard.clicked.connect(self.switchClearMode)
 
     def switchClearMode(self):
-        slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
+        slotsFunctions = [
+            self.onConversationLoad,
+            self.onConversationDeleted,
+            self.onConversationEdited,
+        ]
         self.dockwidget.displayConversationCard(self.dataloader, slotsFunctions)
-        self.dockwidget.pbSearchConversationCard.clicked.connect(self.onSearchConversationCard)
+        self.dockwidget.pbSearchConversationCard.clicked.connect(
+            self.onSearchConversationCard
+        )
         self.dockwidget.searchPressed.connect(self.onSearchConversationCard)
 
         self.dockwidget.pbSearchConversationCard.setText("Search")
@@ -533,9 +649,11 @@ class IntelliGeo:
         if not editorWidget or not editorWidget.isVisible:
             pythonConsole.showEditorButton.trigger()
 
-        shellOutputWidget = pythonConsole.findChild(console.console_output.ShellOutputScintilla)
+        shellOutputWidget = pythonConsole.findChild(
+            console.console_output.ShellOutputScintilla
+        )
 
-        pythonConsole.tabEditorWidget.newTabEditor(tabName='IntelliGeo', filename=None)
+        pythonConsole.tabEditorWidget.newTabEditor(tabName="IntelliGeo", filename=None)
         tabIndex = pythonConsole.tabEditorWidget.count() - 1
         self.newEditor = pythonConsole.tabEditorWidget.widget(tabIndex)
 
@@ -562,19 +680,23 @@ class IntelliGeo:
             self.consoleTracker.stop()
             return
 
-        shellOutputWidget = pythonConsole.findChild(console.console_output.ShellOutputScintilla)
+        shellOutputWidget = pythonConsole.findChild(
+            console.console_output.ShellOutputScintilla
+        )
         currentFullLogMessage = shellOutputWidget.text()
 
-        if (currentFullLogMessage != self.consoleText) and (self.consoleText in currentFullLogMessage):
+        if (currentFullLogMessage != self.consoleText) and (
+            self.consoleText in currentFullLogMessage
+        ):
             if currentFullLogMessage.find(self.consoleText) == 0:
-                newLogText = currentFullLogMessage[len(self.consoleText):]
+                newLogText = currentFullLogMessage[len(self.consoleText) :]
                 self.consoleText = currentFullLogMessage
                 if len(newLogText) == 0:
                     self.consoleTracker.stop()
                     return
 
                 self.consoleTracker.stop()
-                if (newLogText.count('\n') >= 2) and ("Error" in newLogText):
+                if (newLogText.count("\n") >= 2) and ("Error" in newLogText):
                     executedCode = self.newEditor.text()
                     self.activateDebugDialog(newLogText, executedCode)
 
@@ -584,7 +706,7 @@ class IntelliGeo:
         dialog = DebugDialog()
         result = dialog.exec_()
         self.consoleTracker.stop()
-        
+
         if result != QDialog.Accepted:
             return
         self.liveConversation.llmReflection.connect(self.onDebugReceived)
@@ -608,8 +730,14 @@ class IntelliGeo:
         self.dockwidget.updateGeneralInfo(self.liveConversation)
 
         # Dock Interface: Update conversation cards
-        slotsFunctions = [self.onConversationLoad, self.onConversationDeleted, self.onConversationEdited]
-        self.dockwidget.updateConversationCard(self.liveConversation.metaInfo, slotsFunctions)
+        slotsFunctions = [
+            self.onConversationLoad,
+            self.onConversationDeleted,
+            self.onConversationEdited,
+        ]
+        self.dockwidget.updateConversationCard(
+            self.liveConversation.metaInfo, slotsFunctions
+        )
 
         # Dataloader: Update meta-information
         self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
@@ -632,31 +760,41 @@ class IntelliGeo:
 
         # Look for the "Processing Toolbox" widget
         for widget in widgets:
-            if (type(widget).__name__ == "ProcessingToolbox" and
-                    widget.windowTitle() == "Processing Toolbox"):
+            if (
+                type(widget).__name__ == "ProcessingToolbox"
+                and widget.windowTitle() == "Processing Toolbox"
+            ):
                 # Get all child widgets of the Processing Toolbox
                 childWidgets = widget.findChildren(QWidget)
 
                 # Loop through each child and look for the specific QToolButton
                 for child in childWidgets:
-                    if (isinstance(child, QToolButton) and
-                            child.objectName() == "provideraction_script"):
+                    if (
+                        isinstance(child, QToolButton)
+                        and child.objectName() == "provideraction_script"
+                    ):
                         # Simulate a click on the button
                         child.click()  # Trigger the click event
                         menu = child.menu()
 
-                        downEvent = QKeyEvent(QKeyEvent.KeyPress, Qt.Key_Down, Qt.NoModifier)
+                        downEvent = QKeyEvent(
+                            QKeyEvent.KeyPress, Qt.Key_Down, Qt.NoModifier
+                        )
                         QApplication.postEvent(menu, downEvent)
 
                         # Simulate pressing "Enter" key
-                        enterEvent = QKeyEvent(QKeyEvent.KeyPress, Qt.Key_Return, Qt.NoModifier)
+                        enterEvent = QKeyEvent(
+                            QKeyEvent.KeyPress, Qt.Key_Return, Qt.NoModifier
+                        )
                         QApplication.postEvent(menu, enterEvent)
 
                         topLevelWidgets = QApplication.topLevelWidgets()
                         for topLevelChildwidget in topLevelWidgets:
-                            if (isinstance(topLevelChildwidget, QDialog) and
-                                topLevelChildwidget.windowTitle().startswith(
-                                    "Untitled Script - Processing Script Editor")):
+                            if isinstance(
+                                topLevelChildwidget, QDialog
+                            ) and topLevelChildwidget.windowTitle().startswith(
+                                "Untitled Script - Processing Script Editor"
+                            ):
                                 editor = topLevelChildwidget.findChild(QTextEdit)
                                 editor.setPlainText("hello")
 
@@ -664,6 +802,3 @@ class IntelliGeo:
         show_variable_popup("onOpenWorkflow: " + str(index))
         code = self.liveConversation.codeList[index]
         self.activateConsole(code, False)
-
-
-

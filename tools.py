@@ -1,7 +1,7 @@
 from langchain.tools import tool
 # from typing import *
 import requests
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 
 from qgis.utils import iface
 

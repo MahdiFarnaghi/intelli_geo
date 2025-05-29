@@ -1,8 +1,12 @@
+# Ignore contents of extlibs folder
+/extlibs/*
+
 # Python environments
 env
 .env
 venv
 .DS_Store
+zip_build
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
