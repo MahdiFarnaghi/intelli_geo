@@ -18,7 +18,7 @@ The sample project includes data from two data sources: [Movebank](https://www.m
 ### Creating a new conversation
 
 **Figure 1** illustrates the process to create a new conversation:  
-1. click in the new conversation icon  
+1. Click in the new conversation icon  
 2. Provide a name  
 3. Provide a description  
 4. Select the LLM to use as back-end  
@@ -47,13 +47,13 @@ In this section, you will interact with **IntelliGeo** to request general inform
 
 ### Processing with a single data layer
 
-No.: 6  
+**No.:** 6  
 
-Prompt: Create a script to calculate the number of data points for each bat in the layer in the workspace "bats_data."  
+**Prompt:** Create a script to calculate the number of data points for each bat in the layer in the workspace "bats_data."  
 
-Expected output: Script to calculate the number of points for each bat.  
+**Expected output:** Script to calculate the number of points for each bat.  
 
-Example output:
+**Example output:**
 
 Sure, here is a PyQGIS script that calculates the number of data points for each bat in the "bats_data" layer.  
   
