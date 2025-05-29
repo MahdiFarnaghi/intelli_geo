@@ -1,11 +1,12 @@
 import os
 import sys
+import platform
 import subprocess
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication
 from datetime import datetime
 from . import log_manager
-from . import utils
+
 
 
 class PackageManager:
@@ -19,7 +20,7 @@ class PackageManager:
 
         self.scriptDir = os.path.dirname(os.path.abspath(__file__))
         self.extpluginDir = os.path.join(self.scriptDir, "extlibs")
-        self.qgisPython = utils.get_qgis_python_path()
+        self.qgisPython = self._get_qgis_python_path()
 
         log_manager.log_debug(
             f"QGIS Python executable: {self.qgisPython}\nscriptDir: {self.scriptDir}\nextpluginDir: {self.extpluginDir}"
@@ -34,6 +35,30 @@ class PackageManager:
         print(f"extpluginDir: {self.extpluginDir}")
         self.dependencies = dependencies
         self.missingDependencies = []
+
+    def _get_qgis_python_path(self):
+        """
+        Return the path to the Python interpreter used by QGIS.
+        Handles macOS, Windows, and Linux.
+        """
+        python_path = sys.executable
+
+        system = platform.system()
+
+        if system == "Darwin" and python_path.endswith("QGIS"):
+            python_path = os.path.join(os.path.dirname(python_path), "bin", "python3")
+
+        elif system == "Windows" and "QGIS" in python_path:
+            # Windows typical structure: C:\Program Files\QGIS <version>\bin\python.exe
+            # Usually correct already, but logic can be extended
+            pass  # optional handling if needed
+
+        elif system == "Linux" and "qgis" in python_path.lower():
+            possible_path = os.path.join(os.path.dirname(python_path), "bin", "python3")
+            if os.path.exists(possible_path):
+                python_path = possible_path
+
+        return python_path
 
     def checkDependencies(self):
         """

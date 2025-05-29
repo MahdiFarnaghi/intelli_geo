@@ -1,5 +1,11 @@
 # Changelog
 
+## IntelliGeo v0.1.1 Fifth release
+
+### Bug Fixes
+
+- **Cross-Platform Installation Improvements**: The installation process has been refined for Linux, Mac, and Windows, ensuring a smoother and more reliable setup experience across all supported operating systems.
+
 ## IntelliGeo v0.1.0 Fourth & Stable Release
 
 ### New Features
@@ -7,7 +13,6 @@
 - **Memory Support**: IntelliGeo now includes short-term memory for the LLM agent, allowing you to update and modify previously generated workflows.
 - **Workflow Slection**: Multiple interactions are generated, and selecting a workflow triggers its execution.
 - **Better Dependecy management**: Dependencies are now installed automatically.
-
 
 ## IntelliGeo v0.0.3 - Third Release
 
@@ -20,7 +25,6 @@
 
 - **Memory Support**: IntelliGeo will include short-term memory capabilities in the next version, allowing you to enhance or fix generated code more effectively.
 
-
 ## IntelliGeo v0.0.2 - Second Release
 
 ### New Features
@@ -32,7 +36,6 @@
 ### Next Plans
 
 - **Chat Interface**: We will be updating the current chat interface in IntelliGeo over the next few versions to enhance user experience and functionality.
-
 
 ## IntelliGeo v0.0.1 - First Release
 
