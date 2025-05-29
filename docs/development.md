@@ -39,6 +39,7 @@
         ```
 
     - Verify if `pb_tool.exe` is located in the Python environment’s scripts folder.
+    
     - Navigate to the `intelli_geo` module folder in the terminal and run:
 
         ```
