@@ -2,9 +2,13 @@
 
 ## IntelliGeo v0.1.1 Fifth release
 
+### New Features
+
+- **Cross-Platform Installation Enhancements**: The installation process has been optimized for Linux, macOS, and Windows, providing a more seamless and reliable setup experience across all supported platforms.
+
 ### Bug Fixes
 
-- **Cross-Platform Installation Improvements**: The installation process has been refined for Linux, Mac, and Windows, ensuring a smoother and more reliable setup experience across all supported operating systems.
+- **Installation Process Fixes**: Resolved various issues affecting installation.
 
 ## IntelliGeo v0.1.0 Fourth & Stable Release
 

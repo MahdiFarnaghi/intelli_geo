@@ -6,7 +6,7 @@
 name=IntelliGeo
 qgisMinimumVersion=3.0
 description=IntelliGeo is QGIS plugin that facilitates interaction with Large Language Models in QGIS environment.
-version=0.1.0
+version=0.1.1
 author=GIP Department, Faculty ITC, University of Twente
 email=m.farnaghi@utwente.nl
 

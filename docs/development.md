@@ -39,7 +39,7 @@
         ```
 
     - Verify if `pb_tool.exe` is located in the Python environment’s scripts folder.
-    
+
     - Navigate to the `intelli_geo` module folder in the terminal and run:
 
         ```
@@ -118,13 +118,15 @@ If you want to contribute to the IntelliGeo project but are not part of the team
 
 The recommended way to package the plugin is by using [pb_tool](https://g-sherman.github.io/plugin_build_tool/). You can find its documentation at the provided link. Before releasing, you need a ZIP file containing the packaged plugin code.
 
-1. Ensure that all necessary files are listed in the pbtool.config file under the [files] section. This includes: `python_files` for Python source code, `main_dialog` and `compiled_ui_files` for UI files. If you have updated any icons and need to compile them, run:
+1. Ensure the version number is properly set in metadata.txt
+
+2. Ensure that all necessary files are listed in the pbtool.config file under the [files] section. This includes: `python_files` for Python source code, `main_dialog` and `compiled_ui_files` for UI files. If you have updated any icons and need to compile them, run:
 
     ```
     pb_tool compile
     ```
 
-2. Next, create the ZIP package by running:
+3. Next, create the ZIP package by running:
 
     ```
     pb_tool zip
@@ -132,7 +134,7 @@ The recommended way to package the plugin is by using [pb_tool](https://g-sherma
   
     The generated ZIP file will be located in the zip_build folder.
 
-3. To release you should go to the [plugin hub](https://plugins.qgis.org), logged in with Mahdi's account, click on `Add Verion` and upload the zip file, remember to add proper changlog.
+4. To release you should go to the [plugin hub](https://plugins.qgis.org), log in, click on `Add Verion` and upload the zip file, remember to add proper changlog.
 
 ## Tips for development for plugin
 
