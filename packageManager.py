@@ -193,10 +193,10 @@ class PackageManager:
             except subprocess.CalledProcessError as e:
                 stderr = getattr(e, "stderr", None)
                 log_manager.log_debug(f"{attempt['description']} failed: {stderr}")
-                self._logError(e)
+                log_manager.log_error("Dependency installation failed", exc=e)
             except Exception as e:
                 log_manager.log_debug(f"Unexpected error during {attempt['description']}: {e}")
-                self._logError(e)
+                log_manager.log_error("Dependency installation failed", exc=e)
 
         QMessageBox.critical(
             None,
@@ -262,10 +262,10 @@ class PackageManager:
 
         except subprocess.CalledProcessError as e:
             log_manager.log_debug(f"Force install failed with CalledProcessError: {e}")
-            self._logError(e)
+            log_manager.log_error("Dependency installation failed", exc=e)
         except Exception as e:
             log_manager.log_debug(f"Force install failed with unexpected error: {e}")
-            self._logError(e)
+            log_manager.log_error("Dependency installation failed", exc=e)
 
         QMessageBox.critical(
             None,
@@ -273,42 +273,6 @@ class PackageManager:
             "Failed to force install the required modules. Please install them manually or consult the error log for details.",
         )
 
-    def _logError(self, error):
-        """
-        Log installation errors to a file.
-        :param error: The exception object containing error details.
-        """
-        errorLogDir = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
-        os.makedirs(errorLogDir, exist_ok=True)
-        errorLogPath = os.path.join(errorLogDir, "error_log.txt")
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(errorLogPath, "a", encoding="utf-8") as f:
-            f.write(f"\n[{timestamp}]\n")
-            f.write(f"Error Type: {type(error).__name__}\n")
-
-            # Handle subprocess.CalledProcessError specifically
-            if hasattr(error, "returncode"):
-                f.write(f"Command failed with exit code: {error.returncode}\n")
-
-            # Log error message
-            f.write(f"Error Message: {str(error)}\n")
-
-            # Handle output if available
-            if hasattr(error, "output"):
-                f.write("=== Output and Error ===\n")
-                if isinstance(error.output, bytes):
-                    f.write(error.output.decode("utf-8", errors="replace"))
-                else:
-                    f.write(str(error.output))
-
-            # Include traceback for more context
-            import traceback
-
-            f.write("\n=== Traceback ===\n")
-            f.write(traceback.format_exc())
-
-            f.write("\n" + "-" * 50 + "\n")  # Add separator between entries
 
     def _isPipAvailable(self):
         """
@@ -355,7 +319,7 @@ class PackageManager:
             log_manager.log_debug(f"Downloaded get-pip.py to {get_pip_path}")
         except Exception as e:
             log_manager.log_debug(f"Failed to download get-pip.py: {e}")
-            self._logError(e)
+            log_manager.log_error("Dependency installation failed", exc=e)
             QMessageBox.critical(
                 None,
                 "Download Failed",
@@ -374,7 +338,7 @@ class PackageManager:
             )
         except subprocess.CalledProcessError as e:
             log_manager.log_debug(f"pip installation failed with CalledProcessError: {e}")
-            self._logError(e)
+            log_manager.log_error("Dependency installation failed", exc=e)
 
             if system == "Linux":
                 suggestion = (
@@ -392,7 +356,7 @@ class PackageManager:
             )
         except Exception as e:
             log_manager.log_debug(f"Unexpected error during pip installation: {e}")
-            self._logError(e)
+            log_manager.log_error("Dependency installation failed", exc=e)
             QMessageBox.critical(
                 None,
                 "Installation Failed",

@@ -31,6 +31,7 @@ import inspect
 import sys
 import os
 import platform
+from . import log_manager
 
 
 def generateUniqueID():
@@ -503,6 +504,8 @@ def getIntelligeoEnvVar(nameVar):
 def showErrorMessage(error):
     fromDev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
     if fromDev:
+        #TODO: Must be replaced with         log_manager.log_error("Error in showErrorMessage", error)
+
         errorLogDir = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
         os.makedirs(errorLogDir, exist_ok=True)
         errorLogPath = os.path.join(errorLogDir, "error_log.txt")

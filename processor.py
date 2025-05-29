@@ -3,6 +3,7 @@ import json
 import os
 import asyncio
 
+
 from qgis.PyQt.QtCore import QThreadPool, pyqtSignal, QObject
 
 from langchain.prompts import ChatPromptTemplate
@@ -20,6 +21,7 @@ from .utils import show_variable_popup, getVersion, getCurrentTimeStamp, pack
 from .tools import readEnvironment
 from .responseWorker import ResponseWorker, ReflectWorker
 from .dataloader import Dataloader
+from . import log_manager
 
 
 class Processor(QObject):
@@ -428,16 +430,7 @@ class Processor(QObject):
             return codeReturn, workflow
         
         except Exception as e:
-            # Define error file path
-            documentsPath = os.path.join(os.path.expanduser("~"), "Documents", "QGIS_IntelliGeo")
-
-            os.makedirs(documentsPath, exist_ok=True)  # Ensure the directory exists
-            errorFilePath = os.path.join(documentsPath, "error_log.txt")  # Define the error file path
-
-            # Write error message to file
-            with open(errorFilePath, "w") as error_file:
-                error_message = f"An error occurred at reflection:\n{str(e)}"
-                error_file.write(error_message)
+            log_manager.log_error("Error during reflection processing", e)
 
     def modelRefine(self, userInput: str):
         return ""

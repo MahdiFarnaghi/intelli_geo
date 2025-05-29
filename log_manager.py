@@ -3,6 +3,7 @@ import os
 import logging
 import traceback
 from qgis.core import QgsApplication
+from datetime import datetime
 
 # Create log directory in user's home directory, OS-independent
 profile_folder = QgsApplication.qgisSettingsDirPath()
@@ -37,8 +38,21 @@ def log_debug(message):
         debug_logger.debug(f"\n{message}\n{'-'*60}")
         
 def log_error(message, exc=None):
+    # Log to standard QGIS error logger
     if exc:
-        trace = traceback.format_exc()
-        error_logger.error(f"{message}\n{trace}\n{'-'*60}")
+        parts = [f"Message: {message}"]
+        parts.append(f"Error Type: {type(exc).__name__}")
+        if hasattr(exc, "returncode"):
+            parts.append(f"Command failed with exit code: {exc.returncode}")
+        parts.append(f"Error Message: {str(exc)}")
+        if hasattr(exc, "output"):
+            parts.append("=== Output and Error ===")
+            if isinstance(exc.output, bytes):
+                parts.append(exc.output.decode("utf-8", errors="replace"))
+            else:
+                parts.append(str(exc.output))
+        parts.append("=== Traceback ===")
+        parts.append(traceback.format_exc())
+        error_logger.error("\n".join(parts) + "\n" + "-" * 60)
     else:
-        error_logger.error(message)
+        error_logger.error(f"\n{message}\n{'-'*60}")
