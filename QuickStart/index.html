@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../img/favicon.ico" rel="shortcut icon"/>
+<title>IntelliGeo Quick Start - IntelliGeo</title>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" rel="stylesheet"/>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css" rel="stylesheet"/>
+<link href="//rsms.me/inter/inter.css" rel="stylesheet" type="text/css"/>
+<link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&amp;subset=latin-ext,latin" rel="stylesheet" type="text/css"/>
+<link href="../css/bootstrap-custom.min.css" rel="stylesheet"/>
+<link href="../css/base.min.css" rel="stylesheet"/>
+<link href="../css/cinder.min.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css" rel="stylesheet"/>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+<meta content="IntelliGeo Quick Start" name="title"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/><meta content="website" property="og:type"/><meta content="QuickStart" property="og:url"/><meta content="IntelliGeo Quick Start" property="og:title"/><meta content="Welcome to the IntelliGeo Quick Start documentation! This guide showcases various examples and common use cases to help you understand how to use the plugin effectively for your geospatial tasks in QGIS. Whether you're a beginner or an advanced user, this document aims to provide clear and concise examples to get you started and expand your knowledge." property="og:description"/><meta content="https://github.com/user-attachments/assets/735a097d-605b-4b7e-a9f4-49ae3a040c3e" property="og:image"/><meta content="summary_large_image" property="twitter:card"/><meta content="QuickStart" property="twitter:url"/><meta content="IntelliGeo Quick Start" property="twitter:title"/><meta content="Welcome to the IntelliGeo Quick Start documentation! This guide showcases various examples and common use cases to help you understand how to use the plugin effectively for your geospatial tasks in QGIS. Whether you're a beginner or an advanced user, this document aims to provide clear and concise examples to get you started and expand your knowledge." property="twitter:description"/><meta content="https://github.com/user-attachments/assets/735a097d-605b-4b7e-a9f4-49ae3a040c3e" property="twitter:image"/><style>
+.git-info, .dates-container, .authors-container, .share-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.git-info {
+    font-size: 0.8em;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.dates-container, .authors-container {
+    margin-bottom: 10px;
+}
+
+.date-item, .author-link, .share-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.date-item {
+    margin-right: 10px;
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+    font-size: 1.6em;
+    margin-right: 5px;
+}
+
+.author-link .hover-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background-color: #f0f0f0;  /* Placeholder color */
+    opacity: 0;  /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+    opacity: 1;  /* Fade in when src is set (image loaded) */
+}
+
+.hover-item:hover {
+    transform: scale(1.2);
+    filter: grayscale(0%);
+}
+
+.share-buttons {
+    margin-top: 10px;
+}
+
+.share-button {
+    background-color: #1da1f2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.95em;
+    margin: 5px;
+    transition: all 0.2s ease;
+}
+
+.share-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+    background-color: #0077b5;
+}
+
+.share-button i {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+    .git-info {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .dates-container, .authors-container {
+        width: 100%;
+    }
+}
+</style></head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container">
+<!-- Collapsed navigation -->
+<div class="navbar-header">
+<!-- Expander button -->
+<button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
+<span class="sr-only">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<!-- Main title -->
+<a class="navbar-brand" href="..">IntelliGeo</a>
+</div>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li>
+<a href="..">Home</a>
+</li>
+<li>
+<a href="../installation/">Installation</a>
+</li>
+<li>
+<a href="../use/">How to use</a>
+</li>
+<li>
+<a href="../tutorials/">Tutorials</a>
+</li>
+<li>
+<a href="../development/">Development</a>
+</li>
+<li>
+<a href="../change/">Change Log</a>
+</li>
+<li>
+<a href="../team/">Core team</a>
+</li>
+<li>
+<a href="../blogs/">Blogs</a>
+</li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+<a data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fas fa-search"></i> Search
+                        </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+<ul class="nav bs-sidenav">
+<li class="first-level active"><a href="#intelligeo-quick-start">IntelliGeo Quick Start</a></li>
+<li class="second-level"><a href="#table-of-contents">Table of Contents</a></li>
+<li class="second-level"><a href="#getting-started">Getting Started</a></li>
+<li class="second-level"><a href="#examples-use-cases">Examples Use Cases</a></li>
+<li class="third-level"><a href="#use-case-1-generating-attribute-lists-from-a-vector-layer">Use Case 1: Generating Attribute Lists from a Vector Layer</a></li>
+<li class="third-level"><a href="#use-case-2-producing-attribute-descriptions-for-a-vector-layer">Use Case 2: Producing Attribute Descriptions for a Vector Layer</a></li>
+<li class="third-level"><a href="#use-case-3-producing-statistics-for-polygon-areas">Use Case 3: Producing Statistics for Polygon Areas</a></li>
+<li class="second-level"><a href="#advanced-examples">Advanced Examples</a></li>
+<li class="third-level"><a href="#use-case-1-calculating-buffers-around-features">Use Case 1: Calculating Buffers Around Features</a></li>
+<li class="third-level"><a href="#use-case-2-random-points">Use Case 2: Random Points</a></li>
+<li class="third-level"><a href="#use-case-3-random-lines">Use Case 3: Random Lines</a></li>
+<li class="second-level"><a href="#troubleshooting-and-tips">Troubleshooting and Tips</a></li>
+</ul>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="intelligeo-quick-start">IntelliGeo Quick Start</h1>
+<p>Welcome to the <strong>IntelliGeo Quick Start</strong> documentation! This guide showcases various examples and common use cases to help you understand how to use the plugin effectively for your geospatial tasks in QGIS. Whether you're a beginner or an advanced user, this document aims to provide clear and concise examples to get you started and expand your knowledge.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li>Introduction</li>
+<li>Getting Started</li>
+<li>Example Use Cases</li>
+<li>Use Case 1: Automating Layer Styling</li>
+<li>Use Case 2: Batch Processing</li>
+<li>Use Case 3: Spatial Analysis</li>
+<li>Advanced Examples</li>
+<li>Troubleshooting and Tips</li>
+</ol>
+<h2 id="getting-started">Getting Started</h2>
+<p>Before diving into the examples, ensure you have the following prerequisites:
+- QGIS Installed: <em>Download and install the latest version of QGIS from QGIS.org.</em>
+- Plugin Installation: <em>Install intelliGeo from the QGIS Plugin Repository or your custom source.</em>
+- API Key Ready: Make sure you have activated OpenAI's or Cohere's API key.
+- Sample Data:* Some examples use sample datasets.</p>
+<p>For a detailed guide, please refer to <a href="https://github.com/MahdiFarnaghi/intelli_geo/blob/main/docs/use.md">use.md</a>.</p>
+<p><em>Once installed IntelliGeo, you should see the plugin's toolbar or menu added to your QGIS interface. You’re now ready to follow along with the examples!</em></p>
+<h2 id="examples-use-cases">Examples Use Cases</h2>
+<h3 id="use-case-1-generating-attribute-lists-from-a-vector-layer">Use Case 1: Generating Attribute Lists from a Vector Layer</h3>
+<p>This example demonstrates how to generate a model that lists the attributes from a vector layer in the workspace by selecting the layer by name.</p>
+<p><strong>Prompt</strong>: Generate a model to list the attributes from a vector layer in the workspace. Select the layer by name.</p>
+<p><strong>Note</strong>: Replace the layer's name.</p>
+<p><img alt="Screenshot from 2024-11-27 10-10-06" src="https://github.com/user-attachments/assets/735a097d-605b-4b7e-a9f4-49ae3a040c3e"/></p>
+<h3 id="use-case-2-producing-attribute-descriptions-for-a-vector-layer">Use Case 2: Producing Attribute Descriptions for a Vector Layer</h3>
+<p><strong>Prompt</strong>: Generate a model to produce a description for the attributes in a vector layer. The summary should include the attributes name, data type, number of NULL values, number of unique values. Select the layer by name.</p>
+<p><strong>Note</strong>: Replace the layer's name.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/bd0a69ff-c009-44c7-b085-28c30e1610ba"/></p>
+<h3 id="use-case-3-producing-statistics-for-polygon-areas">Use Case 3: Producing Statistics for Polygon Areas</h3>
+<p><strong>Prompt</strong>: I need to produce statistics for the area of the polygons in a layer loaded in the workspace. The statistics should include minimum, maximum, average, standard deviation, and number of features. Generate a model for this purpose. Select the layer by name.</p>
+<p><strong>Note</strong>: Replace the layer's name.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/ec65ef6b-106b-4ac7-a550-abed189ddd3a"/></p>
+<h2 id="advanced-examples">Advanced Examples</h2>
+<h3 id="use-case-1-calculating-buffers-around-features">Use Case 1: Calculating Buffers Around Features</h3>
+<p><strong>Prompt</strong>: Create a buffer area of 5000 meters and 40 segments around the features of a vector layer from the workspace. The layer should be selected by name.</p>
+<p><strong>Note</strong>: Replace the layer's name</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/d4927870-2057-4588-bc2d-9465a89e4450"/></p>
+<h3 id="use-case-2-random-points">Use Case 2: Random Points</h3>
+<p><strong>Prompt</strong>: Create a model that generates 1000 random points over the current map extent. The coordinate system is EPSG:28992.</p>
+<p><img alt="Screenshot from 2024-11-27 10-58-18" src="https://github.com/user-attachments/assets/8d972a92-73b5-4a25-9a2a-459e57eec87d"/></p>
+<h3 id="use-case-3-random-lines">Use Case 3: Random Lines</h3>
+<p><strong>Prompt</strong>: Create a model that generates 1000 random lines over the current map extent. Each line should be 5000 meters longs. The coordinate system is EPSG:28992. </p>
+<p><img alt="Screenshot from 2024-11-27 10-53-38" src="https://github.com/user-attachments/assets/d421b88a-00bc-403d-9870-4f205d556f17"/></p>
+<h2 id="troubleshooting-and-tips">Troubleshooting and Tips</h2>
+<p>One of the most frequent issues users encounter when working with the plugin is the problem of "hallucinated imports." This occurs when the script or model references imports or modules that do not exist in your QGIS environment or Python installation. To avoid this issue, yo may need to manually check the imported modules.</p></div>
+</div>
+<footer class="col-md-12 text-center">
+<hr/>
+<p>
+<small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+</p>
+</footer>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="../js/bootstrap-3.0.3.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script>var base_url = ".."</script>
+<script src="../js/base.js"></script>
+<script src="../search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<button class="close" data-dismiss="modal" type="button">
+<span aria-hidden="true">×</span>
+<span class="sr-only">Close</span>
+</button>
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+</div>
+<div class="modal-body">
+<p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="text"/>
+</div>
+</form>
+<div id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
