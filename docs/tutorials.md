@@ -51,7 +51,7 @@ In this section, you will generate scripts to process a single data layer.
 
 **No.:** 6  
 
-**Prompt:** Create a script to calculate the number of data points for each bat in the layer in the workspace "bats_data."  
+**Prompt:** Create a script to calculate the number of data points for each bat in the layer "bats_data," which is already loaded in the workspace.  
 
 **Expected output:** Script to calculate the number of points for each bat.  
 
@@ -372,17 +372,186 @@ QgsProject.instance().addMapLayer(line_layer)
 
 **No.:** 10   
 
-**Prompt:**   
+**Prompt:** Create a script that generates a vector layer representing a regular grid of 0.05 degrees × 0.05 degrees cells covering the full extent of the "bats_data" layer, which is already loaded in the workspace. Then, aggregate the data from "bats_data" by counting the number of points that fall within each grid cell.  
 
-**Expected output:**   
+**Expected output:** A script that produces a grid and aggregates the records from the "bats_data" layer.     
 
 **Example output:**
 
+```python
+# Import necessary modules
+from qgis.core import QgsVectorLayer, QgsProcessing, QgsProcessingFeatureSourceDefinition
+from qgis.analysis import QgsNativeAlgorithms
+import processing
+
+# Initialize QGIS's processing framework
+QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
+
+# Get the "bats_data" layer
+bats_data_layer = QgsProject.instance().mapLayersByName('bats_data')[0]
+
+# Define the grid size
+grid_size = 0.05
+
+# Define the parameters for the "Create grid" algorithm
+grid_parameters = {
+    'TYPE': 2,  # Rectangle (polygon)
+    'EXTENT': bats_data_layer.extent(),  # Use the extent of the "bats_data" layer
+    'HSPACING': grid_size,  # Horizontal spacing
+    'VSPACING': grid_size,  # Vertical spacing
+    'CRS': bats_data_layer.crs(),  # Coordinate reference system
+    'OUTPUT': 'memory:'  # Output to memory
+}
+
+# Run the "Create grid" algorithm
+grid_result = processing.run('native:creategrid', grid_parameters)
+
+# Get the resulting grid layer
+grid_layer = grid_result['OUTPUT']
+
+# Define the parameters for the "Count points in polygon" algorithm
+count_parameters = {
+    'POLYGONS': grid_layer,  # Use the grid layer as the polygon layer
+    'POINTS': QgsProcessingFeatureSourceDefinition(bats_data_layer.id()),  # Use the "bats_data" layer as the point layer
+    'OUTPUT': 'memory:'  # Output to memory
+}
+
+# Run the "Count points in polygon" algorithm
+count_result = processing.run('native:countpointsinpolygon', count_parameters)
+
+# Get the resulting layer
+result_layer = count_result['OUTPUT']
+
+# Add the resulting layer to the map
+QgsProject.instance().addMapLayer(result_layer)
+```
+
 **Example execution:**  
 
---- 
+<figure>
+    <img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/QGIS_UC_2025/fig_grid_aggregation.png"
+         alt="New conversation" width="600px">
+    <figcaption><strong>Figure 3:</strong> Aggregated data over a grid.</figcaption>
+</figure>
+
+
 
 ### Processing with two data layers
+
+**No.:** 11   
+
+**Prompt:** CCreate a script to count the number of points from the "bats_data" layer that fall within each polygon of the "Iberian_Peninsula_Level_1" layer. Both layers are already loaded in the workspace. The script must produce a new in-memory vector layer containing the polygons from "Iberian_Peninsula_Level_1", with a field named "COUNT" that indicates the number of points contained within each polygon.   
+
+**Expected output:** Script to calculate the number of records per administrative divisions of level 1.     
+
+**Example output:**  
+
+```python
+# Import necessary modules
+from qgis.core import *
+
+# Define the names of the input layers
+point_layer_name = "bats_data"
+polygon_layer_name = "Iberian_Peninsula_Level_1"
+
+# Retrieve the layers from the current project
+point_layer = QgsProject.instance().mapLayersByName(point_layer_name)[0]
+polygon_layer = QgsProject.instance().mapLayersByName(polygon_layer_name)[0]
+
+# Create a new in-memory vector layer to store the results
+result_layer = QgsVectorLayer("Polygon?crs=epsg:4326", "result", "memory")
+
+# Start editing the result layer
+result_layer.startEditing()
+
+# Add a new field to the result layer to store the count of points
+result_layer.dataProvider().addAttributes([QgsField("COUNT", QVariant.Int)])
+result_layer.updateFields()
+
+# Create a spatial index for the point layer to speed up the spatial query
+index = QgsSpatialIndex(point_layer.getFeatures())
+
+# Iterate over each feature (i.e., polygon) in the polygon layer
+for polygon_feature in polygon_layer.getFeatures():
+    # Create a new feature for the result layer
+    result_feature = QgsFeature(result_layer.fields())
+    # Copy the geometry from the polygon feature
+    result_feature.setGeometry(polygon_feature.geometry())
+    # Use the spatial index to find points within the polygon
+    ids = index.intersects(polygon_feature.geometry().boundingBox())
+    # Count the number of points that are actually within the polygon
+    count = sum(polygon_feature.geometry().contains(point_layer.getFeature(id).geometry()) for id in ids)
+    # Set the count field of the result feature
+    result_feature["COUNT"] = count
+    # Add the result feature to the result layer
+    result_layer.addFeature(result_feature)
+
+# Commit the changes to the result layer
+result_layer.commitChanges()
+
+# Add the result layer to the current project
+QgsProject.instance().addMapLayer(result_layer)
+```
+
+**Example execution:**  
+
+<figure>
+    <img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/QGIS_UC_2025/fig_level_1_aggregation.png"
+         alt="New conversation" width="600px">
+    <figcaption><strong>Figure 4:</strong> Aggregated data over Administrative Division Level 1.</figcaption>
+</figure>
+
+
+
+---  
+
+**No.:** 12   
+
+**Prompt:**   
+
+**Expected output:**    
+
+**Example output:**  
+
+**Example execution:**  
+
+---  
+
+**No.:** 13   
+
+**Prompt:**   
+
+**Expected output:**    
+
+**Example output:**  
+
+**Example execution:**  
+
+---  
+
+**No.:** 14   
+
+**Prompt:**   
+
+**Expected output:**    
+
+**Example output:**  
+
+**Example execution:**  
+
+---  
+
+**No.:** 15   
+
+**Prompt:**   
+
+**Expected output:**    
+
+**Example output:**  
+
+**Example execution:**  
+
+---  
 
 ### References 
 
