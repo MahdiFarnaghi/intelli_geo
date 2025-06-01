@@ -5,8 +5,8 @@
 This tutorial was prepared as part of the workshop "AI-powered model building in QGIS," held at the [QGIS UC25](https://talks.osgeo.org/qgis-uc2025/talk/H3SKPN/).
 
 Requirements for this tutorial:  
-- QGIS >= 3.0.0  
-- IntelliGeo plugin >= 0.1.0  
+- [QGIS >= 3.0.0](https://qgis.org/download/)  
+- [IntelliGeo plugin >= 0.1.0](https://plugins.qgis.org/plugins/intelli_geo/)  
 - [Sample project]()  
 
 ### About the data
