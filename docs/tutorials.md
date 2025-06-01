@@ -364,7 +364,7 @@ QgsProject.instance().addMapLayer(line_layer)
 
 <figure>
     <img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/QGIS_UC_2025/fig_bats_lines.png"
-         alt="New conversation" width="600px">
+         alt="Flying trajectories" width="600px">
     <figcaption><strong>Figure 2:</strong> Individual bats trajectories.</figcaption>
 </figure>
 
@@ -430,7 +430,7 @@ QgsProject.instance().addMapLayer(result_layer)
 
 <figure>
     <img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/QGIS_UC_2025/fig_grid_aggregation.png"
-         alt="New conversation" width="600px">
+         alt="Data aggregated over a grid" width="600px">
     <figcaption><strong>Figure 3:</strong> Aggregated data over a grid.</figcaption>
 </figure>
 
@@ -497,7 +497,7 @@ QgsProject.instance().addMapLayer(result_layer)
 
 <figure>
     <img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/QGIS_UC_2025/fig_level_1_aggregation.png"
-         alt="New conversation" width="600px">
+         alt="Records aggregated based on administrative division level 1" width="600px">
     <figcaption><strong>Figure 4:</strong> Aggregated data over Administrative Division Level 1.</figcaption>
 </figure>
 
@@ -507,13 +507,56 @@ QgsProject.instance().addMapLayer(result_layer)
 
 **No.:** 12   
 
-**Prompt:**   
+**Prompt:** Create a script to extract values from the "50N_010W" layer, which is already loaded in the workspace. For each point in the "bats_data" layer (also loaded in the workspace), retrieve the corresponding value from "50N_010W" based on its coordinates and store it in a new field named "landcover".
 
-**Expected output:**    
+**Expected output:** A script to extract landcover values based on the records in "bats_data."   
 
 **Example output:**  
 
+```python
+# Import necessary modules
+from qgis.core import QgsProject, QgsFeatureRequest
+
+# Get the layers
+project = QgsProject.instance()
+raster_layer = project.mapLayersByName('50N_010W')[0]
+vector_layer = project.mapLayersByName('bats_data')[0]
+
+# Check if the 'landcover' field already exists in the vector layer
+# If not, create it
+if 'landcover' not in [field.name() for field in vector_layer.fields()]:
+    vector_layer.dataProvider().addAttributes([QgsField('landcover', QVariant.Double)])
+    vector_layer.updateFields()
+
+# Get the index of the 'landcover' field
+field_index = vector_layer.fields().indexFromName('landcover')
+
+# Start editing the vector layer
+vector_layer.startEditing()
+
+# For each feature (point) in the vector layer
+for feature in vector_layer.getFeatures():
+    # Get the point's coordinates
+    point = feature.geometry().asPoint()
+
+    # Get the corresponding value from the raster layer
+    value = raster_layer.dataProvider().sample(point, 1)[0]
+
+    # Update the 'landcover' field with the value
+    feature.setAttribute(field_index, value)
+    vector_layer.updateFeature(feature)
+
+# Commit the changes
+vector_layer.commitChanges()
+```
+
 **Example execution:**  
+
+<figure>
+    <img src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/QGIS_UC_2025/fig_landcover.png"
+         alt="Landcover values" width="600px">
+    <figcaption><strong>Figure 5:</strong> Land cover values for the records in the "bats_data" layer.</figcaption>
+</figure>
 
 ---  
 
