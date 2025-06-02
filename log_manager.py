@@ -36,6 +36,7 @@ debug_logger.debug("=== New Logging Session Started ===")
 def log_debug(message):
     if config.DEBUG_MODE:
         debug_logger.debug(f"\n{message}\n{'-'*60}")
+        print(f"\n{message}\n{'-'*60}")
         
 def log_error(message, exc=None):
     # Log to standard QGIS error logger

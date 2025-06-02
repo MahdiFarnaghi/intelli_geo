@@ -10,6 +10,7 @@ from qgis.PyQt.QtWidgets import QLineEdit
 # Import customized widgets for message
 from . import messageEdit
 from .utils import nestedDict2list, show_variable_popup
+from . import log_manager
 
 
 class PasswordLineEdit(QLineEdit):
@@ -32,6 +33,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
+    """Dialog for creating or editing a conversation."""
     closed = pyqtSignal()
     titleEnterPressed = pyqtSignal(str)
 
@@ -96,7 +98,7 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
         llmID = self.cbLLM.currentText()
         endpoint = self.leAPIEndpoint.text()
         apiKey = self.leAPIKey.text()
-
+        
         return name, description, llmID, endpoint, apiKey
 
     def handleOkay(self):
@@ -116,6 +118,7 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
                 # API key input lineEdit
                 self.leAPIKey.setText(apiKey)
                 self.leAPIKey.setEchoMode(QLineEdit.Password)
+                # self.leAPIKey.setFocus()  # Uncomment if you want to focus on API key input
                 break
 
     def eventFilter(self, obj, event):

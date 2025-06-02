@@ -4,8 +4,18 @@ import os
 import json
 import requests
 import logging
-from .utils import (getCurrentTimeStamp, pack, unpack, tuple2Dict, getSystemInfo, captchaPopup, getIntelligeoEnvVar,
-                    show_variable_popup)
+from .utils import (
+    getCurrentTimeStamp,
+    pack,
+    unpack,
+    tuple2Dict,
+    getSystemInfo,
+    captchaPopup,
+    getIntelligeoEnvVar,
+    show_variable_popup,
+)
+import re 
+from . import log_manager
 
 
 class Dataloader:
@@ -32,12 +42,31 @@ class Dataloader:
 
         # conversation table
         self.conversationTableName = "conversation"
-        self.conversationTableColname = ["ID", "llmID", "title", "description", "created", "modified", "userID"]
+        self.conversationTableColname = [
+            "ID",
+            "llmID",
+            "title",
+            "description",
+            "created",
+            "modified",
+            "userID",
+        ]
 
         # interaction table
         self.interactionTableName = "interaction"
-        self.interactionTableColname = ["ID", "conversationID", "promptID", "requestText", "contextText", "requestTime",
-                                        "typeMessage", "responseText", "responseTime", "workflow", "executionLog"]
+        self.interactionTableColname = [
+            "ID",
+            "conversationID",
+            "promptID",
+            "requestText",
+            "contextText",
+            "requestTime",
+            "typeMessage",
+            "responseText",
+            "responseTime",
+            "workflow",
+            "executionLog",
+        ]
 
         # credential table
         self.credentialTableName = "credential"
@@ -92,11 +121,48 @@ class Dataloader:
         # Full dict of llm names and providers. Will be used in `.getLLMInfo()`
         self.llmFullDict = dict()
         self.llmFullDict["OpenAI"] = ["gpt-4", "gpt-3.5-turbo", "o1"]
-        self.llmFullDict["Cohere"] = ["command-r-plus", "command-r", "command", "command-nightly",
-                                      "command-light", "command-light-nightly"]
+        self.llmFullDict["Cohere"] = [
+            "command-r-plus",
+            "command-r",
+            "command",
+            "command-nightly",
+            "command-light",
+            "command-light-nightly",
+        ]
         self.llmFullDict["DeepSeek"] = ["deepseek-chat", "deepseek-reasoner"]
-        self.llmFullDict["Groq"] = ["mixtral-8x7b-32768", "qwen-2.5-32b", "deepseek-r1-distill-qwen-32b",
-                                    "deepseek-r1-distill-llama-70b-specdec", "llama-3.3-70b-versatile"]
+        self.llmFullDict["Groq"] = [
+            "mixtral-8x7b-32768",
+            "qwen-2.5-32b",
+            "deepseek-r1-distill-qwen-32b",
+            "deepseek-r1-distill-llama-70b-specdec",
+            "llama-3.3-70b-versatile",
+        ]
+        # Dynamically fetch available Ollama models
+        ollama_is_available = False
+        ollama_url = None
+        try:
+            ollama_port = os.getenv("OLLAMA_PORT", "11434")
+            ollama_host = os.getenv("OLLAMA_HOST", "localhost")
+            ollama_url = f"http://{ollama_host}:{ollama_port}/api/tags"
+            response = requests.get(ollama_url, timeout=2)
+            if response.status_code == 200:
+                ollama_models = [
+                    model["name"] for model in response.json().get("models", [])
+                ]
+                self.llmFullDict["Ollama"] = ollama_models if ollama_models else []
+                ollama_is_available = True
+                log_manager.log_debug(f"Ollama is available at {ollama_url}.")
+                log_manager.log_debug(
+                    f"Ollama models fetched successfully: {ollama_models}"
+                )
+            else:
+                self.llmFullDict["Ollama"] = []
+        except Exception:
+            self.llmFullDict["Ollama"] = []
+            log_manager.log_debug(
+                "Failed to fetch Ollama models. Ensure Ollama is running on localhost:11434."
+            )
+        # Add default entry
         self.llmFullDict["default"] = ["default"]
 
         self.llmEndpointDict = dict()
@@ -104,6 +170,9 @@ class Dataloader:
         self.llmEndpointDict["Cohere"] = "https://api.cohere.com/v1/chat"
         self.llmEndpointDict["DeepSeek"] = "https://api.deepseek.com/v1/chat"
         self.llmEndpointDict["Groq"] = "https://api.groq.com/openai/v1/chat/completions"
+        if ollama_is_available:
+            self.llmEndpointDict["Ollama"] = ollama_url
+
         self.llmEndpointDict["default"] = "default"
 
         self.apiKeyDict = dict()
@@ -111,6 +180,8 @@ class Dataloader:
         self.apiKeyDict["Cohere"] = os.getenv("COHERE_API_KEY", "")
         self.apiKeyDict["DeepSeek"] = os.getenv("DEEPSEEK_API_KEY", "")
         self.apiKeyDict["Groq"] = os.getenv("GROQ_API_KEY", "")
+        if ollama_is_available:
+            self.apiKeyDict["Ollama"] = os.getenv("OLLAMA_API_KEY", "")
         self.apiKeyDict["default"] = "default"
 
         # Create the table if it doesn't exist.
@@ -118,9 +189,11 @@ class Dataloader:
             "ID TEXT NOT NULL PRIMARY KEY",
             "name TEXT NOT NULL",
             "endpoint TEXT",
-            "apiKey TEXT"
+            "apiKey TEXT",
         ]
-        creationSQL = f"CREATE TABLE IF NOT EXISTS {self.llmTableName} ({', '.join(columns)})"
+        creationSQL = (
+            f"CREATE TABLE IF NOT EXISTS {self.llmTableName} ({', '.join(columns)})"
+        )
         self.cursor.execute(creationSQL)
 
         # Prepare the rows to be inserted.
@@ -133,10 +206,13 @@ class Dataloader:
                 rowToInsert.append([llmID, llmName, endpoint, apiKey])
 
         # Use INSERT OR IGNORE so that rows with duplicate IDs are skipped.
-        self.cursor.executemany(f"""
+        self.cursor.executemany(
+            f"""
             INSERT OR IGNORE INTO {self.llmTableName} (ID, name, endpoint, apiKey)
             VALUES (?, ?, ?, ?)
-        """, rowToInsert)
+        """,
+            rowToInsert,
+        )
 
         self.connection.commit()
 
@@ -151,12 +227,14 @@ class Dataloader:
             generalChat;
         """
         if not self._checkExistence(self.promptTableName):
-            columns = ["ID TEXT NOT NULL PRIMARY KEY",
-                       "llmID TEXT NOT NULL",
-                       "version INTEGER NOT NULL",
-                       "template TEXT NOT NULL",
-                       "promptType TEXT NOT NULL",
-                       f"FOREIGN KEY (llmID) REFERENCES {self.llmTableName}(ID)"]
+            columns = [
+                "ID TEXT NOT NULL PRIMARY KEY",
+                "llmID TEXT NOT NULL",
+                "version INTEGER NOT NULL",
+                "template TEXT NOT NULL",
+                "promptType TEXT NOT NULL",
+                f"FOREIGN KEY (llmID) REFERENCES {self.llmTableName}(ID)",
+            ]
             creationSQL = f"CREATE TABLE IF NOT EXISTS {self.promptTableName} ({', '.join(columns)})"
             self.cursor.execute(creationSQL)
 
@@ -164,7 +242,7 @@ class Dataloader:
             currentFilePath = os.path.abspath(__file__)
             currentFolder = os.path.dirname(currentFilePath)
             promptPath = os.path.join(currentFolder, "resources", "prompt_v0.1.json")
-            with open(promptPath, 'r') as file:
+            with open(promptPath, "r") as file:
                 promptDict = json.load(file)
 
             rowToInsert = []
@@ -178,60 +256,69 @@ class Dataloader:
                         for key, value in promptDict[promptType][llmProvider].items():
                             template += key + ":\n\n" + value + "\n\n"
 
-                        rowToInsert.append([promptID, llmID, version, template, promptType])
+                        rowToInsert.append(
+                            [promptID, llmID, version, template, promptType]
+                        )
 
-            self.cursor.executemany(f"""
+            self.cursor.executemany(
+                f"""
                             INSERT INTO {self.promptTableName} (ID, llmID, version, template, promptType)
                             VALUES (?, ?, ?, ?, ?)
-                            """, rowToInsert)
+                            """,
+                rowToInsert,
+            )
             self.connection.commit()
 
     def _createConversationTable(self):
         if not self._checkExistence(self.conversationTableName):
-            columns = ["ID TEXT NOT NULL PRIMARY KEY",
-                       "llmID TEXT NOT NULL",
-                       "title TEXT NOT NULL",
-                       "description TEXT NOT NULL",
-                       "created TEXT NOT NULL",
-                       "modified TEXT NOT NULL",
-                       "messageCount INT NOT NULL",
-                       "workflowCount INT NOT NULL",
-                       "userID TEXT NOT NULL",
-                       f"FOREIGN KEY (llmID) REFERENCES {self.llmTableName}(ID)"]
+            columns = [
+                "ID TEXT NOT NULL PRIMARY KEY",
+                "llmID TEXT NOT NULL",
+                "title TEXT NOT NULL",
+                "description TEXT NOT NULL",
+                "created TEXT NOT NULL",
+                "modified TEXT NOT NULL",
+                "messageCount INT NOT NULL",
+                "workflowCount INT NOT NULL",
+                "userID TEXT NOT NULL",
+                f"FOREIGN KEY (llmID) REFERENCES {self.llmTableName}(ID)",
+            ]
             createTableSql = f"CREATE TABLE IF NOT EXISTS {self.conversationTableName} ({', '.join(columns)})"
             self.cursor.execute(createTableSql)
             self.connection.commit()
 
     def _createInteractionTable(self):
         if not self._checkExistence(self.interactionTableName):
-            columns = ["ID TEXT PRIMARY KEY",
-                       "conversationID TEXT NOT NULL",
-                       "promptID TEXT NOT NULL",
-                       "requestText TEXT NOT NULL",
-                       "contextText TEXT NOT NULL",
-                       "requestTime TEXT NOT NULL",
-                       "typeMessage TEXT NOT NULL",
-                       "responseText TEXT",
-                       "responseTime TEXT",
-                       "workflow TEXT",
-                       "executionLog TEXT",
-                       f"FOREIGN KEY (conversationID) REFERENCES {self.conversationTableName}(ID)"
-                       f"FOREIGN KEY (promptID) REFERENCES {self.promptTableName}(ID)"]
+            columns = [
+                "ID TEXT PRIMARY KEY",
+                "conversationID TEXT NOT NULL",
+                "promptID TEXT NOT NULL",
+                "requestText TEXT NOT NULL",
+                "contextText TEXT NOT NULL",
+                "requestTime TEXT NOT NULL",
+                "typeMessage TEXT NOT NULL",
+                "responseText TEXT",
+                "responseTime TEXT",
+                "workflow TEXT",
+                "executionLog TEXT",
+                f"FOREIGN KEY (conversationID) REFERENCES {self.conversationTableName}(ID)"
+                f"FOREIGN KEY (promptID) REFERENCES {self.promptTableName}(ID)",
+            ]
 
             createTableSql = f"CREATE TABLE IF NOT EXISTS {self.interactionTableName} ({', '.join(columns)})"
             self.cursor.execute(createTableSql)
 
             # create index on conversation ID
-            createIndexSql = (f"CREATE INDEX IF NOT EXISTS idxConversationID"
-                              f" ON {self.interactionTableName} (conversationID)")
+            createIndexSql = (
+                f"CREATE INDEX IF NOT EXISTS idxConversationID"
+                f" ON {self.interactionTableName} (conversationID)"
+            )
             self.cursor.execute(createIndexSql)
             self.connection.commit()
 
     def _createCrendentialTable(self):
         if not self._checkExistence(self.credentialTableName):
-            columns = ["ID TEXT PRIMARY KEY",
-                       "sessionID TEXT",
-                       "sessionKey TEXT"]
+            columns = ["ID TEXT PRIMARY KEY", "sessionID TEXT", "sessionKey TEXT"]
             createTableSql = f"CREATE TABLE IF NOT EXISTS {self.credentialTableName} ({', '.join(columns)})"
             self.cursor.execute(createTableSql)
 
@@ -242,14 +329,16 @@ class Dataloader:
         else:
             return "default", "default"
 
-    def fetchPrompt(self, llmID, promptType, clientVersion: str = "0.0.3", testing: bool = False):
+    def fetchPrompt(
+        self, llmID, promptType, clientVersion: str = "0.0.3", testing: bool = False
+    ):
         # note if newer version of intelligeo is developed the backend prompt table should also be renewed.
         # for easy-testing prompts, now all llms calling the same prompt stored under Cohere::command-r-plus
         # if any further commit updated this to each llm should use unique prompt please change this method
         params = {
-            'llmID': 'Cohere::command-r-plus',
-            'promptType': promptType,
-            'client_version': clientVersion
+            "llmID": "Cohere::command-r-plus",
+            "promptType": promptType,
+            "client_version": clientVersion,
         }
 
         endpoint = f"{self.backendURL}/prompt_by/"
@@ -272,6 +361,10 @@ class Dataloader:
         if conversationInfoDict["llmID"] in ["DeepSeek::deepseek-chat", "DeepSeek::deepseek-reasoner"]:
             conversationInfoDict["llmID"] = "Cohere::command-r"
 
+        # Check if llmID exists in llm table before posting data
+        self.cursor.execute(f"SELECT 1 FROM {self.llmTableName} WHERE ID = ?", (conversationInfoDict["llmID"],))
+        if not self.cursor.fetchone():
+            raise ValueError(f"llmID '{conversationInfoDict['llmID']}' does not exist in {self.llmTableName} table.")
 
         self.postData("conversation", conversationInfoDict)
 
@@ -324,18 +417,23 @@ class Dataloader:
                 self.cursor.execute(selectSQL, (conversationID,))
                 rowList = tuple2Dict(self.cursor.fetchall(), "conversation")
 
+            # rowList = self._restore_sanitized_payload(rowList)
             for row in rowList:
                 rowConversationID = row["ID"]
 
                 # Query to count rows with a specific conversationID
-                messageCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
-                                     f"AND typeMessage != 'internal'")
+                messageCountQuery = (
+                    f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
+                    f"AND typeMessage != 'internal'"
+                )
                 self.cursor.execute(messageCountQuery, (rowConversationID,))
                 row["messageCount"] = self.cursor.fetchone()[0]
 
                 # Query to count rows with a specific conversationID and non-empty workflow
-                workflowCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
-                                      f"AND workflow != 'empty'")
+                workflowCountQuery = (
+                    f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
+                    f"AND workflow != 'empty'"
+                )
                 self.cursor.execute(workflowCountQuery, (rowConversationID,))
                 row["workflowCount"] = self.cursor.fetchone()[0]
 
@@ -350,20 +448,36 @@ class Dataloader:
         """
         Update row in "conversation" table
         """
-        (conversationID,
-         llmID,
-         title,
-         description,
-         created,
-         modified,
-         messageCount,
-         workflowCount,
-         userID) = unpack(metaInfo, "conversation")
-        updateSQL = (f"UPDATE {self.conversationTableName} SET llmID = ?, title = ?, description = ?, "
-                     f"created = ?, modified = ?, messageCount = ?, workflowCount = ?, userID = ? WHERE ID = ?")
-        self.cursor.execute(updateSQL,
-                            (llmID, title, description, created, modified,
-                             messageCount, workflowCount, userID, conversationID))
+        # metaInfo = self._sanitize_for_payload(metaInfo)
+        (
+            conversationID,
+            llmID,
+            title,
+            description,
+            created,
+            modified,
+            messageCount,
+            workflowCount,
+            userID,
+        ) = unpack(metaInfo, "conversation")
+        updateSQL = (
+            f"UPDATE {self.conversationTableName} SET llmID = ?, title = ?, description = ?, "
+            f"created = ?, modified = ?, messageCount = ?, workflowCount = ?, userID = ? WHERE ID = ?"
+        )
+        self.cursor.execute(
+            updateSQL,
+            (
+                llmID,
+                title,
+                description,
+                created,
+                modified,
+                messageCount,
+                workflowCount,
+                userID,
+                conversationID,
+            ),
+        )
         self.connection.commit()
 
     def loadCredential(self):
@@ -376,17 +490,23 @@ class Dataloader:
             return "", ""
 
     def updateCredential(self, sessionID, sessionKey):
-        self.cursor.execute(f"SELECT ID FROM {self.credentialTableName} ORDER BY ID LIMIT 1")
+        self.cursor.execute(
+            f"SELECT ID FROM {self.credentialTableName} ORDER BY ID LIMIT 1"
+        )
         row = self.cursor.fetchone()
         if row:
             # Row exists, update it
-            self.cursor.execute(f"UPDATE {self.credentialTableName} SET sessionID = ?, sessionKey = ? WHERE ID = ?",
-                           (sessionID, sessionKey, row[0]))
+            self.cursor.execute(
+                f"UPDATE {self.credentialTableName} SET sessionID = ?, sessionKey = ? WHERE ID = ?",
+                (sessionID, sessionKey, row[0]),
+            )
         else:
             # No row exists, insert a new row
             new_id = "1"
-            self.cursor.execute(f"INSERT INTO {self.credentialTableName} (ID, sessionID, sessionKey) VALUES (?, ?, ?)",
-                           (new_id, sessionID, sessionKey))
+            self.cursor.execute(
+                f"INSERT INTO {self.credentialTableName} (ID, sessionID, sessionKey) VALUES (?, ?, ?)",
+                (new_id, sessionID, sessionKey),
+            )
 
         self.connection.commit()
 
@@ -401,15 +521,19 @@ class Dataloader:
 
     def insertInteraction(self, interactionInfo: list, conversationID: str) -> str:
         # Get interaction index
-        messageCountQuery = (f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
-                             f"AND typeMessage != 'internal'")
+        messageCountQuery = (
+            f"SELECT COUNT(*) FROM {self.interactionTableName} WHERE conversationID = ?"
+            f"AND typeMessage != 'internal'"
+        )
         self.cursor.execute(messageCountQuery, (conversationID,))
         interactionIndex = conversationID + str(self.cursor.fetchone()[0])
 
         # Insert row into "interaction" tablet
         allColname = ", ".join(self.interactionTableColname)
-        insertSQL = (f"INSERT INTO {self.interactionTableName} ({allColname}) "
-                     f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        insertSQL = (
+            f"INSERT INTO {self.interactionTableName} ({allColname}) "
+            f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )
         interaction = tuple([interactionIndex] + interactionInfo)
 
         self.cursor.execute(insertSQL, interaction)
@@ -417,26 +541,32 @@ class Dataloader:
 
         interactionDict = pack(interaction, "interaction")
         interactionDict["fromdev"] = self.fromdev
-        
+
         self.postData("interaction", interactionDict)
 
         return interactionIndex
 
     def selectInteraction(self, conversationID, columns=None):
         if columns:
-            selectSQL = (f"SELECT {', '.join(columns)} FROM {self.interactionTableName} "
-                         f"WHERE conversationID = ? AND typeMessage = ?")
+            selectSQL = (
+                f"SELECT {', '.join(columns)} FROM {self.interactionTableName} "
+                f"WHERE conversationID = ? AND typeMessage = ?"
+            )
         else:
-            selectSQL = (f"SELECT * FROM {self.interactionTableName} "
-                         f"WHERE conversationID = ? AND typeMessage IN (?, ?)")
+            selectSQL = (
+                f"SELECT * FROM {self.interactionTableName} "
+                f"WHERE conversationID = ? AND typeMessage IN (?, ?)"
+            )
         self.cursor.execute(selectSQL, (conversationID, "input", "return"))
         rows = self.cursor.fetchall()
         return rows
 
     def selectLatestInteraction(self, conversationID, interactionID=None):
         if interactionID is not None:
-            selectSQL = (f"SELECT * FROM {self.interactionTableName} "
-                         f"WHERE conversationID = ? AND ID = ?")
+            selectSQL = (
+                f"SELECT * FROM {self.interactionTableName} "
+                f"WHERE conversationID = ? AND ID = ?"
+            )
             self.cursor.execute(selectSQL, (conversationID, interactionID))
             row = self.cursor.fetchone()
             if row is not None:
@@ -447,44 +577,166 @@ class Dataloader:
         for row in rows:
             packedRow = pack(row, "interaction")
             if packedRow["conversationID"] in packedRow["ID"]:
-                processedRows.append(list(row) + [int(packedRow["ID"][len(packedRow["conversationID"]):])])
+                processedRows.append(
+                    list(row)
+                    + [int(packedRow["ID"][len(packedRow["conversationID"]) :])]
+                )
 
         sortedRows = sorted(processedRows, key=lambda x: x[-1])
         return sortedRows[-1][:-1]
 
+    # import re
+    # def _sanitize_string(self, value: str) -> str:
+    #     """
+    #     Sanitize a string by replacing single colons (:) with ___, but leave double colons (::) intact.
+    #     """
+    #     return re.sub(r'(?<!:):(?!:)', '___', value)
+
+    # def _sanitize_for_payload(self, dataDict: dict) -> dict:
+    #     # for key, value in dataDict.items():
+    #     #     if isinstance(value, str):
+    #     #         dataDict[key] = self._sanitize_string(value)
+    #     # return dataDict
+    #     return dataDict
+
+    # def _restore_sanitized_string(self, value: str) -> str:
+    #     return value.replace("___", ":")
+
+    # def _restore_sanitized_payload(self, data):
+    #     # """
+    #     # Restore sanitized strings in the payload by replacing triple underscores with colons.
+    #     # Accepts either a single dict or a list of dicts.
+    #     # """
+    #     # def restore_dict(d):
+    #     #     restored = {}
+    #     #     for key, value in d.items():
+    #     #         if isinstance(value, str):
+    #     #             restored[key] = self._restore_sanitized_string(value)
+    #     #         else:
+    #     #             restored[key] = value
+    #     #     return restored
+    #     # if isinstance(data, dict):
+    #     #     return restore_dict(data)
+    #     # elif isinstance(data, list):
+    #     #     return [restore_dict(item) for item in data]
+    #     # else:
+    #     #     return data
+    #     return data
+
     def postData(self, endpoint, data):
-        payload = data
         header = getSystemInfo()
 
-        while True:
-            dataDict = copy.deepcopy(data)
-            sessionID, sessionKey = self.loadCredential()
-            dataDict["sessionID"] = sessionID
-            dataDict["sessionKey"] = sessionKey
-            try:
-                response = requests.post(f"{self.backendURL}/{endpoint}", json=dataDict, headers=header)
-                if response.status_code == 200:
-                    break
-                else:
-                    errorResponse = response.json()
-                    captchaDict = errorResponse.get('detail', {})
-                    answer = captchaPopup(captchaDict)
-                    body = {"answer": answer}
+        # Prepare initial data
+        dataDict = copy.deepcopy(data)
+        sessionID, sessionKey = self.loadCredential()
+        dataDict["sessionID"] = sessionID
+        dataDict["sessionKey"] = sessionKey
+        # dataDict = self._sanitize_for_payload(dataDict)
 
-                    header = getSystemInfo()
-                    header["sendtime"] = getCurrentTimeStamp()
 
-                    response = requests.post(f"{self.backendURL}/register", headers=header, json=body)
-                    if response.status_code == 200:
-                        response_data = response.json()
+        try:
+            response = requests.post(
+                f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
+            )
 
-                        # Extract the credentials
-                        sessionID = response_data.get("sessionID")
-                        sessionKey = response_data.get("sessionKey")
-                        self.updateCredential(sessionID, sessionKey)
+            # If unauthorized, try refreshing session once
+            if response.status_code == 401:
+                log_manager.log_debug("Session expired, attempting to refresh credentials...")
+                refreshed = self._refreshSession()
+                if refreshed:
+                    sessionID, sessionKey = self.loadCredential()
+                    dataDict["sessionID"] = sessionID
+                    dataDict["sessionKey"] = sessionKey
+                    response = requests.post(
+                        f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
+                    )
 
-            except requests.exceptions.HTTPError as httpErr:
-                continue
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as httpErr:
+            log_manager.log_error(f"HTTP error occurred: {httpErr}")
+            raise httpErr
+        except requests.exceptions.RequestException as reqErr:
+            log_manager.log_error(f"Request error occurred: {reqErr}")
+            raise reqErr
+        except Exception as e:
+            log_manager.log_error(f"An unexpected error occurred: {e}")
+            raise e
+
+
+    # def postData(self, endpoint, data):
+    #     header = getSystemInfo()
+
+    #     # Prepare initial data
+    #     dataDict = copy.deepcopy(data)
+    #     sessionID, sessionKey = self.loadCredential()
+    #     dataDict["sessionID"] = sessionID
+    #     dataDict["sessionKey"] = sessionKey
+    #     dataDict = self._sanitize_for_payload(dataDict)
+
+    #     log_manager.log_debug(
+    #         f"Sending data to {self.backendURL}/{endpoint} with payload: {dataDict}"
+    #     )
+
+    #     try:
+    #         response = requests.post(
+    #             f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
+    #         )
+
+    #         # If unauthorized, try refreshing session once
+    #         if response.status_code == 401:
+    #             log_manager.log_debug("Session expired, attempting to refresh credentials...")
+    #             refreshed = self._refreshSession()
+    #             if refreshed:
+    #                 sessionID, sessionKey = self.loadCredential()
+    #                 dataDict["sessionID"] = sessionID
+    #                 dataDict["sessionKey"] = sessionKey
+    #                 response = requests.post(
+    #                     f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
+    #                 )
+
+    #         response.raise_for_status()
+
+    #     except requests.exceptions.HTTPError as httpErr:
+    #         log_manager.log_error(f"HTTP error occurred: {httpErr}")
+    #         raise httpErr
+    #     except requests.exceptions.RequestException as reqErr:
+    #         log_manager.log_error(f"Request error occurred: {reqErr}")
+    #         raise reqErr
+    #     except Exception as e:
+    #         log_manager.log_error(f"An unexpected error occurred: {e}")
+    #         raise e
+
+    def _refreshSession(self):
+        """
+        Refresh session using a stored API key or static credentials.
+        This assumes a backend /auth/refresh endpoint is available.
+        """
+        try:
+            header = getSystemInfo()
+            header["sendtime"] = getCurrentTimeStamp()
+            api_key = os.getenv("INTELLIGEO_API_KEY", "")
+            if not api_key:
+                log_manager.log_error("No API key found to refresh session.")
+                return False
+
+            body = {"apiKey": api_key}
+            response = requests.post(f"{self.backendURL}/auth/refresh", headers=header, json=body)
+
+            if response.status_code == 200:
+                response_data = response.json()
+                sessionID = response_data.get("sessionID")
+                sessionKey = response_data.get("sessionKey")
+                if sessionID and sessionKey:
+                    self.updateCredential(sessionID, sessionKey)
+                    log_manager.log_debug("Session refreshed successfully.")
+                    return True
+            else:
+                log_manager.log_error(f"Failed to refresh session: {response.text}")
+                return False
+        except Exception as e:
+            log_manager.log_error(f"Error during session refresh: {e}")
+            return False
 
     def updateData(self, endpoint, ID, data):
         response = requests.put(f"{self.backendURL}/{endpoint}/{ID}", json=data)

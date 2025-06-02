@@ -43,6 +43,7 @@ requiredModules = [
     "langchain_groq",
     "requests",
     "psutil",
+    "langchain_ollama"
     #"bs4",
 ]
 packageManager = PackageManager(requiredModules)
@@ -424,6 +425,7 @@ class IntelliGeo:
         showErrorMessage(errorMessage)
 
     def onConversationNewed(self):
+        log_manager.log_debug("Creating a new conversation...")
         if self.editdialog is None or not self.editdialog.isVisible():
             self.editdialog = NewEditConversationDialog(
                 self.dataloader.llmFullDict, self.dataloader.fetchAllConfig()
@@ -453,6 +455,7 @@ class IntelliGeo:
                     ),
                     "conversation",
                 )
+                log_manager.log_debug(f"metaInfo: {metaInfo}")
 
                 # Dataloader: Create corresponding table in database & update apikey
                 self.dataloader.createConversation(metaInfo)
