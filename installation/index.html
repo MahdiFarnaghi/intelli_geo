@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../img/favicon.ico" rel="shortcut icon"/>
+<title>Installation - IntelliGeo</title>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" rel="stylesheet"/>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css" rel="stylesheet"/>
+<link href="//rsms.me/inter/inter.css" rel="stylesheet" type="text/css"/>
+<link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&amp;subset=latin-ext,latin" rel="stylesheet" type="text/css"/>
+<link href="../css/bootstrap-custom.min.css" rel="stylesheet"/>
+<link href="../css/base.min.css" rel="stylesheet"/>
+<link href="../css/cinder.min.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css" rel="stylesheet"/>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+<meta content="Installation" name="title"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/><meta content="website" property="og:type"/><meta content="installation" property="og:url"/><meta content="Installation" property="og:title"/><meta content="To be able to use IntelliGeo, you need to first install it in your QGIS software and then obtain an API key to use large language models. Section 1 of this page explains how you can install the library and section 2 walk you through obtaining API keys for large language models from OpenAI, Cohere and Groq and registering them in QGIS." property="og:description"/><meta content="https://github.com/user-attachments/assets/2737f989-e808-440d-997e-2d80c601fdf5" property="og:image"/><meta content="summary_large_image" property="twitter:card"/><meta content="installation" property="twitter:url"/><meta content="Installation" property="twitter:title"/><meta content="To be able to use IntelliGeo, you need to first install it in your QGIS software and then obtain an API key to use large language models. Section 1 of this page explains how you can install the library and section 2 walk you through obtaining API keys for large language models from OpenAI, Cohere and Groq and registering them in QGIS." property="twitter:description"/><meta content="https://github.com/user-attachments/assets/2737f989-e808-440d-997e-2d80c601fdf5" property="twitter:image"/><style>
+.git-info, .dates-container, .authors-container, .share-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.git-info {
+    font-size: 0.8em;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.dates-container, .authors-container {
+    margin-bottom: 10px;
+}
+
+.date-item, .author-link, .share-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.date-item {
+    margin-right: 10px;
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+    font-size: 1.6em;
+    margin-right: 5px;
+}
+
+.author-link .hover-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background-color: #f0f0f0;  /* Placeholder color */
+    opacity: 0;  /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+    opacity: 1;  /* Fade in when src is set (image loaded) */
+}
+
+.hover-item:hover {
+    transform: scale(1.2);
+    filter: grayscale(0%);
+}
+
+.share-buttons {
+    margin-top: 10px;
+}
+
+.share-button {
+    background-color: #1da1f2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.95em;
+    margin: 5px;
+    transition: all 0.2s ease;
+}
+
+.share-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+    background-color: #0077b5;
+}
+
+.share-button i {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+    .git-info {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .dates-container, .authors-container {
+        width: 100%;
+    }
+}
+</style></head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container">
+<!-- Collapsed navigation -->
+<div class="navbar-header">
+<!-- Expander button -->
+<button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
+<span class="sr-only">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<!-- Main title -->
+<a class="navbar-brand" href="..">IntelliGeo</a>
+</div>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li>
+<a href="..">Home</a>
+</li>
+<li class="active">
+<a href="./">Installation</a>
+</li>
+<li>
+<a href="../use/">How to use</a>
+</li>
+<li>
+<a href="../tutorials/">Tutorials</a>
+</li>
+<li>
+<a href="../development/">Development</a>
+</li>
+<li>
+<a href="../change/">Change Log</a>
+</li>
+<li>
+<a href="../team/">Core team</a>
+</li>
+<li>
+<a href="../blogs/">Blogs</a>
+</li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+<a data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fas fa-search"></i> Search
+                        </a>
+</li>
+<li>
+<a href=".." rel="prev">
+<i class="fas fa-arrow-left"></i> Previous
+                        </a>
+</li>
+<li>
+<a href="../use/" rel="next">
+                            Next <i class="fas fa-arrow-right"></i>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+<ul class="nav bs-sidenav">
+<li class="first-level active"><a href="#installation-and-api-keys">Installation and API Keys</a></li>
+<li class="second-level"><a href="#1-installation">1. Installation</a></li>
+<li class="third-level"><a href="#install-from-plugin-hub">Install from plugin hub</a></li>
+<li class="third-level"><a href="#install-from-source">Install from source</a></li>
+<li class="second-level"><a href="#2-obtaining-api-key-for-intelligeo">2. Obtaining API Key for IntelliGeo</a></li>
+<li class="third-level"><a href="#openai-guide">OpenAI Guide</a></li>
+<li class="third-level"><a href="#cohere-guide">Cohere Guide</a></li>
+<li class="third-level"><a href="#groq-guide">Groq Guide</a></li>
+<li class="third-level"><a href="#deepseek-guide">DeepSeek Guide</a></li>
+</ul>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="installation-and-api-keys">Installation and API Keys</h1>
+<p>To be able to use IntelliGeo, you need to first install it in your QGIS software and then obtain an API key to use large language models. Section 1 of this page explains how you can install the library and section 2 walk you through obtaining API keys for large language models from OpenAI, Cohere and Groq and registering them in QGIS.  </p>
+<h2 id="1-installation">1. Installation</h2>
+<p>There are two ways to install the IntelliGeo plugin: via the QGIS plugin hub or by installing it from the source.</p>
+<h3 id="install-from-plugin-hub"><strong>Install from plugin hub</strong></h3>
+<p><img alt="Screenshot from 2024-10-09 12-51-30" src="https://github.com/user-attachments/assets/2737f989-e808-440d-997e-2d80c601fdf5"/></p>
+<p>In QGIS, click on <code>plugins</code>-&gt;<code>Manage and install Plugins</code>, In the search bar, type "IntelliGeo", locate the plugin and click on <code>Install Experimental Plugin</code>.</p>
+<h3 id="install-from-source"><strong>Install from source</strong></h3>
+<p>Visit the <a href="https://github.com/MahdiFarnaghi/intelli_geo">IntelliGeo GitHub repository</a> and download the latest <a href="https://github.com/MahdiFarnaghi/intelli_geo/releases">release</a> of the plugin as a ZIP file.</p>
+<p>Install via QGIS Plugin Manager:</p>
+<ul>
+<li>Open QGIS.</li>
+<li>Go to <code>Plugins</code> &gt; <code>Manage and Install Plugins</code>.</li>
+<li>Click the <code>Install from ZIP</code> button.</li>
+<li>Browse to the location where you downloaded the IntelliGeo ZIP file and select it.</li>
+<li>Click <code>Install Plugin</code>.</li>
+</ul>
+<p>Activate the Plugin:</p>
+<ul>
+<li>Go to <code>Plugins</code> &gt; <code>Manage and Install Plugins</code>.</li>
+<li>Find IntelliGeo in the list and check the box next to it to activate the plugin.</li>
+</ul>
+<h4 id="dependency">Dependency</h4>
+<blockquote>
+<p>[!NOTE]
+In some cases, you may need to install the dependencies manually. We are working on fixing this issue, but some users may still need to take this step.</p>
+</blockquote>
+<h5 id="linux-macos">Linux &amp; MacOS</h5>
+<p>For Linux or macOS, use <code>pip</code> to install the Python dependencies listed in the <a href="https://github.com/MahdiFarnaghi/intelli_geo/blob/main/requirements.txt">requirements.txt</a> file.</p>
+<p>Navigate to <code>IntelliGeo</code> folder, and run the following command,</p>
+<pre><code>pip install -r requirements.txt
+</code></pre>
+<h5 id="windows">Windows</h5>
+<p>For Windows, ou can use the OSGeo4W shell, which comes with QGIS. First, open the OSGeo4W shell (found in the QGIS installation folder). Then, use the <code>pip</code> command to install packages listed in the <a href="https://github.com/MahdiFarnaghi/intelli_geo/blob/main/requirements.txt">requirements.txt</a> file., just as you would in a regular Python environment, by running <code>pip install package_name</code>. This will ensure that the packages are installed in the environment QGIS uses. For a step-by-step guide, you can watch <a href="https://www.youtube.com/watch?v=9Jdc331qofg">this video tutorial</a> that demonstrates the process in detail.</p>
+<h2 id="2-obtaining-api-key-for-intelligeo">2. Obtaining API Key for IntelliGeo</h2>
+<p>To use the IntelliGeo plugin, you need access to a large language model (LLM) via an API. Currently, we support both <a href="https://openai.com/">OpenAI</a> and <a href="https://cohere.com/">Cohere</a>. Based on our experience, OpenAI models perform better but require a paid plan. Cohere, while offering free access to their API, delivers slightly lower performance compared to OpenAI.</p>
+<h3 id="openai-guide">OpenAI Guide</h3>
+<h4 id="step-1-sign-up">Step 1: Sign Up</h4>
+<p>Register for ChatGPT at <a href="https://platform.openai.com/signup?launch">OpenAI Signup</a>. You can sign up using an email address or an existing Google, Microsoft, or Apple account.</p>
+<h4 id="step-2-open-the-dashboard">Step 2: Open the Dashboard</h4>
+<p>Once registered, navigate to the OpenAI dashboard at <a href="https://platform.openai.com/api-keys">OpenAI Dashboard</a> to access your API keys.</p>
+<h4 id="step-3-generate-an-api-key">Step 3: Generate an API Key</h4>
+<p>To create a new API key, go to the <code>API Keys</code> section, click on <code>+ Create new secret key</code>, and optionally name it in the pop-up. Once you click 'Create secret key', a unique alphanumeric API key will be generated. Be sure to store this key securely.</p>
+<p><img alt="Screenshot from 2024-10-18 16-51-01" src="https://github.com/user-attachments/assets/eda6d221-3168-4741-b14d-a0f0e6a4a8f3"/></p>
+<p>This API key works universally for all OpenAI models; you don’t need separate keys for each model.</p>
+<h4 id="step-4-use-the-api-key-in-intelligeo">Step 4: Use the API Key in IntelliGeo</h4>
+<p>Copy your API key and input it when starting a new conversation within IntelliGeo. The key will be saved only in your local database; the IntelliGeo backend does not store or access your API key.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704"/></p>
+<h3 id="cohere-guide">Cohere Guide</h3>
+<h4 id="step-1-sign-up_1">Step 1: Sign Up</h4>
+<p>Sign up for Cohere at <a href="https://dashboard.cohere.com/welcome/register">Cohere Signup</a>. You can register using your email address or an existing Google or GitHub account.</p>
+<h4 id="step-2-access-the-dashboard">Step 2: Access the Dashboard</h4>
+<p>Once logged in, go to the API Keys section to manage your API keys.</p>
+<h4 id="step-3-create-an-api-key">Step 3: Create an API Key</h4>
+<p>To generate an API key, go to <code>API Keys</code>, then click <code>+ New Trial key</code>, optionally name it, and click 'Create secret key' to generate your unique API key. Make sure to store the key securely.</p>
+<p><img alt="Screenshot from 2024-10-18 17-15-56" src="https://github.com/user-attachments/assets/90e0970b-9fff-4927-98ca-ff6bfb294ec8"/></p>
+<p>The Cohere API key works for all models, so you don’t need to create multiple keys.</p>
+<h4 id="step-4-use-the-api-key-in-intelligeo_1">Step 4: Use the API Key in IntelliGeo</h4>
+<p>Copy your Cohere API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo’s backend.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704"/></p>
+<p>Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. </p>
+<h3 id="groq-guide">Groq Guide</h3>
+<h4 id="step-1-sign-up_2">Step 1: Sign Up</h4>
+<p>Sign up for Groq at <a href="https://console.groq.com/login">Groq Signup</a>. You can register using your email address or an existing Google or GitHub account.</p>
+<h4 id="step-2-access-the-dashboard_1">Step 2: Access the Dashboard</h4>
+<p>Once logged in, go to the API Keys section to manage your API keys.</p>
+<h4 id="step-3-create-an-api-key_1">Step 3: Create an API Key</h4>
+<p>To generate an API key, go to <code>API Keys</code>, then click <code>Create API key</code>, optionally name it, and click 'Submit' to generate your unique API key. Make sure to store the key securely.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/72310dd6-396d-48c7-81c6-6c6188e9bb24"/></p>
+<p>The Groq API key works for all models, so you don’t need to create multiple keys.</p>
+<h4 id="step-4-use-the-api-key-in-intelligeo_2">Step 4: Use the API Key in IntelliGeo</h4>
+<p>Copy your Groq API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo’s backend.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704"/></p>
+<p>Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. </p>
+<h3 id="deepseek-guide">DeepSeek Guide</h3>
+<h4 id="step-1-sign-up_3">Step 1: Sign Up</h4>
+<p>Sign up for deepseek at <a href="https://platform.deepseek.com/sign_up">DeepSeek Signup</a>. You can register using your email address or an existing Google account.</p>
+<h4 id="step-2-access-the-dashboard_2">Step 2: Access the Dashboard</h4>
+<p>Once logged in, go to the API Keys section to manage your API keys.</p>
+<h4 id="step-3-create-an-api-key_2">Step 3: Create an API Key</h4>
+<p>To generate an API key, go to <code>API Keys</code>, then click <code>Create New API key</code>, optionally name it, and click 'Create API key' to generate your unique API key. Make sure to store the key securely.</p>
+<p><img alt="Screenshot from 2025-02-12 11-11-01(1)" src="https://github.com/user-attachments/assets/f9aacb8a-f6de-4b99-8ed9-69c48583128b"/></p>
+<p>The Deepseek API key works for all models, so you don't need to create multiple keys.</p>
+<h4 id="step-4-use-the-api-key-in-intelligeo_3">Step 4: Use the API Key in IntelliGeo</h4>
+<p>Copy your DeepSeek API key and input it when starting a new conversation in IntelliGeo. As with OpenAI, your key is stored locally and never accessed by IntelliGeo's backend.</p>
+<p><img alt="image" src="https://github.com/user-attachments/assets/2c5f8f79-f30d-47b3-8cf7-442402bec704"/></p>
+<p>Once your API key is set up, you can start using the IntelliGeo plugin. Click on the IntelliGeo icon to open the chat interface. From there, you can chat and use the AI-powered geo-workflow features. </p></div>
+</div>
+<footer class="col-md-12 text-center">
+<hr/>
+<p>
+<small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+</p>
+</footer>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="../js/bootstrap-3.0.3.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script>var base_url = ".."</script>
+<script src="../js/base.js"></script>
+<script src="../search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<button class="close" data-dismiss="modal" type="button">
+<span aria-hidden="true">×</span>
+<span class="sr-only">Close</span>
+</button>
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+</div>
+<div class="modal-body">
+<p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="text"/>
+</div>
+</form>
+<div id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

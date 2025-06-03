@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../img/favicon.ico" rel="shortcut icon"/>
+<title>Blogs - IntelliGeo</title>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" rel="stylesheet"/>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css" rel="stylesheet"/>
+<link href="//rsms.me/inter/inter.css" rel="stylesheet" type="text/css"/>
+<link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&amp;subset=latin-ext,latin" rel="stylesheet" type="text/css"/>
+<link href="../css/bootstrap-custom.min.css" rel="stylesheet"/>
+<link href="../css/base.min.css" rel="stylesheet"/>
+<link href="../css/cinder.min.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css" rel="stylesheet"/>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+<meta content="Blogs" name="title"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/><meta content="website" property="og:type"/><meta content="blogs" property="og:url"/><meta content="Blogs" property="og:title"/><meta content='IntelliGeo project was presented at NWO ICT.OPEN2025 which was held in Jaarbeurs Utrecht, 15 and 16 April 2025. The title of the poster by Gustavo and Mahdi was "Fine-Tuning LLMs for Spatial Analysis and Modeling – An Initial Step".' property="og:description"/><meta content="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/ICT_Open_IntelliGeo_Poster.png" property="og:image"/><meta content="summary_large_image" property="twitter:card"/><meta content="blogs" property="twitter:url"/><meta content="Blogs" property="twitter:title"/><meta content='IntelliGeo project was presented at NWO ICT.OPEN2025 which was held in Jaarbeurs Utrecht, 15 and 16 April 2025. The title of the poster by Gustavo and Mahdi was "Fine-Tuning LLMs for Spatial Analysis and Modeling – An Initial Step".' property="twitter:description"/><meta content="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/ICT_Open_IntelliGeo_Poster.png" property="twitter:image"/><style>
+.git-info, .dates-container, .authors-container, .share-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.git-info {
+    font-size: 0.8em;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.dates-container, .authors-container {
+    margin-bottom: 10px;
+}
+
+.date-item, .author-link, .share-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.date-item {
+    margin-right: 10px;
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+    font-size: 1.6em;
+    margin-right: 5px;
+}
+
+.author-link .hover-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background-color: #f0f0f0;  /* Placeholder color */
+    opacity: 0;  /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+    opacity: 1;  /* Fade in when src is set (image loaded) */
+}
+
+.hover-item:hover {
+    transform: scale(1.2);
+    filter: grayscale(0%);
+}
+
+.share-buttons {
+    margin-top: 10px;
+}
+
+.share-button {
+    background-color: #1da1f2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.95em;
+    margin: 5px;
+    transition: all 0.2s ease;
+}
+
+.share-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+    background-color: #0077b5;
+}
+
+.share-button i {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+    .git-info {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .dates-container, .authors-container {
+        width: 100%;
+    }
+}
+</style></head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container">
+<!-- Collapsed navigation -->
+<div class="navbar-header">
+<!-- Expander button -->
+<button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
+<span class="sr-only">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<!-- Main title -->
+<a class="navbar-brand" href="..">IntelliGeo</a>
+</div>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li>
+<a href="..">Home</a>
+</li>
+<li>
+<a href="../installation/">Installation</a>
+</li>
+<li>
+<a href="../use/">How to use</a>
+</li>
+<li>
+<a href="../tutorials/">Tutorials</a>
+</li>
+<li>
+<a href="../development/">Development</a>
+</li>
+<li>
+<a href="../change/">Change Log</a>
+</li>
+<li>
+<a href="../team/">Core team</a>
+</li>
+<li class="active">
+<a href="./">Blogs</a>
+</li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+<a data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fas fa-search"></i> Search
+                        </a>
+</li>
+<li>
+<a href="../team/" rel="prev">
+<i class="fas fa-arrow-left"></i> Previous
+                        </a>
+</li>
+<li class="disabled">
+<a rel="next">
+                            Next <i class="fas fa-arrow-right"></i>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+<ul class="nav bs-sidenav">
+<li class="first-level active"><a href="#blog-posts">Blog Posts</a></li>
+<li class="second-level"><a href="#intelligeo-at-ict-open-2025">IntelliGeo at ICT Open 2025</a></li>
+<li class="second-level"><a href="#workshop-at-qgis-user-conference-2024-in-bratislava">Workshop at QGIS User Conference 2024 in Bratislava</a></li>
+<li class="second-level"><a href="#intelligeo-at-ict-open-2024">IntelliGeo at ICT Open 2024</a></li>
+</ul>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="blog-posts">Blog Posts</h1>
+<h2 id="intelligeo-at-ict-open-2025"><strong>IntelliGeo</strong> at ICT Open 2025</h2>
+<p>IntelliGeo project was presented at NWO ICT.OPEN2025 which was held in Jaarbeurs Utrecht, 15 and 16 April 2025. The title of the poster by <a href="">Gustavo</a> and <a href="">Mahdi</a> was <strong>"Fine-Tuning LLMs for Spatial Analysis and Modeling – An Initial Step"</strong>. </p>
+<p><strong>The abstract of the poster:</strong></p>
+<p>Geospatial Information Science (GIScience) is a multidisciplinary field focused on developing methods for managing and analyzing geographic data, which are essential for understanding the spatial and temporal dynamics of natural and human-made processes. These analyses often require the creation of complex models within Geographic Information Systems (GIS). However, building such models typically demands specialized, modeling-specific knowledge, making them accessible primarily to GIS professionals. To address this barrier, we leverage the emerging capabilities of Large Language Models (LLMs) to democratize GIS modeling. As part of this effort, we developed and deployed IntelliGeo, a QGIS plugin that functions as an AI-powered modeling assistant. Since no current LLM is fine-tuned for spatial analysis and modeling, IntelliGeo enhances the capabilities of general-purpose LLMs through two mechanisms: Retrieval-Augmented Generation (RAG) to supply GIS-specific information to LLMs, and Few-Shot Learning to provide examples of prompts for generating geodata processing models along with their expected outputs. By iteratively capturing and refining user inputs, IntelliGeo not only simplifies modeling efforts but also contributes to building a dataset for fine-tuning LLMs for spatial analysis and modeling. In this poster, we describe the implementation of IntelliGeo, with special emphasis on the RAG and Few-Shot mechanisms.</p>
+<p>The poster presented at the conference:</p>
+<p><img alt="ICT.Open 2025 - IntelliGeo Poster" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/ICT_Open_IntelliGeo_Poster.png" width="600"/></p>
+<p><strong>Keywords:</strong> LLM, GIS, Fine-tuning, QGIS plugin, RAG, Few-Shot</p>
+<h2 id="workshop-at-qgis-user-conference-2024-in-bratislava">Workshop at <a href="https://uc2024_qgis_sk_">QGIS User Conference 2024</a> in Bratislava</h2>
+<p>In a <a href="https://talks.osgeo.org/qgis-uc2024/talk/DNHKHQ/">workshop</a> at QGIS User Conference 2024, the <strong>IntelliGeo</strong> plugin was presented to the QGIS user community. We had a full room of interested people actively participating in the workshop. The workshop was started with an introduction to the IntelliGeo plugin and it's relation with AI/LLMs. Then the participants installed IntelliGeo, participated in a hands-on activity where they use the plugin to perform different GIS tasks. Finally, we had a very constructive feedback round where we collected amazing suggestion and collaboration opportunities. </p>
+<p>Some nice images from the workshop:</p>
+<table>
+<tr>
+<td colspan="2" rowspan="2"><img alt="Spanning Image" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_1.jpg" width="400"/>
+</td>
+<td><img alt="Image 2" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_3.jpg" width="200"/>
+</td>
+</tr>
+<tr>
+<td><img alt="Image 3" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_4.jpg" width="200"/></td>
+</tr>
+<tr>
+<td><img alt="Image 4" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_2.jpg" width="200"/></td>
+<td><img alt="Image 5" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_5.jpg" width="200"/></td>
+<td><img alt="Image 6" src="https://raw.githubusercontent.com/MahdiFarnaghi/intelli_geo/main/docs/img/uc2024_qgis_sk_6.jpg" width="200"/></td>
+</tr>
+</table>
+<h2 id="intelligeo-at-ict-open-2024"><strong>IntelliGeo</strong> at ICT Open 2024</h2>
+<p>IntelliGeo project was presented at NWO ICT.OPEN2024 which was held in Jaarbeurs Utrecht, 10 and April 2024. The title of the presentation by <a href="">Mahdi</a> and <a href="">Gustavo</a> was <strong>"Fine-Tuning LLMs for Spatial Analysis and Modeling – An Initial Step"</strong>. </p>
+<p><strong>The abstract of the talk:</strong></p>
+<p>Geospatial Information Science (GIScience) combines Geography, Earth Science, and Computer Science to develop methods for handling geographical data such as satellite/UAV imagery and GPS observations, aiding in complex model building using Geographical Information System (GIS) platforms in sectors like climate change, food security, and health. The intersection of GIScience and recent advances in Large Language Models (LLMs) presents an opportunity to transform spatial analysis and modelling. However, the integration of LLMs into GIScience applications is hindered by the absence of fine-tuning datasets for spatial analysis and modelling tasks, thus a lack of task-specific LLMs in the GIScience domain. In response, we are working on a research project funded by the NWO Ai NED program to integrate general-purpose LLMs into QGIS, a widely used GIS platform. The main idea is to record expert user interactions with an out-of-the-box, general-purpose LLM. Since the LLM is not specialized for GIS tasks, users will need to interact with it iteratively to solve the GIS tasks. We hypothesize that recording such interactions will allow us to build a community-based specialized dataset to fine-tune LLMs for spatial analysis and modelling. This presentation will explain the main objectives of the project, its primary results, and the remaining steps. We will showcase our initial findings about the effective mechanisms to translate users’ analytical descriptions into executable geoprocessing workflows in GIS. Primary results affirm the capacity of the proposed approach to democratize spatial analysis by embedding advanced Artificial Intelligence within GIS platforms.</p>
+<p><strong>Keywords:</strong> LLM, GIS, Fine-tuning, Dataset, Spatial</p></div>
+</div>
+<footer class="col-md-12 text-center">
+<hr/>
+<p>
+<small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+</p>
+</footer>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="../js/bootstrap-3.0.3.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script>var base_url = ".."</script>
+<script src="../js/base.js"></script>
+<script src="../search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<button class="close" data-dismiss="modal" type="button">
+<span aria-hidden="true">×</span>
+<span class="sr-only">Close</span>
+</button>
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+</div>
+<div class="modal-body">
+<p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="text"/>
+</div>
+</form>
+<div id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

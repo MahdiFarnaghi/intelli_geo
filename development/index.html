@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../img/favicon.ico" rel="shortcut icon"/>
+<title>Development - IntelliGeo</title>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" rel="stylesheet"/>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css" rel="stylesheet"/>
+<link href="//rsms.me/inter/inter.css" rel="stylesheet" type="text/css"/>
+<link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&amp;subset=latin-ext,latin" rel="stylesheet" type="text/css"/>
+<link href="../css/bootstrap-custom.min.css" rel="stylesheet"/>
+<link href="../css/base.min.css" rel="stylesheet"/>
+<link href="../css/cinder.min.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css" rel="stylesheet"/>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+<meta content="Development" name="title"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/><meta content="website" property="og:type"/><meta content="development" property="og:url"/><meta content="Development" property="og:title"/><meta content="Clone the project into the QGIS plugins folder:" property="og:description"/><meta content="../img/fork.png" property="og:image"/><meta content="summary_large_image" property="twitter:card"/><meta content="development" property="twitter:url"/><meta content="Development" property="twitter:title"/><meta content="Clone the project into the QGIS plugins folder:" property="twitter:description"/><meta content="../img/fork.png" property="twitter:image"/><style>
+.git-info, .dates-container, .authors-container, .share-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.git-info {
+    font-size: 0.8em;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.dates-container, .authors-container {
+    margin-bottom: 10px;
+}
+
+.date-item, .author-link, .share-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.date-item {
+    margin-right: 10px;
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+    font-size: 1.6em;
+    margin-right: 5px;
+}
+
+.author-link .hover-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background-color: #f0f0f0;  /* Placeholder color */
+    opacity: 0;  /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+    opacity: 1;  /* Fade in when src is set (image loaded) */
+}
+
+.hover-item:hover {
+    transform: scale(1.2);
+    filter: grayscale(0%);
+}
+
+.share-buttons {
+    margin-top: 10px;
+}
+
+.share-button {
+    background-color: #1da1f2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.95em;
+    margin: 5px;
+    transition: all 0.2s ease;
+}
+
+.share-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+    background-color: #0077b5;
+}
+
+.share-button i {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+    .git-info {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .dates-container, .authors-container {
+        width: 100%;
+    }
+}
+</style></head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container">
+<!-- Collapsed navigation -->
+<div class="navbar-header">
+<!-- Expander button -->
+<button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
+<span class="sr-only">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<!-- Main title -->
+<a class="navbar-brand" href="..">IntelliGeo</a>
+</div>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li>
+<a href="..">Home</a>
+</li>
+<li>
+<a href="../installation/">Installation</a>
+</li>
+<li>
+<a href="../use/">How to use</a>
+</li>
+<li>
+<a href="../tutorials/">Tutorials</a>
+</li>
+<li class="active">
+<a href="./">Development</a>
+</li>
+<li>
+<a href="../change/">Change Log</a>
+</li>
+<li>
+<a href="../team/">Core team</a>
+</li>
+<li>
+<a href="../blogs/">Blogs</a>
+</li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+<a data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fas fa-search"></i> Search
+                        </a>
+</li>
+<li>
+<a href="../tutorials/" rel="prev">
+<i class="fas fa-arrow-left"></i> Previous
+                        </a>
+</li>
+<li>
+<a href="../change/" rel="next">
+                            Next <i class="fas fa-arrow-right"></i>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+<ul class="nav bs-sidenav">
+<li class="first-level active"><a href="#development-instructions">Development Instructions</a></li>
+<li class="second-level"><a href="#running-the-project-locally">Running the Project Locally</a></li>
+<li class="second-level"><a href="#contributing-to-the-project-external-contributors">Contributing to the Project - External Contributors</a></li>
+<li class="second-level"><a href="#contributing-to-the-project-team-members">Contributing to the Project - Team Members</a></li>
+<li class="second-level"><a href="#packaging-release">Packaging &amp; Release</a></li>
+<li class="second-level"><a href="#tips-for-development-for-plugin">Tips for development for plugin</a></li>
+<li class="second-level"><a href="#documentation">Documentation</a></li>
+<li class="third-level"><a href="#testing-the-documentation-locally">Testing the Documentation Locally</a></li>
+<li class="third-level"><a href="#building-the-site">Building the Site</a></li>
+<li class="second-level"><a href="#development-roadmap">Development Roadmap</a></li>
+<li class="third-level"><a href="#known-issues-discussions">Known Issues &amp; Discussions</a></li>
+</ul>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="development-instructions">Development Instructions</h1>
+<h2 id="running-the-project-locally">Running the Project Locally</h2>
+<ol>
+<li>
+<p><strong>Clone the project into the QGIS plugins folder:</strong></p>
+<ul>
+<li>To locate the folder, open QGIS and navigate to <code>Settings &gt; User profiles &gt; Open Active Profile Folder</code>. The plugins folder is located within the <code>python/plugin</code> folder.</li>
+</ul>
+</li>
+<li>
+<p><strong>Set up the <code>QGISDIR</code> environment variable:</strong><br/>
+   Point the <code>QGISDIR</code> variable to the plugins folder.</p>
+</li>
+<li>
+<p><strong>Create a Python environment:</strong><br/>
+   Set up and activate a Python environment in your project through the terminal.</p>
+</li>
+<li>
+<p><strong>Modify the interface using QT Designer:</strong></p>
+<ul>
+<li>Open the QT Designer installed by QGIS.</li>
+<li>Open the <code>intelli_geo_dockwidget_base.ui</code> file.<ul>
+<li>Make modifications.</li>
+<li>Save the file.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Compile the interface using <code>pb_tool</code>:</strong></p>
+<ul>
+<li>
+<p>Install <code>pb_tool</code> using pip:</p>
+<p><code>pip install pb-tool</code></p>
+</li>
+<li>
+<p>Install <code>pyqt5ac</code> using pip:</p>
+<p><code>pip install pyqt5ac</code></p>
+</li>
+<li>
+<p>On Linux, due to a <a href="https://github.com/qgis/QGIS/issues/48368#issuecomment-1293898268">known issue</a>, installing Qt via pip may cause incompatibility with QT5. The solution is to install the following packages:</p>
+<p><code>sudo apt-get install python3-pyqt5
+sudo apt-get install qtcreator pyqt5-dev-tools
+sudo apt-get install qttools5-dev-tools</code></p>
+</li>
+<li>
+<p>Verify if <code>pb_tool.exe</code> is located in the Python environment’s scripts folder.</p>
+</li>
+<li>
+<p>Navigate to the <code>intelli_geo</code> module folder in the terminal and run:</p>
+<p><code>pbt compile</code></p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Activate the plugin in QGIS:</strong></p>
+<ul>
+<li>In QGIS, go to <code>Plugins &gt; Manage and Install Plugins</code>.</li>
+<li>Select the "Installed" tab and check the box next to IntelliGeo.</li>
+<li>Close the plugins manager, and the IntelliGeo menu should appear in the Plugins menu.</li>
+</ul>
+</li>
+</ol>
+<h2 id="contributing-to-the-project-external-contributors">Contributing to the Project - External Contributors</h2>
+<p>If you want to contribute to the IntelliGeo project but are not part of the team, follow these steps to fork the repository:</p>
+<ol>
+<li>
+<p>Go to the <a href="https://github.com/MahdiFarnaghi/intelli_geo">IntelliGeo repository</a> on GitHub.</p>
+</li>
+<li>
+<p>In the top-right corner, click <strong>Fork</strong>. For more information, see the <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo">GitHub Forking Guide</a>.
+   <img alt="Fork" src="../img/fork.png" title="Fork"/></p>
+</li>
+<li>
+<p>Clone the forked repository to your local machine, make changes, and commit them to your forked repository.</p>
+</li>
+<li>
+<p>To propose your changes to the main IntelliGeo repository, create a pull request:</p>
+<ul>
+<li>On your forked repository, click <strong>New pull request</strong>.
+<img alt="New pull request" src="../img/new_pull_request.png" title="New pull request"/></li>
+</ul>
+<p>GitHub will check for merge conflicts, but only the IntelliGeo team can approve or merge changes.</p>
+</li>
+</ol>
+<h2 id="contributing-to-the-project-team-members">Contributing to the Project - Team Members</h2>
+<ol>
+<li>
+<p><strong>Pull the latest version of the <code>main</code> branch:</strong></p>
+<p><code>git checkout main
+git pull origin main</code></p>
+</li>
+<li>
+<p><strong>Create a new branch:</strong></p>
+<p><code>git checkout -b &lt;new_branch_name&gt;</code></p>
+</li>
+<li>
+<p><strong>Make your changes.</strong></p>
+</li>
+<li>
+<p><strong>Stage your changes:</strong></p>
+<p><code>git add .</code></p>
+</li>
+<li>
+<p><strong>Commit your changes:</strong></p>
+<p><code>git commit -m "Detailed message about the changes"</code></p>
+</li>
+<li>
+<p><strong>Push the branch for review:</strong></p>
+<p><code>git push origin &lt;new_branch_name&gt;</code></p>
+</li>
+<li>
+<p>On GitHub, you will see the new branch. Use the <strong>Compare &amp; pull request</strong> button to initiate a pull request with the <code>main</code> branch.
+   <img alt="Compare and Pull Request Button" src="../img/compare_and_pull_request.png" title="Compare and Pull Request Button"/></p>
+</li>
+<li>
+<p>In the <strong>Open a pull request</strong> window, add a description, select reviewers, and click <strong>Create pull request</strong>.
+   <img alt="Open a pull request window" src="../img/open_pull_request.png" title="Open a pull request window"/></p>
+</li>
+<li>
+<p>The team will review the changes. If approved, they will merge the branch into the <code>main</code> branch using the <strong>Merge pull request</strong> button.
+   <img alt="Merge pull request button" src="../img/merge_pull_request.png" title="Merge pull request button"/></p>
+</li>
+<li>
+<p>Optionally, delete the old branch after merging.</p>
+</li>
+</ol>
+<h2 id="packaging-release">Packaging &amp; Release</h2>
+<p>The recommended way to package the plugin is by using <a href="https://g-sherman.github.io/plugin_build_tool/">pb_tool</a>. You can find its documentation at the provided link. Before releasing, you need a ZIP file containing the packaged plugin code.</p>
+<ol>
+<li>
+<p>Ensure the version number is properly set in metadata.txt</p>
+</li>
+<li>
+<p>Ensure that all necessary files are listed in the pbtool.config file under the [files] section. This includes: <code>python_files</code> for Python source code, <code>main_dialog</code> and <code>compiled_ui_files</code> for UI files. If you have updated any icons and need to compile them, run:</p>
+<p><code>pb_tool compile</code></p>
+</li>
+<li>
+<p>Next, create the ZIP package by running:</p>
+<p><code>pb_tool zip</code></p>
+<p>The generated ZIP file will be located in the zip_build folder.</p>
+</li>
+<li>
+<p>To release you should go to the <a href="https://plugins.qgis.org">plugin hub</a>, log in, click on <code>Add Verion</code> and upload the zip file, remember to add proper changlog.</p>
+</li>
+</ol>
+<h2 id="tips-for-development-for-plugin">Tips for development for plugin</h2>
+<p>I found that reading environmental variable in plugin source code won't work. a work around way is that you can create a txt file named intelligeo_var.txt in your <code>~Document/QGIS_IntelliGeo/</code> folder, to store the encironmental variables and read those variables using <code>utils.getIntelligeoEnvVar</code> function. If you want to make sure all interactions from the team will be marked as <code>fromdev = True</code> in backend database, put the following line in the intelligeo_var.txt file.</p>
+<p><code>intelliGeo_fromdev = true</code></p>
+<p>The other important thing is debuging for the pluging is not easy, if you want to show a variable's value, use <code>utils.show_variable_popup</code>.</p>
+<h2 id="documentation">Documentation</h2>
+<p>The project's documentation is managed using <strong>MkDocs</strong>. Documentation is generated from the <code>.md</code> files in the <code>docs</code> folder, with settings configured in <code>mkdocs.yml</code> at the root of the repository.</p>
+<h3 id="testing-the-documentation-locally">Testing the Documentation Locally</h3>
+<p>To test the documentation locally, follow these steps:</p>
+<ol>
+<li>Install the required packages by running:</li>
+</ol>
+<p><code>pip install -U mkdocs mkdocs-material mkdocs-bootswatch mkdocs-ultralytics-plugin</code></p>
+<ol>
+<li>Navigate to the <code>IntelliGeo</code> folder, then start the local server with:</li>
+</ol>
+<p><code>mkdocs serve</code></p>
+<p>This will start a local server and make your site available at <code>http://127.0.0.1:8000/</code>. Open this URL in your browser to view the documentation.</p>
+<h3 id="building-the-site">Building the Site</h3>
+<p>The build process is automated via GitHub Actions. You can review the workflow in <code>.github/workflows/deploy.yml</code>.</p>
+<p>To check the workflow prior to pushing it on GitHub, we use <a href="https://nektosact.com/introduction.html#introduction">act</a>.</p>
+<h2 id="development-roadmap">Development Roadmap</h2>
+<h3 id="known-issues-discussions">Known Issues &amp; Discussions</h3>
+<p>IntelliGeo team have noticed that Cohere language models are not very stable and likely to crash when they update backend services. In that sense, we suggest you to use openai when there are problems with Cohere.</p>
+<p>If you meet any bug or issue with using our plugin, you can go to our issue list on github repository and check if there are any existing issues, if not you can post a new one. We are a very small team so we can not update the plugin very fast, we will try to react as fast as we can.</p></div>
+</div>
+<footer class="col-md-12 text-center">
+<hr/>
+<p>
+<small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+</p>
+</footer>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="../js/bootstrap-3.0.3.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script>var base_url = ".."</script>
+<script src="../js/base.js"></script>
+<script src="../search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<button class="close" data-dismiss="modal" type="button">
+<span aria-hidden="true">×</span>
+<span class="sr-only">Close</span>
+</button>
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+</div>
+<div class="modal-body">
+<p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="text"/>
+</div>
+</form>
+<div id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

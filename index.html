@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="img/favicon.ico" rel="shortcut icon"/>
+<title>Home - IntelliGeo</title>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" rel="stylesheet"/>
+<link href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css" rel="stylesheet"/>
+<link href="//rsms.me/inter/inter.css" rel="stylesheet" type="text/css"/>
+<link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&amp;subset=latin-ext,latin" rel="stylesheet" type="text/css"/>
+<link href="css/bootstrap-custom.min.css" rel="stylesheet"/>
+<link href="css/base.min.css" rel="stylesheet"/>
+<link href="css/cinder.min.css" rel="stylesheet"/>
+<link href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css" rel="stylesheet"/>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+<meta content="Home" name="title"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/><meta content="website" property="og:type"/><meta content="" property="og:url"/><meta content="Home" property="og:title"/><meta content="" property="og:description"/><meta content="https://img.shields.io/badge/QGIS-&gt;=3.34-86f060" property="og:image"/><meta content="summary_large_image" property="twitter:card"/><meta content="" property="twitter:url"/><meta content="Home" property="twitter:title"/><meta content="" property="twitter:description"/><meta content="https://img.shields.io/badge/QGIS-&gt;=3.34-86f060" property="twitter:image"/><style>
+.git-info, .dates-container, .authors-container, .share-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.git-info {
+    font-size: 0.8em;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.dates-container, .authors-container {
+    margin-bottom: 10px;
+}
+
+.date-item, .author-link, .share-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.date-item {
+    margin-right: 10px;
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+    font-size: 1.6em;
+    margin-right: 5px;
+}
+
+.author-link .hover-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background-color: #f0f0f0;  /* Placeholder color */
+    opacity: 0;  /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+    opacity: 1;  /* Fade in when src is set (image loaded) */
+}
+
+.hover-item:hover {
+    transform: scale(1.2);
+    filter: grayscale(0%);
+}
+
+.share-buttons {
+    margin-top: 10px;
+}
+
+.share-button {
+    background-color: #1da1f2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.95em;
+    margin: 5px;
+    transition: all 0.2s ease;
+}
+
+.share-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+    background-color: #0077b5;
+}
+
+.share-button i {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+    .git-info {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .dates-container, .authors-container {
+        width: 100%;
+    }
+}
+</style></head>
+<body class="homepage">
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container">
+<!-- Collapsed navigation -->
+<div class="navbar-header">
+<!-- Expander button -->
+<button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
+<span class="sr-only">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<!-- Main title -->
+<a class="navbar-brand" href=".">IntelliGeo</a>
+</div>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li class="active">
+<a href=".">Home</a>
+</li>
+<li>
+<a href="installation/">Installation</a>
+</li>
+<li>
+<a href="use/">How to use</a>
+</li>
+<li>
+<a href="tutorials/">Tutorials</a>
+</li>
+<li>
+<a href="development/">Development</a>
+</li>
+<li>
+<a href="change/">Change Log</a>
+</li>
+<li>
+<a href="team/">Core team</a>
+</li>
+<li>
+<a href="blogs/">Blogs</a>
+</li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+<a data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fas fa-search"></i> Search
+                        </a>
+</li>
+<li class="disabled">
+<a rel="prev">
+<i class="fas fa-arrow-left"></i> Previous
+                        </a>
+</li>
+<li>
+<a href="installation/" rel="next">
+                            Next <i class="fas fa-arrow-right"></i>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+<ul class="nav bs-sidenav">
+<li class="first-level active"><a href="#intelligeo">IntelliGeo</a></li>
+<li class="second-level"><a href="#use-of-llms">Use of LLMs</a></li>
+<li class="third-level"><a href="#key-features">Key Features</a></li>
+<li class="second-level"><a href="#the-repository">The Repository</a></li>
+<li class="second-level"><a href="#funding-through-ained-program">Funding through AiNed program</a></li>
+<li class="second-level"><a href="#join-us">Join Us</a></li>
+</ul>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="intelligeo">IntelliGeo</h1>
+<p><img alt="QGIS Version Badge" src="https://img.shields.io/badge/QGIS-&gt;=3.34-86f060"/>
+<img alt="Plugin Badge" src="https://img.shields.io/badge/plugin-IntelliGeo-2D9596"/>
+<img alt="GitHub Commit Activity" src="https://img.shields.io/github/commit-activity/m/MahdiFarnaghi/intelli_geo"/>
+<img alt="GitHub Creation Date" src="https://img.shields.io/github/created-at/MahdiFarnaghi/intelli_geo"/>
+<img alt="GitHub License" src="https://img.shields.io/github/license/MahdiFarnaghi/intelli_geo"/>
+<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/MahdiFarnaghi/intelli_geo"/>
+<img alt="GitHub Issues" src="https://img.shields.io/github/issues/MahdiFarnaghi/intelli_geo"/></p>
+<p><a href="https://plugins.qgis.org/plugins/intelli_geo/">IntelliGeo</a> is an open source <a href="https://www.qgis.org/">QGIS</a> plugin designed to bring the power of Large Language Models (LLMs) to the QGIS platform, making geospatial analysis more intuitive and efficient.</p>
+<p>The plugin is in development phase. We just released version <code>0.1.0</code>: <a href="https://plugins.qgis.org/plugins/intelli_geo/#plugin-about">IntelliGeo on QGIS Python Plugins Repository</a>. To see the version history check our <a href="https://www.intelligeo.org/change/">change log</a>.</p>
+<h2 id="use-of-llms">Use of LLMs</h2>
+<p>IntelliGeo leverages <strong>Large Language Models</strong> to automate and simplify geospatial workflows within QGIS. </p>
+<p>Designed for GIS professionals, IntelliGeo assists users by automatically generating analytical models in the form of <strong>PyQGIS scripts</strong> or <strong>workflows</strong>, enabling efficient operation of QGIS software. This AI-powered tool reduces the need for extensive manual coding or model creation, enhancing productivity and simplifying complex geospatial analyses. By seamlessly integrating with QGIS, IntelliGeo allows users to design and execute complex geoprocessing tasks with ease.</p>
+<h3 id="key-features">Key Features</h3>
+<ul>
+<li>Seamless integration with the QGIS environment</li>
+<li>LLM-powered automation of geoprocessing workflows</li>
+<li>Collaborative modeling between AI systems and human experts</li>
+</ul>
+<h2 id="the-repository">The Repository</h2>
+<p>The IntelliGeo plugin is open-source, and its codebase is available on GitHub: <a href="https://github.com/MahdiFarnaghi/intelli_geo/">IntelliGeo Repository</a></p>
+<p>This repository, maintained by the development team—<a href="https://github.com/MahdiFarnaghi">Mahdi Farnaghi</a>, <a href="https://github.com/chape1331">Gustavo García</a>, and <a href="https://github.com/com3dian">Zehao Lu</a>—in collaboration with the community, serves as the hub for the IntelliGeo project. Here, users can access the source code, report issues, and contribute to ongoing development. </p>
+<p>The code is licensed under the <a href="https://github.com/MahdiFarnaghi/intelli_geo/tree/main?tab=Apache-2.0-1-ov-file">Apache 2.0 license</a>, ensuring that the project remains open and accessible for future development and use.</p>
+<h2 id="funding-through-ained-program">Funding through AiNed program</h2>
+<p>The development of IntelliGeo is part of the project titled "IntelliGeo: Laying the Groundwork for Integrating Large Language Models into GIS," funded by the Dutch Research Council (<a href="https://www.nwo.nl/en">NWO</a>) under the <a href="https://www.nwo.nl/en/researchprogrammes/national-growth-fund/ained">AiNed</a> program. This program aims to promote the development and application of AI within Dutch businesses and governmental institutions. The project is managed by the Geo-Information Processing Department at the Faculty of ITC, University of Twente, and is carried out in collaboration with the Barcelona Supercomputing Center - Centro Nacional de Supercomputación (<a href="https://www.bsc.es/">BSC</a>). Running from March 2023 to March 2024, the project seeks to revolutionize how geographical models are created by integrating advanced AI language models into open-source GIS tools.</p>
+<p>The initiative's main goal is to develop tools that enable AI and human experts to collaboratively design sophisticated models for a variety of applications, including flood risk detection, crop yield estimation, and environmental change prediction.</p>
+<h2 id="join-us">Join Us</h2>
+<p>We invite anyone passionate about open-source development, GIS, or AI to get involved! Whether you're interested in contributing code, improving documentation, or sharing ideas, your input is invaluable in shaping the future of IntelliGeo.</p>
+<p>If you’d like to join us, reach out via email at <a href="mailto:intelligeo-itc@utwente.nl">IntelliGeo Email</a>.  Don’t hesitate to open an issue if you encounter any bugs or have suggestions for improvements. Together, we can make geospatial analysis more powerful and accessible for everyone.</p></div>
+</div>
+<footer class="col-md-12 text-center">
+<hr/>
+<p>
+<small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+</p>
+</footer>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="js/bootstrap-3.0.3.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script>var base_url = "."</script>
+<script src="js/base.js"></script>
+<script src="search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<button class="close" data-dismiss="modal" type="button">
+<span aria-hidden="true">×</span>
+<span class="sr-only">Close</span>
+</button>
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+</div>
+<div class="modal-body">
+<p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="text"/>
+</div>
+</form>
+<div id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2025-06-03 07:58:35.760092+00:00
+-->
