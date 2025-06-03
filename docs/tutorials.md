@@ -612,42 +612,6 @@ vector_layer.commitChanges()
 
 ---  
 
-### **Step:** 13
-
-**Prompt:**
-
-**Expected output:**
-
-**Example output:**  
-
-**Example execution:**  
-
----  
-
-### **Step:** 14
-
-**Prompt:**
-
-**Expected output:**
-
-**Example output:**  
-
-**Example execution:**  
-
----  
-
-### **Step:** 15
-
-**Prompt:**
-
-**Expected output:**
-
-**Example output:**  
-
-**Example execution:**  
-
----  
-
 ## References
 
 **[O’Mara et al., 2021]** O'Mara MT, Amorim F, Scacco M, McCracken GF, Safi K, Mata V, Tomé R, Swartz S, Wikelski M, Beja P, Rebelo H, Dechmann DKN. 2021. Bats use topography and nocturnal updrafts to fly high and fast. Curr Biol. https://doi.org/10.1016/j.cub.2020.12.042
