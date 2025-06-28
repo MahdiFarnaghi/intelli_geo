@@ -11,11 +11,13 @@ from .utils import (
     tuple2Dict,
     getSystemInfo,
     captchaPopup,
-    getIntelligeoEnvVar,
-    show_variable_popup,
 )
 import re 
 from . import log_manager
+from . import config
+
+
+
 
 
 class Dataloader:
@@ -26,6 +28,7 @@ class Dataloader:
         self.llmFullDict = None
         self.llmEndpointDict = None
         self.apiKeyDict = None
+        # TODO change this to a more suitable location
         folderPath = os.path.expanduser("~/Documents/QGIS_IntelliGeo")
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
@@ -73,12 +76,12 @@ class Dataloader:
         self.credentialTableColName = ["ID", "sessionID", "sessionKey"]
 
         # backend url
-        self.backendURL = "https://owsgip.itc.utwente.nl/intelligeo/"
-        self.fromdev = getIntelligeoEnvVar("intelliGeo_fromdev") == "true"
+        self.backendURL = config.BACKEND_URL
 
     def _checkExistence(self, tableName):
         """
-        Checks whether a table with the specified name exists in the SQLite database.
+        Utility method for internal use to check whether a table with the specified name exists in the SQLite database.
+        This method is intended to be used during table creation and initialization routines.
 
         Args:
             tableName (str): The name of the table to check for existence.
@@ -113,9 +116,11 @@ class Dataloader:
         self._createInteractionTable()
         self._createCrendentialTable()
 
+    #TODO: List of LLMs should be fetched from backend
+    #       and not hardcoded here.
     def _createLLMTable(self):
         """
-        Create "llm" table if d not exist and insert "llm ID" and "llm ame".
+        Create "llm" table if does not exist and insert "llm ID" and "llm ame".
         Each row in table should look like: Cohere::command-r-plus, command-r-plus, ..., ...
         """
         # Full dict of llm names and providers. Will be used in `.getLLMInfo()`
@@ -151,10 +156,6 @@ class Dataloader:
                 ]
                 self.llmFullDict["Ollama"] = ollama_models if ollama_models else []
                 ollama_is_available = True
-                log_manager.log_debug(f"Ollama is available at {ollama_url}.")
-                log_manager.log_debug(
-                    f"Ollama models fetched successfully: {ollama_models}"
-                )
             else:
                 self.llmFullDict["Ollama"] = []
         except Exception:
@@ -329,6 +330,9 @@ class Dataloader:
         else:
             return "default", "default"
 
+    def fetchLLMs(self):
+        pass
+
     def fetchPrompt(
         self, llmID, promptType, clientVersion: str = "0.0.3", testing: bool = False
     ):
@@ -347,7 +351,7 @@ class Dataloader:
 
         return response.json()
 
-    def insertConversationInfo(self, conversationInfoDict):
+    def insertConversationInfo(self, conversationInfoDict: dict) -> None:
         insertSQL = f"""
             INSERT INTO {self.conversationTableName} 
             (ID, llmID, title, description, created, modified, messageCount, workflowCount, userID) 
@@ -356,10 +360,6 @@ class Dataloader:
         conversationInfoList = unpack(conversationInfoDict, "conversation")
         self.cursor.execute(insertSQL, conversationInfoList)
         self.connection.commit()
-
-        # TODO: remove after v0.0.4
-        if conversationInfoDict["llmID"] in ["DeepSeek::deepseek-chat", "DeepSeek::deepseek-reasoner"]:
-            conversationInfoDict["llmID"] = "Cohere::command-r"
 
         # Check if llmID exists in llm table before posting data
         self.cursor.execute(f"SELECT 1 FROM {self.llmTableName} WHERE ID = ?", (conversationInfoDict["llmID"],))
@@ -585,127 +585,49 @@ class Dataloader:
         sortedRows = sorted(processedRows, key=lambda x: x[-1])
         return sortedRows[-1][:-1]
 
-    # import re
-    # def _sanitize_string(self, value: str) -> str:
-    #     """
-    #     Sanitize a string by replacing single colons (:) with ___, but leave double colons (::) intact.
-    #     """
-    #     return re.sub(r'(?<!:):(?!:)', '___', value)
-
-    # def _sanitize_for_payload(self, dataDict: dict) -> dict:
-    #     # for key, value in dataDict.items():
-    #     #     if isinstance(value, str):
-    #     #         dataDict[key] = self._sanitize_string(value)
-    #     # return dataDict
-    #     return dataDict
-
-    # def _restore_sanitized_string(self, value: str) -> str:
-    #     return value.replace("___", ":")
-
-    # def _restore_sanitized_payload(self, data):
-    #     # """
-    #     # Restore sanitized strings in the payload by replacing triple underscores with colons.
-    #     # Accepts either a single dict or a list of dicts.
-    #     # """
-    #     # def restore_dict(d):
-    #     #     restored = {}
-    #     #     for key, value in d.items():
-    #     #         if isinstance(value, str):
-    #     #             restored[key] = self._restore_sanitized_string(value)
-    #     #         else:
-    #     #             restored[key] = value
-    #     #     return restored
-    #     # if isinstance(data, dict):
-    #     #     return restore_dict(data)
-    #     # elif isinstance(data, list):
-    #     #     return [restore_dict(item) for item in data]
-    #     # else:
-    #     #     return data
-    #     return data
-
     def postData(self, endpoint, data):
+        log_manager.log_debug(
+            f"Sending data to {self.backendURL}/{endpoint} with payload: {data}"
+        )
+        payload = data
         header = getSystemInfo()
 
-        # Prepare initial data
-        dataDict = copy.deepcopy(data)
-        sessionID, sessionKey = self.loadCredential()
-        dataDict["sessionID"] = sessionID
-        dataDict["sessionKey"] = sessionKey
-        # dataDict = self._sanitize_for_payload(dataDict)
+        while True:
+            dataDict = copy.deepcopy(data)
+            sessionID, sessionKey = self.loadCredential()
+            dataDict["sessionID"] = sessionID
+            dataDict["sessionKey"] = sessionKey
+            try:
+                response = requests.post(f"{self.backendURL}/{endpoint}", json=dataDict, headers=header)
+                if response.status_code == 200:
+                    break
+                else:
+                    errorResponse = response.json()
+                    captchaDict = errorResponse.get('detail', {})
+                    answer = captchaPopup(captchaDict)
+                    body = {"answer": answer}
 
+                    header = getSystemInfo()
+                    header["sendtime"] = getCurrentTimeStamp()
 
-        try:
-            response = requests.post(
-                f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
-            )
+                    response = requests.post(f"{self.backendURL}/register", headers=header, json=body)
+                    if response.status_code == 200:
+                        response_data = response.json()
 
-            # If unauthorized, try refreshing session once
-            if response.status_code == 401:
-                log_manager.log_debug("Session expired, attempting to refresh credentials...")
-                refreshed = self._refreshSession()
-                if refreshed:
-                    sessionID, sessionKey = self.loadCredential()
-                    dataDict["sessionID"] = sessionID
-                    dataDict["sessionKey"] = sessionKey
-                    response = requests.post(
-                        f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
-                    )
+                        # Extract the credentials
+                        sessionID = response_data.get("sessionID")
+                        sessionKey = response_data.get("sessionKey")
+                        self.updateCredential(sessionID, sessionKey)
 
-            response.raise_for_status()
-
-        except requests.exceptions.HTTPError as httpErr:
-            log_manager.log_error(f"HTTP error occurred: {httpErr}")
-            raise httpErr
-        except requests.exceptions.RequestException as reqErr:
-            log_manager.log_error(f"Request error occurred: {reqErr}")
-            raise reqErr
-        except Exception as e:
-            log_manager.log_error(f"An unexpected error occurred: {e}")
-            raise e
-
-
-    # def postData(self, endpoint, data):
-    #     header = getSystemInfo()
-
-    #     # Prepare initial data
-    #     dataDict = copy.deepcopy(data)
-    #     sessionID, sessionKey = self.loadCredential()
-    #     dataDict["sessionID"] = sessionID
-    #     dataDict["sessionKey"] = sessionKey
-    #     dataDict = self._sanitize_for_payload(dataDict)
-
-    #     log_manager.log_debug(
-    #         f"Sending data to {self.backendURL}/{endpoint} with payload: {dataDict}"
-    #     )
-
-    #     try:
-    #         response = requests.post(
-    #             f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
-    #         )
-
-    #         # If unauthorized, try refreshing session once
-    #         if response.status_code == 401:
-    #             log_manager.log_debug("Session expired, attempting to refresh credentials...")
-    #             refreshed = self._refreshSession()
-    #             if refreshed:
-    #                 sessionID, sessionKey = self.loadCredential()
-    #                 dataDict["sessionID"] = sessionID
-    #                 dataDict["sessionKey"] = sessionKey
-    #                 response = requests.post(
-    #                     f"{self.backendURL}/{endpoint}", json=dataDict, headers=header
-    #                 )
-
-    #         response.raise_for_status()
-
-    #     except requests.exceptions.HTTPError as httpErr:
-    #         log_manager.log_error(f"HTTP error occurred: {httpErr}")
-    #         raise httpErr
-    #     except requests.exceptions.RequestException as reqErr:
-    #         log_manager.log_error(f"Request error occurred: {reqErr}")
-    #         raise reqErr
-    #     except Exception as e:
-    #         log_manager.log_error(f"An unexpected error occurred: {e}")
-    #         raise e
+            except requests.exceptions.HTTPError as httpErr:
+                log_manager.log_error(f"HTTP error occurred: {httpErr}")
+                raise httpErr
+            except requests.exceptions.RequestException as reqErr:
+                log_manager.log_error(f"Request error occurred: {reqErr}")
+                raise reqErr
+            except Exception as e:
+                log_manager.log_error(f"An unexpected error occurred: {e}")
+                raise e
 
     def _refreshSession(self):
         """

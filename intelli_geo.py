@@ -21,10 +21,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-from . import log_manager
+from . import log_manager, config
 
 log_manager.log_debug(
-    "IntelliGeo plugin is starting... Debug mode is "
+    "IntelliGeo plugin is starting ... Debug mode is enabled."
+    if config.DEBUG_MODE
+    else "IntelliGeo plugin is starting ..."
 )
 
 
@@ -43,11 +45,15 @@ requiredModules = [
     "langchain_groq",
     "requests",
     "psutil",
-    "langchain_ollama"
-    #"bs4",
+    "langchain_ollama",
+    # "bs4",
 ]
+if config.DEBUG_MODE:
+    requiredModules.append("debugpy")
+
 packageManager = PackageManager(requiredModules)
 packageManager.checkDependencies()
+
 
 from qgis.PyQt.QtCore import (
     QSettings,
@@ -97,15 +103,14 @@ from .utils import (
     generateUniqueID,
     getCurrentTimeStamp,
     pack,
-    show_variable_popup,
     extractCode,
     getVersion,
-    showErrorMessage,
 )
 from .retrievalVectorbase import RetrievalVectorbase
 from .debugDialog import DebugDialog
 
 from .environment import QgisEnvironment
+
 
 
 class IntelliGeo:
@@ -147,7 +152,7 @@ class IntelliGeo:
 
         self.pluginIsActive = False
         self.dockwidget = None
-        self.editdialog = None
+        self.conversation_dialog = None
         self.liveConversationID = None
         self.liveConversation = None
 
@@ -421,20 +426,17 @@ class IntelliGeo:
         self.liveConversation.llmResponse.disconnect(self.onNewResponseReceived)
         self.liveConversation.llmInterrupted.disconnect(self.onNewResponseNotReceived)
 
-        # TODO: popup window
-        showErrorMessage(errorMessage)
-
     def onConversationNewed(self):
         log_manager.log_debug("Creating a new conversation...")
-        if self.editdialog is None or not self.editdialog.isVisible():
-            self.editdialog = NewEditConversationDialog(
+        if self.conversation_dialog is None or not self.conversation_dialog.isVisible():
+            self.conversation_dialog = NewEditConversationDialog(
                 self.dataloader.llmFullDict, self.dataloader.fetchAllConfig()
             )
-            self.editdialog.show()
-            if self.editdialog.exec_() == QDialog.Accepted:
+            self.conversation_dialog.show()
+            if self.conversation_dialog.exec_() == QDialog.Accepted:
                 # The dialog was accepted, handle the data if needed
                 title, description, llmID, endpoint, apiKey = (
-                    self.editdialog.onUpdateMetadata()
+                    self.conversation_dialog.onUpdateMetadata()
                 )
                 created = getCurrentTimeStamp()
                 modified = created
@@ -487,6 +489,7 @@ class IntelliGeo:
         self.liveConversation.lastEdit = getCurrentTimeStamp()
 
         # Dataloader: Sync meta-information to database
+        # TODO: Check if the endpoint is sent properly
         self.dataloader.updateConversationInfo(self.liveConversation.metaInfo)
 
         # Dock Interface: Change the order of the Conversation Cards
@@ -532,20 +535,20 @@ class IntelliGeo:
     def onConversationEdited(self, conversationID: str) -> None:
 
         # New/Edit Dialog Interface: If no dialog, create one
-        if self.editdialog is None or not self.editdialog.isVisible():
+        if self.conversation_dialog is None or not self.conversation_dialog.isVisible():
             editConversation = Conversation(
                 conversationID, self.dataloader, self.retrievalVectorbase
             )
-            self.editdialog = NewEditConversationDialog(
+            self.conversation_dialog = NewEditConversationDialog(
                 self.dataloader.llmFullDict,
                 self.dataloader.fetchAllConfig(),
                 editConversation.title,
                 editConversation.description,
                 editConversation.llmID,
             )
-            self.editdialog.show()
+            self.conversation_dialog.show()
 
-            if self.editdialog.exec_() == QDialog.Accepted:
+            if self.conversation_dialog.exec_() == QDialog.Accepted:
                 # Conversation: Dialog was accepted, update conversation meta-information
                 (
                     editConversation.title,
@@ -553,7 +556,7 @@ class IntelliGeo:
                     llmID,
                     _,
                     apiKey,
-                ) = self.editdialog.onUpdateMetadata()
+                ) = self.conversation_dialog.onUpdateMetadata()
                 editConversation.lastEdit = getCurrentTimeStamp()
 
                 # the information don't have to be about liveConversation
@@ -802,6 +805,5 @@ class IntelliGeo:
                                 editor.setPlainText("hello")
 
     def onOpenWorkflow(self, index):
-        show_variable_popup("onOpenWorkflow: " + str(index))
         code = self.liveConversation.codeList[index]
         self.activateConsole(code, False)

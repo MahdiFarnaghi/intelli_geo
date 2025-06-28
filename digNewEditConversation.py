@@ -9,7 +9,7 @@ from qgis.PyQt.QtWidgets import QLineEdit
 
 # Import customized widgets for message
 from . import messageEdit
-from .utils import nestedDict2list, show_variable_popup
+from .utils import nestedDict2list
 from . import log_manager
 
 
@@ -64,7 +64,6 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
 
         currentIndex = self.cbLLM.currentIndex()
         currentLLMID = self.cbLLM.itemText(currentIndex)
-        show_variable_popup(self.configfullList)
         for llmInfo in self.configfullList:
             if currentLLMID == llmInfo[0]:
                 endpoint, apiKey = llmInfo[-2:]
@@ -89,6 +88,8 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
         self.ptName.installEventFilter(self)
 
     def closeEvent(self, event):
+        # TODO: Check if the title is provided, if not, show a warning and prevent closing
+
         self.closed.emit()
         event.accept()
 
@@ -104,6 +105,12 @@ class NewEditConversationDialog(QtWidgets.QDialog, FORM_CLASS):
     def handleOkay(self):
         # Call onUpdateMetadata and process output
         name, description, LLM, endpoint, apiKey = self.onUpdateMetadata()
+        
+        if not name.strip():
+            QtWidgets.QMessageBox.warning(self, "Missing Name", "Please enter a conversation name.")
+            self.ptName.setFocus()
+            return  # Do not close the dialog
+        
         self.accept()  # Close the dialog
 
     def onIndexChanged(self, index):

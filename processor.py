@@ -2,6 +2,7 @@
 import json
 import os
 import asyncio
+from . import log_manager
 
 
 from qgis.PyQt.QtCore import QThreadPool, pyqtSignal, QObject
@@ -18,7 +19,7 @@ from langchain_deepseek import ChatDeepSeek
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 
-from .utils import show_variable_popup, getVersion, getCurrentTimeStamp, pack
+from .utils import getVersion, getCurrentTimeStamp, pack
 from .tools import readEnvironment
 from .responseWorker import ResponseWorker, ReflectWorker
 from .dataloader import Dataloader
@@ -47,6 +48,7 @@ class Processor(QObject):
         elif self.llmProvider == "Groq":
             self.llm = ChatGroq(model=self.llmName, api_key=apiKey, temperature=0)
         elif self.llmProvider == "Ollama":
+            log_manager.log_debug(f"Using Ollama model: {self.llmName} with API key: {apiKey}")
             self.llm = ChatOllama(model=self.llmName, ollama_api_key=apiKey, temperature=0)
         
 
@@ -64,7 +66,6 @@ class Processor(QObject):
         """
         requestTime = getCurrentTimeStamp()
         classifierPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="classifier")
-        show_variable_popup(classifierPromptRow)
         classifierPrompt = ChatPromptTemplate.from_template(classifierPromptRow["template"])
 
         classifierChain = classifierPrompt | self.llm | self.outputParser
@@ -83,7 +84,6 @@ class Processor(QObject):
 
     def reactionRouter(self, userInput, responseType):
         decision = self.classifier(userInput)
-        show_variable_popup(decision)
 
         if decision.lower() in ["no", "yes, yes", "yes, no"]:
             if decision.lower() == "no":
@@ -132,7 +132,6 @@ class Processor(QObject):
 
         generalChatPromptRow = self.dataloader.fetchPrompt(self.llmID, promptType="generalChat")
         template = generalChatPromptRow["template"]
-        show_variable_popup(template)
         humanMessage = HumanMessage(template.format(input=userInput))
         messageList = [humanMessage]
 
@@ -159,7 +158,6 @@ class Processor(QObject):
             # langchain inference
             chatChain = llmWithTools | self.outputParser
             chatReturn = chatChain.invoke(messageList)
-        show_variable_popup(chatReturn)
         responseTime = getCurrentTimeStamp()
 
         # ["conversationID", "promptID",
@@ -288,8 +286,6 @@ class Processor(QObject):
         humanMessage = HumanMessage(template.format(input=userInput, doc=docStr, example=exampleStr))
         messageList = [humanMessage]
 
-        show_variable_popup(messageList)
-
         tools = [readEnvironment]
         toolDict = {"readenvironment": readEnvironment}
         if self.llmName not in ["deepseek-reasoner"]:
@@ -325,11 +321,6 @@ class Processor(QObject):
 
     def confirmChain(self):
         return RunnableLambda(lambda x: "Are you sure?")
-
-    # def response(self, userInput, responseType):
-    #     response, workflow = self.reactionRouter(userInput, responseType)
-    #
-    #     return response, workflow
 
     def asyncResponse(self, userInput, responseType):
         worker = ResponseWorker(self, userInput, responseType)
@@ -386,7 +377,6 @@ class Processor(QObject):
 
             humanMessage = HumanMessage(template.format(userInput=userInput, AIResponse=AIResponse,
                                                         executedCode=executedCode, logMessage=logMessage))
-            show_variable_popup(humanMessage)
             messageList = [humanMessage]
             prompt = f"""
                      Context:
@@ -463,10 +453,8 @@ class Processor(QObject):
 
         # get the AI response
         previousRequest, AIResponse = latestInteraction["requestText"], latestInteraction["responseText"]
-        show_variable_popup(previousRequest)
         humanMessage = HumanMessage(template.format(input=userInput, previousRequest=previousRequest,
                                                     previousResponse=AIResponse, doc=docStr, example=exampleStr))
-        show_variable_popup(humanMessage)
         messageList = [humanMessage]
 
         tools = [readEnvironment]

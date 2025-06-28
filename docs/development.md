@@ -136,14 +136,6 @@ The recommended way to package the plugin is by using [pb_tool](https://g-sherma
 
 4. To release you should go to the [plugin hub](https://plugins.qgis.org), log in, click on `Add Verion` and upload the zip file, remember to add proper changlog.
 
-## Tips for development for plugin
-
-I found that reading environmental variable in plugin source code won't work. a work around way is that you can create a txt file named intelligeo_var.txt in your `~Document/QGIS_IntelliGeo/` folder, to store the encironmental variables and read those variables using `utils.getIntelligeoEnvVar` function. If you want to make sure all interactions from the team will be marked as `fromdev = True` in backend database, put the following line in the intelligeo_var.txt file.
-
-`intelliGeo_fromdev = true`
-
-The other important thing is debuging for the pluging is not easy, if you want to show a variable's value, use `utils.show_variable_popup`.
-
 ## Documentation
 
 The project's documentation is managed using **MkDocs**. Documentation is generated from the `.md` files in the `docs` folder, with settings configured in `mkdocs.yml` at the root of the repository.

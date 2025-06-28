@@ -43,7 +43,7 @@ Note:
 import requests
 
 
-from .utils import splitAtPattern, show_variable_popup
+from .utils import splitAtPattern
 # from .utils import readURL
 
 class RetrievalVectorbase:

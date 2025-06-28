@@ -5,7 +5,7 @@ import subprocess
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication
 from datetime import datetime
-from . import log_manager
+from . import log_manager, config
 
 
 
@@ -18,21 +18,14 @@ class PackageManager:
 
         log_manager.log_debug("Initializing PackageManager")
 
-        self.scriptDir = os.path.dirname(os.path.abspath(__file__))
-        self.extpluginDir = os.path.join(self.scriptDir, "extlibs")
+        log_manager.log_debug("Path to requirements.txt: {}".format(config.REQUIREMENTS_PATH))
+
+        log_manager.log_debug("EXTLIBS_DIRECTORY: {}".format(config.EXTLIBS_DIRECTORY))
+
+        log_manager.log_debug("Script directory: {}".format(config.SCRIPT_DIRECTORY))
+
         self.qgisPython = self._get_qgis_python_path()
-
-        log_manager.log_debug(
-            f"QGIS Python executable: {self.qgisPython}\nscriptDir: {self.scriptDir}\nextpluginDir: {self.extpluginDir}"
-        )
-
-        if self.extpluginDir not in sys.path:
-            sys.path.insert(0, self.extpluginDir)
-            log_manager.log_debug(
-                f"Added extpluginDir to sys.path: {self.extpluginDir}"
-            )
-
-        print(f"extpluginDir: {self.extpluginDir}")
+        
         self.dependencies = dependencies
         self.missingDependencies = []
 
@@ -66,16 +59,19 @@ class PackageManager:
         """
         Check for missing dependencies and prompt the user to install them.
         """
-        log_manager.log_debug(
-            "Checking dependencies with checkDependencies(): {}".format(
-                self.dependencies
-            )
-        )
+        # log_manager.log_debug(
+        #     "Checking dependencies with checkDependencies(): {}".format(
+        #         self.dependencies
+        #     )
+        # )
 
         self.missingDependencies = [
             dep for dep in self.dependencies if not self._isModuleInstalled(dep)
         ]
-        log_manager.log_debug(f"Missing dependencies:{self.missingDependencies}")
+        if len(self.missingDependencies) > 0:
+            log_manager.log_debug(
+                f"Missing dependencies found: {self.missingDependencies}"
+            )
         if self.missingDependencies:
             self._promptInstallation()
 
@@ -118,7 +114,7 @@ class PackageManager:
     def _installDependencies(self):
         """
         Attempt to install missing dependencies using subprocess and pip.
-        Uses platform-aware logic and prioritizes installing to extpluginDir.
+        Uses platform-aware logic and prioritizes installing to EXTLIBS_DIRECTORY.
         """
 
         if not self._isPipAvailable():
@@ -128,16 +124,15 @@ class PackageManager:
                 return
 
         log_manager.log_debug("Starting _installDependencies() to install missing dependencies.")
-        requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
 
-        if not os.path.exists(requirementsPath):
+        if not os.path.exists(config.REQUIREMENTS_PATH):
             log_manager.log_debug("requirements.txt not found.")
             QMessageBox.critical(None, "Missing File", "Could not find requirements.txt.")
             return
 
         install_commands = [
             {
-                "description": "Install to extpluginDir using QGIS Python",
+                "description": "Install to EXTLIBS_DIRECTORY using QGIS Python",
                 "cmd": [
                     self.qgisPython,
                     "-m",
@@ -145,9 +140,9 @@ class PackageManager:
                     "install",
                     "--upgrade",
                     "--target",
-                    self.extpluginDir,
+                    config.EXTLIBS_DIRECTORY,
                     "-r",
-                    requirementsPath,
+                    config.REQUIREMENTS_PATH,
                 ],
             },
             {
@@ -159,7 +154,7 @@ class PackageManager:
                     "install",
                     "--upgrade",
                     "-r",
-                    requirementsPath,
+                    config.REQUIREMENTS_PATH,
                 ],
             },
         ]
@@ -202,27 +197,22 @@ class PackageManager:
             None,
             "Installation Failed",
             "Failed to install the required modules. Please install them manually using the following command:\n\n"
-            f"{self.qgisPython} -m pip install --target {self.extpluginDir} -r {requirementsPath}\n\n"
+            f"{self.qgisPython} -m pip install --target {config.EXTLIBS_DIRECTORY} -r {config.REQUIREMENTS_PATH}\n\n"
             "Make sure you have network access and sufficient permissions.",
         )
 
     def _forceInstallDependencies(self):
         """
         Attempt to force install missing dependencies using pip.
-        This uses subprocess and respects extpluginDir targeting.
+        This uses subprocess and respects EXTLIBS_DIRECTORY targeting.
         """
-        requirementsPath = os.path.join(self.scriptDir, "requirements.txt")
 
-        if not os.path.exists(requirementsPath):
+        if not os.path.exists(config.REQUIREMENTS_PATH):
             log_manager.log_debug("requirements.txt not found.")
             QMessageBox.critical(
                 None, "Missing File", "Could not find requirements.txt."
             )
             return
-
-        if not os.path.exists(self.extpluginDir):
-            os.makedirs(self.extpluginDir, exist_ok=True)
-            log_manager.log_debug(f"Created extpluginDir: {self.extpluginDir}")
 
         try:
             log_manager.log_debug("Attempting forced installation using QGIS Python.")
@@ -236,18 +226,12 @@ class PackageManager:
                     "--force-reinstall",
                     "--use-deprecated=legacy-resolver",
                     "--target",
-                    self.extpluginDir,
+                    config.EXTLIBS_DIRECTORY,
                     "-r",
-                    requirementsPath,
+                    config.REQUIREMENTS_PATH,
                 ]
             )
             log_manager.log_debug("Force install succeeded.")
-
-            if self.extpluginDir not in sys.path:
-                sys.path.insert(0, self.extpluginDir)
-                log_manager.log_debug(
-                    f"Added extpluginDir to sys.path: {self.extpluginDir}"
-                )
 
             missingDependencies = [
                 dep for dep in self.dependencies if not self._isModuleInstalled(dep)
@@ -311,7 +295,7 @@ class PackageManager:
             return
 
         get_pip_url = "https://bootstrap.pypa.io/get-pip.py"
-        get_pip_path = os.path.join(self.scriptDir, "get-pip.py")
+        get_pip_path = os.path.join(config.SCRIPT_DIRECTORY, "get-pip.py")
 
         try:
             import urllib.request

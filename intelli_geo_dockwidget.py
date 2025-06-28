@@ -63,8 +63,9 @@ from qgis.PyQt.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QP
 from qgis.PyQt.QtGui import QFont, QTextCursor, QPalette
 from .conversation import Conversation
 from .hoverComboBox import HoverComboBox
-from .utils import (handleNoneConversation, pack, unpack, formatDescription, show_variable_popup, createMarkdown,
+from .utils import (handleNoneConversation, pack, unpack, formatDescription, createMarkdown,
                     setFontColor)
+from . import log_manager
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'intelli_geo_dockwidget_base.ui'))
@@ -153,6 +154,7 @@ class IntelliGeoDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.addConversationCard(conversationMetaInfo, slotsFunctions)
 
     def addConversationCard(self, metaInfo, slotsFunctions, order=0, highlight=lambda x: x):
+        log_manager.log_debug(f"Adding conversation card - title: {metaInfo['title']} and llmID: {metaInfo['llmID']}")
         onConversationLoad, onConversationDeleted, onConversationEdited = slotsFunctions
         conversationCard = QGroupBox()
         cardLayout = QVBoxLayout()

@@ -1,7 +1,6 @@
 import traceback
 
 from qgis.PyQt.QtCore import QRunnable, pyqtSignal, QObject
-from .utils import show_variable_popup
 
 class WorkerSignals(QObject):
     finished = pyqtSignal(object, object)  # Signal to emit when the task is finished

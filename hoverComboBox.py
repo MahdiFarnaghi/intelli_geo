@@ -1,6 +1,5 @@
 from qgis.PyQt.QtWidgets import QComboBox, QListView
 from qgis.PyQt.QtCore import QModelIndex, pyqtSignal
-from .utils import show_variable_popup
 
 class HoverComboBox(QComboBox):
     hovered = pyqtSignal(str)  # Custom signal emitted when an item is hovered
